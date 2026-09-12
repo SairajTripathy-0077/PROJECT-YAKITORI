@@ -41,6 +41,7 @@ export const AuthModal: FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) =>
 
     setIsSubmitting(true);
     try {
+      const derivedName = email.split('@')[0] || 'Hero';
       if (mode === 'signin') {
         await loginWithEmail(email, password);
       } else {

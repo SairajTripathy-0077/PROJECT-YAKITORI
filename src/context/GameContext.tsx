@@ -6,7 +6,6 @@ import type {
   ShopItem, 
   DroneState, 
   AttributeType,
-  QuestDifficulty,
   LevelUpModalData,
   DroneExpression
 } from '../types/game';
@@ -22,12 +21,10 @@ import {
   applyQuestCompletion, 
   revertQuestCompletion, 
   calculateBaseRewards,
-  processDailyStreak,
   checkStreakBreak,
   calculateCharacterXpThreshold,
   calculateAttributeXpThreshold,
-  getCharacterTitle,
-  getLocalTodayStr
+  getCharacterTitle
 } from '../utils/rpgEngine';
 import { 
   playQuestComplete, 
@@ -40,6 +37,7 @@ import {
   setSoundEnabled as setAudioEnabled
 } from '../utils/sound';
 import { useAuth } from './AuthContext';
+import { useCompanion } from './CompanionContext';
 import { api } from '../utils/api';
 
 interface GameContextType {
@@ -56,14 +54,12 @@ interface GameContextType {
   updatePlayerCharacter: (data: { name?: string; characterClass?: string; equippedCharacter?: number; avatar?: string }) => void;
   updateAttributes: (newAttrs: AttributeMap) => void;
   addQuest: (questData: Omit<Quest, 'id' | 'createdAt' | 'completed' | 'xpReward' | 'goldReward'> & { xpReward?: number; goldReward?: number }) => void;
-  updateQuest: (id: string, updatedData: Partial<Omit<Quest, 'id' | 'createdAt'>>) => void;
   toggleQuest: (id: string) => void;
   completeQuest: (id: string) => void;
   gainXP: (amount: number, attribute?: AttributeType) => void;
   deleteQuest: (id: string) => void;
   toggleSubtask: (questId: string, subtaskId: string) => void;
   addSubtask: (questId: string, title: string) => void;
-  deleteSubtask: (questId: string, subtaskId: string) => void;
   purchaseItem: (itemId: string) => void;
   equipItem: (itemId: string) => void;
   toggleSound: () => void;
@@ -79,105 +75,38 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, dbProfile } = useAuth();
+  const { user } = useAuth();
+  const { triggerGreeting } = useCompanion();
   const storageKey = user ? `yakitori_rpg_state_${user.uid}` : 'yakitori_rpg_game_state_v3';
 
   const [quests, setQuests] = useState<Quest[]>(DEFAULT_QUESTS);
   const [playerStats, setPlayerStats] = useState<PlayerStats>(DEFAULT_PLAYER_STATS);
   const [attributes, setAttributes] = useState<AttributeMap>(DEFAULT_ATTRIBUTES);
   const [shopItems, setShopItems] = useState<ShopItem[]>(INITIAL_SHOP_ITEMS);
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(() => getLocalTodayStr());
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(() => new Date().toISOString().split('T')[0]);
 
   const [droneState, setDroneState] = useState<DroneState>(INITIAL_DRONE_STATE);
   const [soundEnabled, setSoundEnabledState] = useState<boolean>(true);
   const [scanlineEnabled, setScanlineEnabled] = useState<boolean>(false);
   const [theme, setTheme] = useState<'noir' | 'eink'>('noir');
   const [levelUpModalData, setLevelUpModalData] = useState<LevelUpModalData | null>(null);
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
-  // Sync profile data from backend to local context if present
+  // Load user data whenever storageKey changes
   useEffect(() => {
-    if (dbProfile) {
-      setPlayerStats(prev => {
-        if (
-          (dbProfile as any).equippedCharacter !== undefined &&
-          prev.equippedCharacter !== (dbProfile as any).equippedCharacter
-        ) {
-          return {
-            ...prev,
-            equippedCharacter: (dbProfile as any).equippedCharacter ?? prev.equippedCharacter,
-            inventory: (dbProfile as any).inventory ?? prev.inventory,
-          };
-        }
-        return prev;
-      });
-    }
-  }, [dbProfile]);
-
-  // Load user data & migrate guest progress whenever user or storageKey changes
-  useEffect(() => {
-    let saved = localStorage.getItem(storageKey);
-    
-    // Fallback search across all legacy / guest localStorage keys if user key is empty or Level 1
-    const potentialKeys = [
-      'yakitori_rpg_game_state_v3',
-      'yakitori_rpg_game_state_v2',
-      'yakitori_rpg_game_state',
-    ];
-
-    // Search for highest level saved state across localStorage
-    let highestParsedState: any = null;
-    let highestLevel = 0;
-
-    const evalSavedStr = (str: string | null) => {
-      if (!str) return;
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
       try {
-        const parsed = JSON.parse(str);
-        const lvl = Number(parsed?.playerStats?.level) || 1;
-        const totalXp = Number(parsed?.playerStats?.totalXpEarned) || 0;
-        const score = lvl * 10000 + totalXp;
-        if (score > highestLevel) {
-          highestLevel = score;
-          highestParsedState = parsed;
-        }
-      } catch {}
-    };
-
-    evalSavedStr(saved);
-    for (const key of potentialKeys) {
-      evalSavedStr(localStorage.getItem(key));
-    }
-    // Also scan any other user keys in localStorage as fallback
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && k.startsWith('yakitori_rpg_')) {
-          evalSavedStr(localStorage.getItem(k));
-        }
-      }
-    } catch {}
-
-    const parsedToUse = highestParsedState || (saved ? JSON.parse(saved) : null);
-
-    if (parsedToUse) {
-      try {
-        if (Array.isArray(parsedToUse.quests)) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.quests)) {
           const legacyDummyIds = new Set(['quest-1', 'quest-2', 'quest-3', 'quest-4', 'quest-5']);
-          const cleanQuests = parsedToUse.quests.filter(
+          const cleanQuests = parsed.quests.filter(
             (q: Quest) => !legacyDummyIds.has(q.id) && !q.title.toLowerCase().includes('gsap')
           );
           setQuests(cleanQuests);
         } else {
           setQuests(DEFAULT_QUESTS);
         }
-        const loadedStats: PlayerStats = { ...DEFAULT_PLAYER_STATS, ...(parsedToUse.playerStats || {}) };
-        
-        // Ensure character title & XP thresholds are calculated correctly for restored level
-        loadedStats.level = Math.max(1, Number(loadedStats.level) || 1);
-        loadedStats.title = getCharacterTitle(loadedStats.level);
-        loadedStats.xpToNextLevel = calculateCharacterXpThreshold(loadedStats.level);
-        loadedStats.xp = Math.max(0, Number(loadedStats.xp) || 0);
-
+        const loadedStats: PlayerStats = { ...DEFAULT_PLAYER_STATS, ...(parsed.playerStats || {}) };
         // Purge dummy streak / mock stats: if total completed quests is 0 or legacy 3-day dummy streak
         if (!loadedStats.totalCompletedQuests || loadedStats.totalCompletedQuests <= 0) {
           loadedStats.streakDays = 0;
@@ -192,49 +121,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           loadedStats.activeMultiplier = 1.0;
           loadedStats.activityHistory = [];
         }
-        // Retroactively ensure equipped character is in inventory
-        if (loadedStats.equippedCharacter !== undefined) {
-          const equippedId = `char_sprite_${loadedStats.equippedCharacter}`;
-          if (!loadedStats.inventory) loadedStats.inventory = [];
-          if (!loadedStats.inventory.includes(equippedId)) {
-            loadedStats.inventory.push(equippedId);
-          }
-        }
-        
         setPlayerStats(loadedStats);
-        setAttributes({ ...DEFAULT_ATTRIBUTES, ...(parsedToUse.attributes || {}) });
-
-        if (Array.isArray(parsedToUse.shopItems) && parsedToUse.shopItems.length > 0) {
-          const savedMap = new Map<string, ShopItem>(parsedToUse.shopItems.map((s: ShopItem) => [s.id, s]));
+        setAttributes({ ...DEFAULT_ATTRIBUTES, ...(parsed.attributes || {}) });
+        if (Array.isArray(parsed.shopItems) && parsed.shopItems.length > 0) {
+          const savedMap = new Map<string, ShopItem>(parsed.shopItems.map((s: ShopItem) => [s.id, s]));
           const mergedItems = INITIAL_SHOP_ITEMS.map(initial => {
             const saved = savedMap.get(initial.id);
-            const isEquipped = loadedStats.equippedCharacter !== undefined && initial.id === `char_sprite_${loadedStats.equippedCharacter}`;
-            
             if (saved) {
               return {
                 ...initial,
-                purchased: isEquipped ? true : (saved.purchased ?? initial.purchased),
+                purchased: saved.purchased ?? initial.purchased,
                 equipped: saved.equipped ?? initial.equipped,
               };
             }
-            return {
-              ...initial,
-              purchased: isEquipped ? true : initial.purchased
-            };
+            return initial;
           });
           setShopItems(mergedItems);
         } else {
-          // If no shop items saved, ensure equipped character is purchased in defaults
-          const items = INITIAL_SHOP_ITEMS.map(i => {
-            if (loadedStats.equippedCharacter !== undefined && i.id === `char_sprite_${loadedStats.equippedCharacter}`) {
-              return { ...i, purchased: true };
-            }
-            return i;
-          });
-          setShopItems(items);
+          setShopItems(INITIAL_SHOP_ITEMS);
         }
       } catch (e) {
-        console.error('Failed to parse RPG progress', e);
+        console.error('Failed to load user progress', e);
       }
     } else {
       setQuests(DEFAULT_QUESTS);
@@ -242,33 +149,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAttributes(DEFAULT_ATTRIBUTES);
       setShopItems(INITIAL_SHOP_ITEMS);
     }
-
-    setIsLoaded(true);
   }, [storageKey]);
 
-  // Sync DB profile levels from MongoDB if higher than client state
-  useEffect(() => {
-    if (dbProfile && (dbProfile as any).level) {
-      const dbLevel = Number((dbProfile as any).level) || 1;
-      const dbXp = Number((dbProfile as any).xp) || 0;
-
-      setPlayerStats(prev => {
-        if (dbLevel > prev.level || (dbLevel === prev.level && dbXp > prev.xp)) {
-          return {
-            ...prev,
-            level: dbLevel,
-            xp: dbXp,
-            title: getCharacterTitle(dbLevel),
-            xpToNextLevel: calculateCharacterXpThreshold(dbLevel),
-            characterClass: (dbProfile as any).characterClass || prev.characterClass,
-          };
-        }
-        return prev;
-      });
-    }
-  }, [dbProfile]);
-
-  // Ensure all initial shop items are synced to state
+  // Ensure all initial shop items (including updated character metadata) are synced to state
   useEffect(() => {
     setShopItems(prev => {
       const savedMap = new Map<string, ShopItem>(prev.map((i: ShopItem) => [i.id, i]));
@@ -288,7 +171,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Sync state to LocalStorage for active user
   useEffect(() => {
-    if (!isLoaded) return;
     try {
       const stateToSave = {
         quests,
@@ -301,27 +183,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (e) {
       console.error('Failed to persist RPG game state', e);
     }
-  }, [quests, playerStats, attributes, shopItems, storageKey, isLoaded]);
+  }, [quests, playerStats, attributes, shopItems, storageKey]);
 
-  // Auto-sync level, XP, and streak to MongoDB backend whenever stats update (only after full load)
+  // Auto-sync level, XP, and streak to MongoDB backend whenever stats update
   useEffect(() => {
-    if (user && isLoaded) {
-      const avatarIconStr = String(playerStats.equippedCharacter !== undefined ? playerStats.equippedCharacter : 0);
+    if (user) {
+      const avatarIcon = playerStats.characterClass === 'Mage' ? '🧙‍♂️' : playerStats.characterClass === 'Rogue' ? '🥷' : playerStats.characterClass === 'Paladin' ? '🛡️' : '⚔️';
       api.post('/api/auth/sync', {
         level: playerStats.level,
         xp: playerStats.xp,
         streakDays: playerStats.streakDays,
         characterClass: playerStats.characterClass,
-        avatarIcon: avatarIconStr,
-        equippedCharacter: playerStats.equippedCharacter ?? 0,
-        inventory: playerStats.inventory,
+        avatarIcon,
       }).catch(() => {});
     }
-  }, [user, isLoaded, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass, playerStats.equippedCharacter, playerStats.inventory]);
+  }, [user, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass]);
 
   // Check Daily Streak break & Auto-refresh Daily Habits on session mount
   useEffect(() => {
-    const today = getLocalTodayStr();
+    const today = new Date().toISOString().split('T')[0];
     const { streakDays, activeMultiplier } = checkStreakBreak(
       playerStats.lastActiveDate,
       playerStats.streakDays
@@ -339,7 +219,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setQuests(prev => prev.map(q => {
       if (q.questType === 'daily' && q.completed) {
         const completedOnPastDay = q.lastCompletedDate && q.lastCompletedDate !== today;
-        const fallbackPastDay = !q.lastCompletedDate && q.completedAt && (getLocalTodayStr(new Date(q.completedAt)) !== today);
+        const fallbackPastDay = !q.lastCompletedDate && q.completedAt && (new Date(q.completedAt).toISOString().split('T')[0] !== today);
         if (completedOnPastDay || fallbackPastDay) {
           return {
             ...q,
@@ -386,7 +266,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!targetQuest) return;
 
     const willBeCompleted = !targetQuest.completed;
-    const today = getLocalTodayStr();
+    const today = new Date().toISOString().split('T')[0];
 
     // Update quest list state
     setQuests(prev => prev.map(q => {
@@ -426,13 +306,34 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           unlockedTitle: result.newTitle,
           attributeLevelUps: result.attributeLevelUps,
         });
+        triggerGreeting('LEVEL_UP', {
+          newLevel: result.updatedPlayerStats.level,
+          title: result.newTitle,
+          playerName: playerStats.name,
+          rewardGold: result.updatedPlayerStats.level * 50,
+        });
         setDroneMessage(`VICTORY! You ascended to Level ${result.updatedPlayerStats.level} (${result.newTitle})! Phenomenal performance!`, 'VICTORY');
       } else if (result.attributeLevelUps.length > 0) {
         const topAttr = result.attributeLevelUps[0];
+        triggerGreeting('TASK_COMPLETE', {
+          playerName: playerStats.name,
+          questTitle: targetQuest.title,
+          xpEarned: result.earnedXp,
+          goldEarned: result.earnedGold,
+          attribute: targetQuest.attribute,
+          customMessage: `Whoa, check that out! You finished '${targetQuest.title}', got +${result.earnedXp} XP and +${result.earnedGold} gold, AND your ${topAttr.attribute.toUpperCase()} just leveled up to Level ${topAttr.newLevel}! You're getting so strong, ${playerStats.name}!`
+        });
         setDroneMessage(`STAT BOOST! Your ${topAttr.attribute.toUpperCase()} reached Level ${topAttr.newLevel}! (+${result.earnedXp} XP, +${result.earnedGold}g)`, 'MOTIVATED');
       } else {
         const quotes = DRONE_QUOTES.QUEST_COMPLETED;
         const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        triggerGreeting('TASK_COMPLETE', {
+          playerName: playerStats.name,
+          questTitle: targetQuest.title,
+          xpEarned: result.earnedXp,
+          goldEarned: result.earnedGold,
+          attribute: targetQuest.attribute,
+        });
         setDroneMessage(`${randomQuote} (+${result.earnedXp} XP, +${result.earnedGold}g)`, 'HAPPY');
       }
     } else {
@@ -511,6 +412,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         rewardGold: currentLevel * 50,
         unlockedTitle: newTitle,
       });
+      triggerGreeting('LEVEL_UP', {
+        newLevel: currentLevel,
+        title: newTitle,
+        playerName: playerStats.name,
+        rewardGold: currentLevel * 50,
+      });
       setDroneMessage(`VICTORY! You reached Level ${currentLevel} (${newTitle})!`, 'VICTORY');
     }
   };
@@ -560,19 +467,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...q.subtasks,
             { id: `sub-${Date.now()}-${Math.floor(Math.random() * 1000)}`, title: title.trim(), completed: false }
           ]
-        };
-      }
-      return q;
-    }));
-    playClick();
-  };
-
-  const deleteSubtask = (questId: string, subtaskId: string) => {
-    setQuests(prev => prev.map(q => {
-      if (q.id === questId) {
-        return {
-          ...q,
-          subtasks: q.subtasks.filter(s => s.id !== subtaskId)
         };
       }
       return q;
@@ -647,25 +541,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updatePlayerCharacter = (data: { name?: string; characterClass?: string; equippedCharacter?: number; avatar?: string }) => {
-    setPlayerStats(prev => {
-      const next = { ...prev, ...data };
-      
-      // Auto-add newly equipped character to inventory if missing
-      if (data.equippedCharacter !== undefined) {
-        const spriteId = `char_sprite_${data.equippedCharacter}`;
-        if (!next.inventory) next.inventory = [];
-        if (!next.inventory.includes(spriteId)) {
-          next.inventory = [...next.inventory, spriteId];
-        }
-      }
-      return next;
-    });
-
-    // Auto-mark as purchased in shop
-    if (data.equippedCharacter !== undefined) {
-      const spriteId = `char_sprite_${data.equippedCharacter}`;
-      setShopItems(prev => prev.map(i => i.id === spriteId ? { ...i, purchased: true } : i));
-    }
+    setPlayerStats(prev => ({
+      ...prev,
+      ...data,
+    }));
   };
 
   const updateAttributes = (newAttrs: AttributeMap) => {
@@ -685,23 +564,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setDroneMessage('RPG progress successfully reset to initial default state!', 'CHILL');
   };
 
-  const updateQuest = (id: string, updatedData: Partial<Omit<Quest, 'id' | 'createdAt'>>) => {
-    setQuests(prev => prev.map(q => {
-      if (q.id === id) {
-        const difficulty = updatedData.difficulty || q.difficulty;
-        const baseReward = calculateBaseRewards(difficulty);
-        return {
-          ...q,
-          ...updatedData,
-          xpReward: updatedData.xpReward || baseReward.xp,
-          goldReward: updatedData.goldReward || baseReward.gold,
-        };
-      }
-      return q;
-    }));
-    playClick();
-  };
-
   return (
     <GameContext.Provider value={{
       quests,
@@ -717,14 +579,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updatePlayerCharacter,
       updateAttributes,
       addQuest,
-      updateQuest,
       toggleQuest,
       completeQuest,
       gainXP,
       deleteQuest,
       toggleSubtask,
       addSubtask,
-      deleteSubtask,
       purchaseItem,
       equipItem,
       toggleSound,
