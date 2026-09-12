@@ -21,11 +21,12 @@ import {
   AlertCircle,
   Repeat,
   Clock,
-  Lock
+  Lock,
+  ListTodo
 } from 'lucide-react';
 
 export const QuestCard: FC<{ quest: Quest; onEditQuest?: (quest: Quest) => void }> = ({ quest, onEditQuest }) => {
-  const { toggleQuest, deleteQuest, toggleSubtask, addSubtask, selectedCalendarDate } = useGame();
+  const { toggleQuest, deleteQuest, toggleSubtask, addSubtask, deleteSubtask, selectedCalendarDate } = useGame();
   const [expanded, setExpanded] = useState(false);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
 
@@ -231,16 +232,20 @@ export const QuestCard: FC<{ quest: Quest; onEditQuest?: (quest: Quest) => void 
             </div>
 
             <div className="flex items-center gap-1">
-              {quest.subtasks.length > 0 && (
-                <button
-                  onClick={() => setExpanded(!expanded)}
-                  className="p-1 text-[#4a4943] hover:text-black font-mono text-xs flex items-center gap-1"
-                  title="Toggle subtasks"
-                >
-                  <span className="text-[11px] font-bold">{completedSubtasksCount}/{quest.subtasks.length}</span>
-                  {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </button>
-              )}
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="p-1 text-[#4a4943] hover:text-black font-mono text-xs flex items-center gap-1 transition-colors"
+                title={expanded ? 'Collapse checklist' : 'Subtasks / Checklist'}
+              >
+                {quest.subtasks.length > 0 ? (
+                  <>
+                    <span className="text-[11px] font-bold">{completedSubtasksCount}/{quest.subtasks.length}</span>
+                    {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </>
+                ) : (
+                  <ListTodo className="w-4 h-4 text-[#4a4943] hover:text-amber-800" />
+                )}
+              </button>
 
               <button
                 onClick={() => onEditQuest?.(quest)}
@@ -279,23 +284,36 @@ export const QuestCard: FC<{ quest: Quest; onEditQuest?: (quest: Quest) => void 
         {/* Expanded Checklist */}
         {expanded && (
           <div className="mt-3 pt-3 border-t-2 border-[#18181c] space-y-2 font-mono text-xs">
-            <div className="text-[11px] font-pixel text-[#4a4943] uppercase tracking-wider mb-2 font-bold">
-              Sub-Task Objectives ({completedSubtasksCount}/{quest.subtasks.length}):
+            <div className="text-[11px] font-pixel text-[#4a4943] uppercase tracking-wider mb-2 font-bold flex items-center justify-between">
+              <span>Sub-Task Objectives ({completedSubtasksCount}/{quest.subtasks.length}):</span>
+              {quest.subtasks.length === 0 && (
+                <span className="text-[10px] font-mono text-zinc-500 font-normal">Add your first sub-task below!</span>
+              )}
             </div>
 
             {quest.subtasks.map(sub => (
-              <div key={sub.id} className="flex items-center justify-between gap-2 p-2 bg-[#f5f4ef] border border-[#18181c]">
-                <label className="flex items-center gap-2 cursor-pointer flex-1 text-[#111113]">
+              <div key={sub.id} className="flex items-center justify-between gap-2 p-2 bg-[#f5f4ef] border border-[#18181c] hover:bg-[#eae8df] transition-colors">
+                <label className="flex items-center gap-2 cursor-pointer flex-1 text-[#111113] min-w-0">
                   <input
                     type="checkbox"
                     checked={sub.completed}
                     onChange={() => toggleSubtask(quest.id, sub.id)}
-                    className="accent-[#18181c] w-3.5 h-3.5 cursor-pointer"
+                    className="accent-[#18181c] w-3.5 h-3.5 cursor-pointer shrink-0"
                   />
-                  <span className={sub.completed ? 'line-through text-[#4a4943]' : 'font-bold'}>
+                  <span className={`truncate ${sub.completed ? 'line-through text-[#4a4943]' : 'font-bold'}`}>
                     {sub.title}
                   </span>
                 </label>
+
+                <button
+                  type="button"
+                  onClick={() => deleteSubtask(quest.id, sub.id)}
+                  className="p-1 text-[#71717a] hover:text-red-700 transition-colors shrink-0"
+                  title="Remove sub-task"
+                  aria-label={`Remove subtask ${sub.title}`}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               </div>
             ))}
 

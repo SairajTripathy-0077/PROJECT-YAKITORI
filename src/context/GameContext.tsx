@@ -63,6 +63,7 @@ interface GameContextType {
   deleteQuest: (id: string) => void;
   toggleSubtask: (questId: string, subtaskId: string) => void;
   addSubtask: (questId: string, title: string) => void;
+  deleteSubtask: (questId: string, subtaskId: string) => void;
   purchaseItem: (itemId: string) => void;
   equipItem: (itemId: string) => void;
   toggleSound: () => void;
@@ -566,6 +567,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     playClick();
   };
 
+  const deleteSubtask = (questId: string, subtaskId: string) => {
+    setQuests(prev => prev.map(q => {
+      if (q.id === questId) {
+        return {
+          ...q,
+          subtasks: q.subtasks.filter(s => s.id !== subtaskId)
+        };
+      }
+      return q;
+    }));
+    playClick();
+  };
+
   const purchaseItem = (itemId: string) => {
     const item = shopItems.find(i => i.id === itemId);
     if (!item || item.purchased || playerStats.gold < item.price) return;
@@ -710,6 +724,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       deleteQuest,
       toggleSubtask,
       addSubtask,
+      deleteSubtask,
       purchaseItem,
       equipItem,
       toggleSound,
