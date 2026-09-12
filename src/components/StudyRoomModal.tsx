@@ -261,11 +261,11 @@ export const StudyRoomModal: FC<StudyRoomModalProps> = ({ isOpen, onClose }) => 
                 <option value="">-- Select Active Quest (Optional) --</option>
                 {quests
                   .filter((q) => !q.completed)
-                    .map((q) => (
-                      <option key={q.id} value={q.id}>
-                        [{(q.category || 'QUEST').toUpperCase()}] {q.title} (+{q.xpReward} XP)
-                      </option>
-                    ))}
+                  .map((q) => (
+                    <option key={q.id} value={q.id}>
+                      [{(q.category || q.attribute || 'QUEST').toUpperCase()}] {q.title} (+{q.xpReward} XP)
+                    </option>
+                  ))}
               </select>
             </div>
 

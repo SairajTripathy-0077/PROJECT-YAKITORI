@@ -50,7 +50,8 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
 
   // Current logged in hero details
   const currentHeroName = dbProfile?.displayName || user?.displayName || user?.email?.split('@')[0] || 'You (Current Hero)';
-  const currentHeroAvatar = playerStats.characterClass === 'Mage' ? '🧙‍♂️' : playerStats.characterClass === 'Rogue' ? '🥷' : playerStats.characterClass === 'Paladin' ? '🛡️' : '⚔️';
+  const currentClass = playerStats.characterClass || 'Warrior';
+  const currentHeroAvatar = currentClass === 'Mage' ? '🧙‍♂️' : currentClass === 'Rogue' ? '🥷' : currentClass === 'Paladin' ? '🛡️' : '⚔️';
 
   // Pomodoro state
   const [mode, setMode] = useState<TimerMode>('work');
@@ -77,7 +78,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
             level: playerStats.level,
             xp: playerStats.xp,
             streakDays: playerStats.streakDays,
-            characterClass: playerStats.characterClass,
+            characterClass: currentClass,
             avatarIcon: currentHeroAvatar,
           }).catch(() => {});
         }
@@ -312,7 +313,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
                   <div className="flex items-center gap-2 font-mono text-xs text-[#33322d] font-semibold">
                     <span className="font-bold text-amber-800">Lv.{playerStats.level}</span>
                     <span>•</span>
-                    <span>{playerStats.characterClass}</span>
+                    <span>{currentClass}</span>
                     <span>•</span>
                     <span className="text-amber-800 font-bold">🔥 {playerStats.streakDays}d</span>
                   </div>
@@ -323,12 +324,12 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
               <div className="space-y-1.5 font-mono text-xs">
                 <div className="flex justify-between text-[11px]">
                   <span className="text-[#4a4943] font-semibold">XP Progress:</span>
-                  <span className="font-bold text-[#111113]">{playerStats.xp} / {playerStats.nextLevelXp} XP</span>
+                  <span className="font-bold text-[#111113]">{playerStats.xp} / {playerStats.xpToNextLevel || playerStats.nextLevelXp || 150} XP</span>
                 </div>
                 <div className="w-full h-3 bg-[#d9d8d2] border border-[#18181c] overflow-hidden">
                   <div 
                     className="h-full bg-amber-600 transition-all duration-500"
-                    style={{ width: `${Math.min(100, Math.round((playerStats.xp / playerStats.nextLevelXp) * 100))}%` }}
+                    style={{ width: `${Math.min(100, Math.round((playerStats.xp / (playerStats.xpToNextLevel || playerStats.nextLevelXp || 150)) * 100))}%` }}
                   ></div>
                 </div>
               </div>
@@ -443,7 +444,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
                       .filter((q) => !q.completed)
                       .map((q) => (
                         <option key={q.id} value={q.id}>
-                          [{(q.category || 'QUEST').toUpperCase()}] {q.title} (+{q.xpReward} XP)
+                          [{(q.category || q.attribute || 'QUEST').toUpperCase()}] {q.title} (+{q.xpReward} XP)
                         </option>
                       ))}
                   </select>
@@ -578,7 +579,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
                     </h3>
 
                     <p className="font-mono text-xs text-[#33322d] font-semibold">
-                      Class: <span className="font-bold text-[#111113]">{playerStats.characterClass}</span>
+                      Class: <span className="font-bold text-[#111113]">{currentClass}</span>
                     </p>
 
                     <p className="font-mono text-[11px] text-emerald-900 font-bold truncate">

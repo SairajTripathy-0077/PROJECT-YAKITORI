@@ -19,6 +19,8 @@ export const DEFAULT_PLAYER_STATS: PlayerStats = {
   level: 1,
   xp: 65,
   xpToNextLevel: 150,
+  nextLevelXp: 150,
+  characterClass: 'Warrior',
   totalXpEarned: 165,
   gold: 150,
   totalCompletedQuests: 2,

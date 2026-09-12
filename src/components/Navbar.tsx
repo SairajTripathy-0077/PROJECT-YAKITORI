@@ -54,7 +54,7 @@ export const Navbar: FC<NavbarProps> = ({
         {/* Left: App Logo & Title */}
         <div className="flex items-center gap-3">
           <button
-            onClick={onToggleViewMode}
+            onClick={() => onToggleViewMode()}
             className="flex items-center gap-3 focus:outline-none group text-left"
             title="YAKITORI Pixel RPG"
           >
@@ -81,7 +81,7 @@ export const Navbar: FC<NavbarProps> = ({
                   {user.isAnonymous ? 'GUEST HERO' : user.email || 'HERO'}
                 </span>
                 <button
-                  onClick={onToggleViewMode}
+                  onClick={() => onToggleViewMode('app')}
                   className="px-4 py-2 pixel-btn-primary font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-2"
                 >
                   <span>ENTER APP</span>
