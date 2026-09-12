@@ -35,6 +35,7 @@ import {
   setSoundEnabled as setAudioEnabled
 } from '../utils/sound';
 import { useAuth } from './AuthContext';
+import { api } from '../utils/api';
 
 interface GameContextType {
   quests: Quest[];
@@ -123,6 +124,20 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Failed to persist RPG game state', e);
     }
   }, [quests, playerStats, attributes, shopItems, storageKey]);
+
+  // Auto-sync level, XP, and streak to MongoDB backend whenever stats update
+  useEffect(() => {
+    if (user) {
+      const avatarIcon = playerStats.characterClass === 'Mage' ? '🧙‍♂️' : playerStats.characterClass === 'Rogue' ? '🥷' : playerStats.characterClass === 'Paladin' ? '🛡️' : '⚔️';
+      api.post('/api/auth/sync', {
+        level: playerStats.level,
+        xp: playerStats.xp,
+        streakDays: playerStats.streakDays,
+        characterClass: playerStats.characterClass,
+        avatarIcon,
+      }).catch(() => {});
+    }
+  }, [user, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass]);
 
   // Check and update Daily Streak & Auto-refresh Daily Habits on session mount
   useEffect(() => {

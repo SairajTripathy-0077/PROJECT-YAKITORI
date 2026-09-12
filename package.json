@@ -4,8 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/dev.js",
-    "vite": "vite",
+    "dev": "vite",
     "server": "tsx src/server/index.ts",
     "build": "tsc -b && vite build",
     "lint": "oxlint",

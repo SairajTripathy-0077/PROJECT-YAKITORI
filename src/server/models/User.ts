@@ -26,7 +26,6 @@ const userSchema = new Schema<IUser>(
       required: [true, 'Firebase UID is required'],
       unique: true,
       immutable: true,
-      index: true,
       trim: true,
       maxlength: [128, 'Firebase UID too long'],
     },
@@ -116,7 +115,6 @@ const userSchema = new Schema<IUser>(
   }
 );
 
-userSchema.index({ email: 1 }, { sparse: true });
 userSchema.index({ createdAt: -1 });
 
 const User = mongoose.model<IUser>('User', userSchema);

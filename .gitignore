@@ -29,5 +29,5 @@ dist-ssr
 serviceAccountKey.json
 dist/
 dist-ssr/
-.agents
+.agents/
 

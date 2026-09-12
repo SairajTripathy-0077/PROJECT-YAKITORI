@@ -3,13 +3,20 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
-// @ts-expect-error xss-clean doesn't have official types
 import xss from 'xss-clean';
 import hpp from 'hpp';
 import mongoose from 'mongoose';
 import admin from 'firebase-admin';
 import dotenv from 'dotenv';
-import authRoutes from './routes/auth.js';
+import dns from 'node:dns';
+import authRoutes from './routes/auth';
+
+// Configure Node.js DNS resolver to Google (8.8.8.8) and Cloudflare (1.1.1.1) to resolve MongoDB SRV records reliably
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch {
+  // Ignore DNS override errors if in restricted environment
+}
 
 // Load environment variables
 dotenv.config();
@@ -35,16 +42,27 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
     return cached.conn;
   }
 
-  const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb+srv://tryinghard75days_db_user:3XlBThxna1ntMXCY@devchoice.krymjtr.mongodb.net/yakitori?retryWrites=true&w=majority';
+  const primaryUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb+srv://tryinghard75days_db_user:3XlBThxna1ntMXCY@devchoice.krymjtr.mongodb.net/yakitori_app?retryWrites=true&w=majority';
+  const fallbackUri = 'mongodb://tryinghard75days_db_user:3XlBThxna1ntMXCY@devchoice-shard-00-00.krymjtr.mongodb.net:27017,devchoice-shard-00-01.krymjtr.mongodb.net:27017,devchoice-shard-00-02.krymjtr.mongodb.net:27017/yakitori_app?replicaSet=atlas-devchoice-shard-0&ssl=true&authSource=admin';
 
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 5000,
     };
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((m) => {
-      console.log('[MongoDB] Connected successfully');
-      return m;
-    });
+
+    cached.promise = mongoose.connect(primaryUri, opts)
+      .then((m) => {
+        console.log('[MongoDB] Connected successfully via SRV');
+        return m;
+      })
+      .catch(async (srvErr) => {
+        console.warn('[MongoDB] SRV lookup failed, trying direct seed list fallback:', srvErr.message || srvErr);
+        return mongoose.connect(fallbackUri, opts).then((m) => {
+          console.log('[MongoDB] Connected successfully via Direct Cluster Fallback');
+          return m;
+        });
+      });
   }
 
   try {
@@ -121,7 +139,7 @@ app.use(hpp());
 // 7. Rate Limiters
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -134,13 +152,13 @@ app.use(globalLimiter);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: 500,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     success: false,
     error: 'RATE_LIMIT_EXCEEDED',
-    message: 'Too many authentication attempts. Please try again later.',
+    message: 'Too many requests to auth endpoints. Please try again later.',
   },
 });
 

@@ -120,6 +120,8 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
     };
 
     syncAndFetchMembers();
+    const pollInterval = setInterval(syncAndFetchMembers, 10000);
+    return () => clearInterval(pollInterval);
   }, [user, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass, currentHeroAvatar, currentHeroName]);
 
   // Pomodoro countdown timer logic

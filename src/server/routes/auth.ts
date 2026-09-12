@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from 'express';
-import { verifyFirebaseToken } from '../middleware/auth.js';
-import User from '../models/User.js';
-import { sanitizeString, sanitizeUrl, validateEmail, validateProvider } from '../utils/sanitize.js';
+import { verifyFirebaseToken } from '../middleware/auth';
+import User from '../models/User';
+import { sanitizeString, sanitizeUrl, validateEmail, validateProvider } from '../utils/sanitize';
 
 const router = Router();
 
