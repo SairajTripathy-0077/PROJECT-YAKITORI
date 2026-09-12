@@ -44,38 +44,32 @@ interface QuestProgressDashboardProps {
   onOpenCharacterCreation?: () => void;
 }
 
-
-// Custom Pixel styled Tooltip for Recharts (Theme Reactive)
+// Custom Pixel styled Tooltip for Recharts (All text black)
 interface CustomTooltipProps {
   active?: boolean;
   payload?: Array<{ name: string; value: number; color?: string; fill?: string }>;
   label?: string;
   unit?: string;
-  isEink?: boolean;
 }
 
-const CustomPixelTooltip: FC<CustomTooltipProps> = ({ active, payload, label, unit = '', isEink = false }) => {
+const CustomPixelTooltip: FC<CustomTooltipProps> = ({ active, payload, label, unit = '' }) => {
   if (active && payload && payload.length) {
     return (
-      <div className={`p-3 border-2 shadow-pixel-md font-mono text-xs z-50 ${
-        isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-amber-500'
-      }`}>
-        <p className={`font-pixel font-bold text-sm mb-1.5 pb-1 border-b ${
-          isEink ? 'text-amber-900 border-[#18181c]' : 'text-amber-400 border-[#33322d]'
-        }`}>
+      <div className="p-3 border-2 shadow-pixel-md font-mono text-xs z-50 bg-[#f5f4ef] text-[#111113] border-[#18181c]">
+        <p className="font-pixel font-bold text-sm mb-1.5 pb-1 border-b border-[#18181c] text-[#111113]">
           {label}
         </p>
         <div className="space-y-1">
           {payload.map((entry, index) => (
             <div key={`tooltip-item-${index}`} className="flex items-center justify-between gap-4">
-              <span className={`flex items-center gap-1.5 ${isEink ? 'text-[#33322d]' : 'text-zinc-300'}`}>
+              <span className="flex items-center gap-1.5 text-[#111113]">
                 <span 
                   className="w-2.5 h-2.5 inline-block border border-black" 
-                  style={{ backgroundColor: entry.color || entry.fill || '#f59e0b' }} 
+                  style={{ backgroundColor: entry.color || entry.fill || '#18181c' }} 
                 />
-                <span className="capitalize">{entry.name}:</span>
+                <span className="capitalize text-[#111113]">{entry.name}:</span>
               </span>
-              <span className={`font-bold ${isEink ? 'text-[#111113]' : 'text-[#f5f4ef]'}`}>
+              <span className="font-bold text-[#111113]">
                 {entry.value.toLocaleString()} {unit}
               </span>
             </div>
@@ -88,18 +82,17 @@ const CustomPixelTooltip: FC<CustomTooltipProps> = ({ active, payload, label, un
 };
 
 export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBackToQuests, onOpenCharacterCreation }) => {
-  const { quests, playerStats, attributes, theme } = useGame();
-  const isEink = theme === 'eink';
+  const { quests, playerStats, attributes } = useGame();
 
   const [timeRange, setTimeRange] = useState<'7days' | '14days' | 'all'>('7days');
   const [activeTab, setActiveTab] = useState<'overview' | 'attributes' | 'breakdown'>('overview');
 
-  // Chart theme tokens
-  const gridColor = isEink ? '#dcdbd5' : '#33322d';
-  const tickColor = isEink ? '#4a4943' : '#a1a1aa';
-  const axisColor = isEink ? '#18181c' : '#52525b';
-  const radarGridColor = isEink ? '#b5b3a9' : '#3f3f46';
-  const radarTextColor = isEink ? '#111113' : '#f5f4ef';
+  // Chart theme tokens (all labels and axes black)
+  const gridColor = '#18181c';
+  const tickColor = '#111113';
+  const axisColor = '#18181c';
+  const radarGridColor = '#18181c';
+  const radarTextColor = '#111113';
 
   // Core metrics calculation
   const totalQuests = quests.length;
@@ -107,7 +100,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
   const activeQuests = totalQuests - completedQuests;
   const completionRate = totalQuests > 0 ? Math.round((completedQuests / totalQuests) * 100) : 0;
 
-  // 1. Attribute Radar Data (Intellect, Strength, Creativity, Vitality, Discipline)
+  // 1. Attribute Radar Data
   const attributeRadarData = useMemo(() => {
     const attrConfig: Record<AttributeType, { name: string; full: number; icon: string }> = {
       intellect: { name: 'Intellect', full: 100, icon: '🧠' },
@@ -151,55 +144,46 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
         return false;
       });
 
-      const dayXp = questsOnDay.reduce((acc, curr) => acc + (curr.xpReward || 0), 0);
+      const completedCount = questsOnDay.length;
+      const xpEarned = questsOnDay.reduce((sum, q) => sum + (q.xpReward || 20), 0);
 
       daysArray.push({
         dateStr,
         label: `${dayName} ${dayMonth}`,
-        completedCount: questsOnDay.length,
-        xpEarned: dayXp,
+        completedCount,
+        xpEarned,
       });
     }
-
     return daysArray;
   }, [quests, timeRange]);
 
   // 3. Quest Difficulty Breakdown Data
   const questDifficultyData = useMemo(() => {
-    const tiers: Record<QuestDifficulty, { label: string; completed: number; pending: number; color: string }> = {
-      easy: { label: 'Novice (Easy)', completed: 0, pending: 0, color: isEink ? '#059669' : '#10b981' },
-      medium: { label: 'Adept (Medium)', completed: 0, pending: 0, color: isEink ? '#d97706' : '#f59e0b' },
-      hard: { label: 'Master (Hard)', completed: 0, pending: 0, color: isEink ? '#dc2626' : '#ef4444' },
-      boss: { label: 'Legendary (Boss)', completed: 0, pending: 0, color: isEink ? '#7c3aed' : '#8b5cf6' },
+    const diffs: Record<QuestDifficulty, { difficulty: string; completed: number; pending: number }> = {
+      trivial: { difficulty: 'Trivial', completed: 0, pending: 0 },
+      easy: { difficulty: 'Easy', completed: 0, pending: 0 },
+      medium: { difficulty: 'Medium', completed: 0, pending: 0 },
+      hard: { difficulty: 'Hard', completed: 0, pending: 0 },
+      boss: { difficulty: 'Boss Tier', completed: 0, pending: 0 },
     };
 
     quests.forEach(q => {
-      const tier = tiers[q.difficulty] || tiers.medium;
-      if (q.completed) {
-        tier.completed += 1;
-      } else {
-        tier.pending += 1;
+      const dKey = q.difficulty || 'easy';
+      if (diffs[dKey]) {
+        if (q.completed) diffs[dKey].completed += 1;
+        else diffs[dKey].pending += 1;
       }
     });
 
-    return Object.keys(tiers).map(k => {
-      const t = tiers[k as QuestDifficulty];
-      return {
-        difficulty: t.label,
-        completed: t.completed,
-        pending: t.pending,
-        total: t.completed + t.pending,
-        color: t.color,
-      };
-    });
-  }, [quests, isEink]);
+    return Object.values(diffs);
+  }, [quests]);
 
-  // 4. Quest Type Distribution Data
+  // 4. Quest Type Classification Share
   const questTypeData = useMemo(() => {
     const types: Record<QuestType, { name: string; value: number; color: string }> = {
-      main: { name: 'Main Quests', value: 0, color: isEink ? '#d97706' : '#f59e0b' },
-      daily: { name: 'Daily Habits', value: 0, color: isEink ? '#059669' : '#10b981' },
-      side: { name: 'Side Quests', value: 0, color: isEink ? '#4f46e5' : '#6366f1' },
+      main: { name: 'Main Quests', value: 0, color: '#d97706' },
+      daily: { name: 'Daily Habits', value: 0, color: '#059669' },
+      side: { name: 'Side Quests', value: 0, color: '#4f46e5' },
     };
 
     quests.forEach(q => {
@@ -209,16 +193,16 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
     });
 
     return Object.values(types).filter(item => item.value > 0);
-  }, [quests, isEink]);
+  }, [quests]);
 
-  // 5. Attribute XP Share Data for Pie
+  // 5. Attribute XP Share Data
   const attributeShareData = useMemo(() => {
     const colors: Record<AttributeType, string> = {
-      intellect: '#3b82f6',
-      strength: '#ef4444',
-      creativity: '#a855f7',
-      vitality: '#10b981',
-      discipline: '#f5f4ef',
+      intellect: '#2563eb',
+      strength: '#dc2626',
+      creativity: '#9333ea',
+      vitality: '#059669',
+      discipline: '#d97706',
     };
 
     const labels: Record<AttributeType, string> = {
@@ -242,30 +226,26 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
   }, [attributes]);
 
   return (
-    <div className="space-y-6 animate-fade-in pb-12">
+    <div className="space-y-6 animate-fade-in pb-12 text-[#111113]">
       {/* Top Header Navigation */}
-      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 pb-4 ${
-        isEink ? 'border-[#18181c]' : 'border-[#33322d]'
-      }`}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-[#18181c] pb-4">
         <div className="flex items-center gap-3">
           {onBackToQuests && (
             <button
               onClick={onBackToQuests}
-              className="px-3 py-2 pixel-btn font-mono text-xs flex items-center gap-1.5 active:scale-[0.96] transition-transform"
+              className="px-3 py-2 pixel-btn font-mono text-xs text-[#111113] flex items-center gap-1.5 active:scale-[0.96] transition-transform"
               title="Return to Quest Log"
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="font-bold">QUEST LOG</span>
+              <ArrowLeft className="w-4 h-4 text-[#111113]" />
+              <span className="font-bold text-[#111113]">QUEST LOG</span>
             </button>
           )}
           <div>
-            <h2 className={`font-pixel text-xl sm:text-2xl font-bold tracking-wider flex items-center gap-2 text-wrap-balance ${
-              isEink ? 'text-[#111113]' : 'text-[#f5f4ef]'
-            }`}>
-              <TrendingUp className={`w-6 h-6 ${isEink ? 'text-amber-800' : 'text-amber-500'}`} />
+            <h2 className="font-pixel text-xl sm:text-2xl font-bold tracking-wider flex items-center gap-2 text-[#111113]">
+              <TrendingUp className="w-6 h-6 text-[#111113]" />
               <span>QUEST PROGRESS & ANALYTICS</span>
             </h2>
-            <p className={`font-serif italic text-xs text-wrap-pretty ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+            <p className="font-serif italic text-xs text-[#111113]">
               Real-time RPG progression telemetry, velocity trends, and attribute stats.
             </p>
           </div>
@@ -273,15 +253,13 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
 
         {/* View Tabs & Time Filters */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className={`flex p-1 border shadow-pixel-sm font-mono text-xs ${
-            isEink ? 'bg-[#ebeae4] border-[#18181c]' : 'bg-[#212026] border-[#33322d]'
-          }`}>
+          <div className="flex p-1 border-2 border-[#18181c] shadow-pixel-sm font-mono text-xs bg-[#ebeae4]">
             <button
               onClick={() => setActiveTab('overview')}
               className={`px-3 py-1 font-bold transition-all active:scale-[0.96] ${
                 activeTab === 'overview' 
-                  ? isEink ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#f5f4ef] text-[#111113]' 
-                  : isEink ? 'text-[#33322d] hover:bg-[#deddd6]' : 'text-zinc-300 hover:bg-[#2e2d36]'
+                  ? 'bg-[#18181c] text-[#f5f4ef]' 
+                  : 'text-[#111113] hover:bg-[#deddd6]'
               }`}
             >
               OVERVIEW
@@ -290,8 +268,8 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
               onClick={() => setActiveTab('attributes')}
               className={`px-3 py-1 font-bold transition-all active:scale-[0.96] ${
                 activeTab === 'attributes' 
-                  ? isEink ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#f5f4ef] text-[#111113]' 
-                  : isEink ? 'text-[#33322d] hover:bg-[#deddd6]' : 'text-zinc-300 hover:bg-[#2e2d36]'
+                  ? 'bg-[#18181c] text-[#f5f4ef]' 
+                  : 'text-[#111113] hover:bg-[#deddd6]'
               }`}
             >
               ATTRIBUTES
@@ -300,8 +278,8 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
               onClick={() => setActiveTab('breakdown')}
               className={`px-3 py-1 font-bold transition-all active:scale-[0.96] ${
                 activeTab === 'breakdown' 
-                  ? isEink ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#f5f4ef] text-[#111113]' 
-                  : isEink ? 'text-[#33322d] hover:bg-[#deddd6]' : 'text-zinc-300 hover:bg-[#2e2d36]'
+                  ? 'bg-[#18181c] text-[#f5f4ef]' 
+                  : 'text-[#111113] hover:bg-[#deddd6]'
               }`}
             >
               BREAKDOWN
@@ -312,9 +290,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
 
       {/* Hero Character Identity & Origin Card */}
       <div className="double-bezel">
-        <div className={`double-bezel-inner p-5 border flex flex-col md:flex-row items-start md:items-center justify-between gap-6 ${
-          isEink ? 'bg-[#ebeae4] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
-        }`}>
+        <div className="double-bezel-inner p-5 border border-[#18181c] bg-[#ebeae4] text-[#111113] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             {/* Assigned Sprite Avatar Display */}
             <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#f5f4ef] border-2 border-[#18181c] shadow-pixel flex items-center justify-center shrink-0 relative overflow-hidden">
@@ -323,28 +299,26 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
 
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-pixel text-lg sm:text-xl font-bold uppercase tracking-wider text-amber-500">
+                <h3 className="font-pixel text-lg sm:text-xl font-bold uppercase tracking-wider text-[#111113]">
                   {playerStats.name || 'Hero Adventurer'}
                 </h3>
-                <span className="font-mono text-xs px-2 py-0.5 border font-bold bg-amber-500/10 text-amber-500 border-amber-500/30 tabular-nums">
+                <span className="font-mono text-xs px-2 py-0.5 border font-bold bg-[#f5f4ef] text-[#111113] border-[#18181c] tabular-nums">
                   Lv.{playerStats.level}
                 </span>
-                <span className={`font-mono text-xs px-2 py-0.5 border font-bold ${
-                  isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#26252a] text-zinc-300 border-zinc-700'
-                }`}>
+                <span className="font-mono text-xs px-2 py-0.5 border font-bold bg-[#f5f4ef] text-[#111113] border-[#18181c]">
                   Class: {playerStats.characterClass || 'Warrior'}
                 </span>
               </div>
 
-              <div className="font-mono text-xs text-amber-600 font-bold flex items-center gap-2">
-                <Award className="w-3.5 h-3.5" />
+              <div className="font-mono text-xs text-[#111113] font-bold flex items-center gap-2">
+                <Award className="w-3.5 h-3.5 text-[#111113]" />
                 <span>Title: "{playerStats.title || 'Pixel Knight'}"</span>
                 <span>•</span>
                 <span className="tabular-nums">{playerStats.xp} XP</span>
               </div>
 
-              <p className={`font-mono text-[11px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
-                Assigned Sprite Avatar: <span className="font-bold text-amber-500">#{(playerStats.equippedCharacter ?? 0) + 1} / 192</span>
+              <p className="font-mono text-[11px] text-[#111113]">
+                Assigned Sprite Avatar: <span className="font-bold text-[#111113]">#{(playerStats.equippedCharacter ?? 0) + 1} / 192</span>
               </p>
             </div>
           </div>
@@ -352,9 +326,9 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
           {onOpenCharacterCreation && (
             <button
               onClick={onOpenCharacterCreation}
-              className="px-4 py-2.5 pixel-btn font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-pixel-sm active:scale-[0.96] transition-transform"
+              className="px-4 py-2.5 pixel-btn font-pixel text-xs font-bold text-[#111113] uppercase tracking-wider flex items-center gap-2 shadow-pixel-sm active:scale-[0.96] transition-transform"
             >
-              <Dice5 className="w-4 h-4 text-amber-500" />
+              <Dice5 className="w-4 h-4 text-[#111113]" />
               <span>CUSTOMIZE / REROLL SPRITE</span>
             </button>
           )}
@@ -365,36 +339,32 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Metric 1: Completion Rate */}
         <div className="double-bezel">
-          <div className={`double-bezel-inner p-4 border space-y-1 ${
-            isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
-          }`}>
-            <div className={`flex items-center justify-between ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
-              <span className="font-mono text-xs uppercase font-bold tracking-wider">Completion Rate</span>
-              <Target className="w-4 h-4 text-emerald-600" />
+          <div className="double-bezel-inner p-4 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-1">
+            <div className="flex items-center justify-between text-[#111113]">
+              <span className="font-mono text-xs uppercase font-bold tracking-wider text-[#111113]">Completion Rate</span>
+              <Target className="w-4 h-4 text-[#111113]" />
             </div>
-            <div className="font-pixel text-2xl font-bold">
+            <div className="font-pixel text-2xl font-bold text-[#111113]">
               {completionRate}%
             </div>
-            <div className={`font-mono text-[11px] flex items-center justify-between ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+            <div className="font-mono text-[11px] flex items-center justify-between text-[#111113]">
               <span>{completedQuests} of {totalQuests} done</span>
-              <span className="text-emerald-500 font-bold">★ Active</span>
+              <span className="font-bold text-[#111113]">★ Active</span>
             </div>
           </div>
         </div>
 
         {/* Metric 2: Total Quests Completed */}
         <div className="double-bezel">
-          <div className={`double-bezel-inner p-4 border space-y-1 ${
-            isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
-          }`}>
-            <div className={`flex items-center justify-between ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
-              <span className="font-mono text-xs uppercase font-bold tracking-wider">Completed Quests</span>
-              <CheckCircle2 className="w-4 h-4 text-amber-500" />
+          <div className="double-bezel-inner p-4 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-1">
+            <div className="flex items-center justify-between text-[#111113]">
+              <span className="font-mono text-xs uppercase font-bold tracking-wider text-[#111113]">Completed Quests</span>
+              <CheckCircle2 className="w-4 h-4 text-[#111113]" />
             </div>
-            <div className="font-pixel text-2xl font-bold">
+            <div className="font-pixel text-2xl font-bold text-[#111113]">
               {playerStats.totalCompletedQuests || completedQuests}
             </div>
-            <div className={`font-mono text-[11px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+            <div className="font-mono text-[11px] text-[#111113]">
               <span>{activeQuests} remaining in log</span>
             </div>
           </div>
@@ -402,18 +372,16 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
 
         {/* Metric 3: Active Streak Multiplier */}
         <div className="double-bezel">
-          <div className={`double-bezel-inner p-4 border space-y-1 ${
-            isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
-          }`}>
-            <div className={`flex items-center justify-between ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
-              <span className="font-mono text-xs uppercase font-bold tracking-wider">Daily Streak</span>
-              <Flame className="w-4 h-4 text-orange-500 animate-pulse" />
+          <div className="double-bezel-inner p-4 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-1">
+            <div className="flex items-center justify-between text-[#111113]">
+              <span className="font-mono text-xs uppercase font-bold tracking-wider text-[#111113]">Daily Streak</span>
+              <Flame className="w-4 h-4 text-[#111113] animate-pulse" />
             </div>
-            <div className="font-pixel text-2xl font-bold flex items-baseline gap-1.5">
+            <div className="font-pixel text-2xl font-bold flex items-baseline gap-1.5 text-[#111113]">
               <span>{playerStats.streakDays}</span>
-              <span className="text-xs font-mono text-orange-500 font-semibold">{playerStats.streakDays === 1 ? 'DAY' : 'DAYS'}</span>
+              <span className="text-xs font-mono text-[#111113] font-bold">{playerStats.streakDays === 1 ? 'DAY' : 'DAYS'}</span>
             </div>
-            <div className="font-mono text-[11px] text-amber-500 font-bold">
+            <div className="font-mono text-[11px] text-[#111113] font-bold">
               <span>{playerStats.activeMultiplier}x XP Multiplier</span>
             </div>
           </div>
@@ -421,17 +389,15 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
 
         {/* Metric 4: Total XP Earned */}
         <div className="double-bezel">
-          <div className={`double-bezel-inner p-4 border space-y-1 ${
-            isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
-          }`}>
-            <div className={`flex items-center justify-between ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
-              <span className="font-mono text-xs uppercase font-bold tracking-wider">Hero Total XP</span>
-              <Sparkles className="w-4 h-4 text-purple-500" />
+          <div className="double-bezel-inner p-4 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-1">
+            <div className="flex items-center justify-between text-[#111113]">
+              <span className="font-mono text-xs uppercase font-bold tracking-wider text-[#111113]">Hero Total XP</span>
+              <Sparkles className="w-4 h-4 text-[#111113]" />
             </div>
-            <div className="font-pixel text-2xl font-bold">
+            <div className="font-pixel text-2xl font-bold text-[#111113]">
               {(playerStats.totalXpEarned || playerStats.xp).toLocaleString()}
             </div>
-            <div className={`font-mono text-[11px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+            <div className="font-mono text-[11px] text-[#111113]">
               <span>Level {playerStats.level} ({playerStats.title})</span>
             </div>
           </div>
@@ -443,36 +409,30 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
         <div className="space-y-6">
           {/* Main Hero Chart: Completion & XP Velocity Over Time */}
           <div className="double-bezel">
-            <div className={`double-bezel-inner p-5 border space-y-4 ${
-              isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
-            }`}>
-              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3 ${
-                isEink ? 'border-[#18181c]' : 'border-[#33322d]'
-              }`}>
+            <div className="double-bezel-inner p-5 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#18181c] pb-3">
                 <div className="flex items-center gap-2">
-                  <div className={`p-2 ${isEink ? 'bg-[#18181c] text-amber-400' : 'bg-[#26252a] text-amber-400'}`}>
+                  <div className="p-2 bg-[#18181c] text-[#f5f4ef]">
                     <TrendingUp className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-pixel text-sm font-bold uppercase tracking-wider">
+                    <h3 className="font-pixel text-sm font-bold uppercase tracking-wider text-[#111113]">
                       QUEST COMPLETION & XP VELOCITY
                     </h3>
-                    <p className={`font-mono text-[11px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+                    <p className="font-mono text-[11px] text-[#111113]">
                       Animated daily quest outputs and accumulated rewards over time
                     </p>
                   </div>
                 </div>
 
                 {/* Range Filter */}
-                <div className={`flex items-center gap-1 font-mono text-xs p-1 border ${
-                  isEink ? 'bg-[#ebeae4] border-[#18181c]' : 'bg-[#212026] border-[#33322d]'
-                }`}>
+                <div className="flex items-center gap-1 font-mono text-xs p-1 border border-[#18181c] bg-[#ebeae4]">
                   <button
                     onClick={() => setTimeRange('7days')}
                     className={`px-2.5 py-0.5 font-bold ${
                       timeRange === '7days' 
-                        ? isEink ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#f5f4ef] text-[#111113]'
-                        : isEink ? 'text-[#4a4943]' : 'text-zinc-400'
+                        ? 'bg-[#18181c] text-[#f5f4ef]'
+                        : 'text-[#111113] hover:bg-[#deddd6]'
                     }`}
                   >
                     7D
@@ -481,8 +441,8 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
                     onClick={() => setTimeRange('14days')}
                     className={`px-2.5 py-0.5 font-bold ${
                       timeRange === '14days' 
-                        ? isEink ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#f5f4ef] text-[#111113]'
-                        : isEink ? 'text-[#4a4943]' : 'text-zinc-400'
+                        ? 'bg-[#18181c] text-[#f5f4ef]'
+                        : 'text-[#111113] hover:bg-[#deddd6]'
                     }`}
                   >
                     14D
@@ -491,8 +451,8 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
                     onClick={() => setTimeRange('all')}
                     className={`px-2.5 py-0.5 font-bold ${
                       timeRange === 'all' 
-                        ? isEink ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#f5f4ef] text-[#111113]'
-                        : isEink ? 'text-[#4a4943]' : 'text-zinc-400'
+                        ? 'bg-[#18181c] text-[#f5f4ef]'
+                        : 'text-[#111113] hover:bg-[#deddd6]'
                     }`}
                   >
                     30D
@@ -506,38 +466,38 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
                   <AreaChart data={timelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="xpGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={isEink ? '#d97706' : '#f59e0b'} stopOpacity={0.45} />
-                        <stop offset="95%" stopColor={isEink ? '#d97706' : '#f59e0b'} stopOpacity={0.0} />
+                        <stop offset="5%" stopColor="#d97706" stopOpacity={0.45} />
+                        <stop offset="95%" stopColor="#d97706" stopOpacity={0.0} />
                       </linearGradient>
                       <linearGradient id="questGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={isEink ? '#059669' : '#10b981'} stopOpacity={0.45} />
-                        <stop offset="95%" stopColor={isEink ? '#059669' : '#10b981'} stopOpacity={0.0} />
+                        <stop offset="5%" stopColor="#059669" stopOpacity={0.45} />
+                        <stop offset="95%" stopColor="#059669" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                     <XAxis 
                       dataKey="label" 
-                      tick={{ fill: tickColor, fontSize: 10, fontFamily: 'monospace' }}
+                      tick={{ fill: tickColor, fontSize: 10, fontFamily: 'monospace', fontWeight: 'bold' }}
                       tickLine={{ stroke: axisColor }}
                       axisLine={{ stroke: axisColor, strokeWidth: 1.5 }}
                     />
                     <YAxis 
-                      tick={{ fill: tickColor, fontSize: 10, fontFamily: 'monospace' }}
+                      tick={{ fill: tickColor, fontSize: 10, fontFamily: 'monospace', fontWeight: 'bold' }}
                       tickLine={{ stroke: axisColor }}
                       axisLine={{ stroke: axisColor, strokeWidth: 1.5 }}
                       allowDecimals={false}
                     />
-                    <Tooltip content={<CustomPixelTooltip unit="XP" isEink={isEink} />} />
+                    <Tooltip content={<CustomPixelTooltip unit="XP" />} />
                     <Legend 
                       verticalAlign="top" 
                       align="right"
-                      wrapperStyle={{ paddingBottom: '10px', fontSize: '11px', fontFamily: 'monospace' }}
+                      wrapperStyle={{ paddingBottom: '10px', fontSize: '11px', fontFamily: 'monospace', color: '#111113' }}
                     />
                     <Area 
                       type="monotone" 
                       dataKey="xpEarned" 
                       name="XP Earned" 
-                      stroke={isEink ? '#d97706' : '#f59e0b'} 
+                      stroke="#d97706" 
                       strokeWidth={2.5}
                       fillOpacity={1} 
                       fill="url(#xpGradient)" 
@@ -548,7 +508,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
                       type="monotone" 
                       dataKey="completedCount" 
                       name="Quests Done" 
-                      stroke={isEink ? '#059669' : '#10b981'} 
+                      stroke="#059669" 
                       strokeWidth={2}
                       fillOpacity={1} 
                       fill="url(#questGradient)" 
@@ -565,26 +525,20 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Attribute Pentagon / Radar Chart */}
             <div className="double-bezel">
-              <div className={`double-bezel-inner p-5 border space-y-4 ${
-                isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
-              }`}>
-                <div className={`flex items-center justify-between border-b pb-3 ${
-                  isEink ? 'border-[#18181c]' : 'border-[#33322d]'
-                }`}>
+              <div className="double-bezel-inner p-5 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-4">
+                <div className="flex items-center justify-between border-b border-[#18181c] pb-3">
                   <div className="flex items-center gap-2">
-                    <Brain className={`w-5 h-5 ${isEink ? 'text-indigo-700' : 'text-indigo-400'}`} />
+                    <Brain className="w-5 h-5 text-[#111113]" />
                     <div>
-                      <h4 className="font-pixel text-xs font-bold uppercase tracking-wider">
+                      <h4 className="font-pixel text-xs font-bold uppercase tracking-wider text-[#111113]">
                         5-ATTRIBUTE RPG RADAR
                       </h4>
-                      <p className={`font-mono text-[10px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+                      <p className="font-mono text-[10px] text-[#111113]">
                         Balanced character progression across core domains
                       </p>
                     </div>
                   </div>
-                  <span className={`font-mono text-xs font-bold px-2 py-0.5 border ${
-                    isEink ? 'text-indigo-800 bg-indigo-50 border-indigo-200' : 'text-indigo-300 bg-indigo-950/60 border-indigo-800'
-                  }`}>
+                  <span className="font-mono text-xs font-bold px-2 py-0.5 border border-[#18181c] text-[#111113] bg-[#ebeae4]">
                     Pentagon Matrix
                   </span>
                 </div>
@@ -595,24 +549,24 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
                       <PolarGrid stroke={radarGridColor} strokeDasharray="2 2" />
                       <PolarAngleAxis 
                         dataKey="subject" 
-                        tick={{ fill: radarTextColor, fontSize: 11, fontFamily: 'monospace', fontWeight: 600 }}
+                        tick={{ fill: radarTextColor, fontSize: 11, fontFamily: 'monospace', fontWeight: 700 }}
                       />
                       <PolarRadiusAxis 
                         angle={30} 
                         domain={[0, 100]} 
-                        tick={{ fill: tickColor, fontSize: 9, fontFamily: 'monospace' }}
+                        tick={{ fill: tickColor, fontSize: 9, fontFamily: 'monospace', fontWeight: 600 }}
                       />
                       <Radar 
                         name="XP Progress %" 
                         dataKey="xpPercent" 
-                        stroke={isEink ? '#4f46e5' : '#818cf8'} 
-                        fill={isEink ? '#6366f1' : '#6366f1'} 
+                        stroke="#4f46e5" 
+                        fill="#6366f1" 
                         fillOpacity={0.45} 
                         strokeWidth={2}
                         animationDuration={1500}
                         animationEasing="ease-out"
                       />
-                      <Tooltip content={<CustomPixelTooltip unit="%" isEink={isEink} />} />
+                      <Tooltip content={<CustomPixelTooltip unit="%" />} />
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
@@ -621,26 +575,20 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
 
             {/* Difficulty Breakdown Bar Chart */}
             <div className="double-bezel">
-              <div className={`double-bezel-inner p-5 border space-y-4 ${
-                isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
-              }`}>
-                <div className={`flex items-center justify-between border-b pb-3 ${
-                  isEink ? 'border-[#18181c]' : 'border-[#33322d]'
-                }`}>
+              <div className="double-bezel-inner p-5 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-4">
+                <div className="flex items-center justify-between border-b border-[#18181c] pb-3">
                   <div className="flex items-center gap-2">
-                    <Layers className={`w-5 h-5 ${isEink ? 'text-amber-800' : 'text-amber-400'}`} />
+                    <Layers className="w-5 h-5 text-[#111113]" />
                     <div>
-                      <h4 className="font-pixel text-xs font-bold uppercase tracking-wider">
+                      <h4 className="font-pixel text-xs font-bold uppercase tracking-wider text-[#111113]">
                         DIFFICULTY TIER BREAKDOWN
                       </h4>
-                      <p className={`font-mono text-[10px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+                      <p className="font-mono text-[10px] text-[#111113]">
                         Completed vs Pending quests categorized by challenge tier
                       </p>
                     </div>
                   </div>
-                  <span className={`font-mono text-xs font-bold px-2 py-0.5 border ${
-                    isEink ? 'text-amber-900 bg-amber-50 border-amber-200' : 'text-amber-300 bg-amber-950/60 border-amber-800'
-                  }`}>
+                  <span className="font-mono text-xs font-bold px-2 py-0.5 border border-[#18181c] text-[#111113] bg-[#ebeae4]">
                     Tiers
                   </span>
                 </div>
@@ -656,28 +604,28 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
                         axisLine={{ stroke: axisColor }}
                       />
                       <YAxis 
-                        tick={{ fill: tickColor, fontSize: 10, fontFamily: 'monospace' }}
+                        tick={{ fill: tickColor, fontSize: 10, fontFamily: 'monospace', fontWeight: 'bold' }}
                         tickLine={{ stroke: axisColor }}
                         axisLine={{ stroke: axisColor }}
                         allowDecimals={false}
                       />
-                      <Tooltip content={<CustomPixelTooltip unit="Quests" isEink={isEink} />} />
+                      <Tooltip content={<CustomPixelTooltip unit="Quests" />} />
                       <Legend 
                         verticalAlign="top" 
                         align="right" 
-                        wrapperStyle={{ fontSize: '11px', fontFamily: 'monospace' }} 
+                        wrapperStyle={{ fontSize: '11px', fontFamily: 'monospace', color: '#111113' }} 
                       />
                       <Bar 
                         dataKey="completed" 
                         name="Completed" 
-                        fill={isEink ? '#059669' : '#10b981'} 
+                        fill="#059669" 
                         radius={[3, 3, 0, 0]} 
                         animationDuration={1300}
                       />
                       <Bar 
                         dataKey="pending" 
                         name="Pending" 
-                        fill={isEink ? '#18181c' : '#52525b'} 
+                        fill="#18181c" 
                         radius={[3, 3, 0, 0]} 
                         animationDuration={1500}
                       />
@@ -700,11 +648,11 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
               const progressPct = Math.min(100, Math.round((stat.xp / (stat.xpToNextLevel || 80)) * 100));
 
               const icons: Record<AttributeType, ReactNode> = {
-                intellect: <Brain className={`w-5 h-5 ${isEink ? 'text-blue-700' : 'text-blue-400'}`} />,
-                strength: <Dumbbell className={`w-5 h-5 ${isEink ? 'text-red-700' : 'text-red-400'}`} />,
-                creativity: <Palette className={`w-5 h-5 ${isEink ? 'text-purple-700' : 'text-purple-400'}`} />,
-                vitality: <Heart className={`w-5 h-5 ${isEink ? 'text-emerald-700' : 'text-emerald-400'}`} />,
-                discipline: <Clock className={`w-5 h-5 ${isEink ? 'text-amber-700' : 'text-amber-400'}`} />,
+                intellect: <Brain className="w-5 h-5 text-[#111113]" />,
+                strength: <Dumbbell className="w-5 h-5 text-[#111113]" />,
+                creativity: <Palette className="w-5 h-5 text-[#111113]" />,
+                vitality: <Heart className="w-5 h-5 text-[#111113]" />,
+                discipline: <Clock className="w-5 h-5 text-[#111113]" />,
               };
 
               const descriptions: Record<AttributeType, string> = {
@@ -717,41 +665,31 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
 
               return (
                 <div key={attr} className="double-bezel">
-                  <div className={`double-bezel-inner p-5 border space-y-4 ${
-                    isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
-                  }`}>
-                    <div className={`flex items-center justify-between border-b pb-2 ${
-                      isEink ? 'border-[#18181c]' : 'border-[#33322d]'
-                    }`}>
+                  <div className="double-bezel-inner p-5 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-4">
+                    <div className="flex items-center justify-between border-b border-[#18181c] pb-2">
                       <div className="flex items-center gap-2">
                         {icons[attr]}
-                        <span className="font-pixel text-sm font-bold uppercase tracking-wider">
+                        <span className="font-pixel text-sm font-bold uppercase tracking-wider text-[#111113]">
                           {attr}
                         </span>
                       </div>
-                      <span className={`font-pixel text-xs font-bold px-2 py-0.5 border ${
-                        isEink ? 'bg-[#ebeae4] border-[#18181c] text-amber-900' : 'bg-[#26252a] border-[#3c3a42] text-amber-400'
-                      }`}>
+                      <span className="font-pixel text-xs font-bold px-2 py-0.5 border border-[#18181c] bg-[#ebeae4] text-[#111113]">
                         Lv.{stat.level}
                       </span>
                     </div>
 
-                    <p className={`font-serif italic text-xs min-h-[32px] ${
-                      isEink ? 'text-[#4a4943]' : 'text-zinc-400'
-                    }`}>
+                    <p className="font-serif italic text-xs min-h-[32px] text-[#111113]">
                       {descriptions[attr]}
                     </p>
 
                     <div className="space-y-1.5 font-mono text-xs">
-                      <div className={`flex justify-between text-[11px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+                      <div className="flex justify-between text-[11px] text-[#111113]">
                         <span>Level Progress:</span>
-                        <span className={`font-bold ${isEink ? 'text-[#111113]' : 'text-[#f5f4ef]'}`}>{stat.xp} / {stat.xpToNextLevel || 80} XP ({progressPct}%)</span>
+                        <span className="font-bold text-[#111113]">{stat.xp} / {stat.xpToNextLevel || 80} XP ({progressPct}%)</span>
                       </div>
-                      <div className={`w-full h-3 border overflow-hidden ${
-                        isEink ? 'bg-[#d9d8d2] border-[#18181c]' : 'bg-[#26252a] border-[#33322d]'
-                      }`}>
+                      <div className="w-full h-3 border border-[#18181c] bg-[#d9d8d2] overflow-hidden">
                         <div 
-                          className="h-full bg-amber-600 transition-all duration-700" 
+                          className="h-full bg-[#18181c] transition-all duration-700" 
                           style={{ width: `${progressPct}%` }}
                         />
                       </div>
@@ -763,15 +701,13 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
 
             {/* XP Distribution Pie Chart Card */}
             <div className="double-bezel">
-              <div className={`double-bezel-inner p-5 border space-y-2 flex flex-col justify-between ${
-                isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
-              }`}>
+              <div className="double-bezel-inner p-5 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-2 flex flex-col justify-between">
                 <div>
-                  <h4 className="font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                    <Award className="w-4 h-4 text-amber-500" />
+                  <h4 className="font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-2 text-[#111113]">
+                    <Award className="w-4 h-4 text-[#111113]" />
                     <span>XP SHARE BY ATTRIBUTE</span>
                   </h4>
-                  <p className={`font-mono text-[10px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+                  <p className="font-mono text-[10px] text-[#111113]">
                     Proportion of lifetime XP accumulated across all 5 stats
                   </p>
                 </div>
@@ -793,16 +729,16 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
                           <Cell key={`cell-${index}`} fill={entry.color} stroke={axisColor} strokeWidth={1.5} />
                         ))}
                       </Pie>
-                      <Tooltip content={<CustomPixelTooltip unit="XP" isEink={isEink} />} />
+                      <Tooltip content={<CustomPixelTooltip unit="XP" />} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
 
                 <div className="grid grid-cols-2 gap-1 font-mono text-[10px]">
                   {attributeShareData.map(item => (
-                    <div key={item.name} className="flex items-center gap-1.5">
+                    <div key={item.name} className="flex items-center gap-1.5 text-[#111113]">
                       <span className="w-2.5 h-2.5 border border-black" style={{ backgroundColor: item.color }} />
-                      <span className="truncate">{item.name} (Lv.{item.level})</span>
+                      <span className="truncate text-[#111113]">{item.name} (Lv.{item.level})</span>
                     </div>
                   ))}
                 </div>
@@ -817,19 +753,15 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Quest Type Ratio Pie */}
           <div className="double-bezel">
-            <div className={`double-bezel-inner p-5 border space-y-4 ${
-              isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
-            }`}>
-              <div className={`flex items-center justify-between border-b pb-3 ${
-                isEink ? 'border-[#18181c]' : 'border-[#33322d]'
-              }`}>
+            <div className="double-bezel-inner p-5 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-4">
+              <div className="flex items-center justify-between border-b border-[#18181c] pb-3">
                 <div className="flex items-center gap-2">
-                  <Layers className={`w-5 h-5 ${isEink ? 'text-emerald-700' : 'text-emerald-400'}`} />
+                  <Layers className="w-5 h-5 text-[#111113]" />
                   <div>
-                    <h4 className="font-pixel text-xs font-bold uppercase tracking-wider">
+                    <h4 className="font-pixel text-xs font-bold uppercase tracking-wider text-[#111113]">
                       QUEST CLASSIFICATION SHARE
                     </h4>
-                    <p className={`font-mono text-[10px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+                    <p className="font-mono text-[10px] text-[#111113]">
                       Main Quests vs Daily Habits vs Side Quests
                     </p>
                   </div>
@@ -854,21 +786,19 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
                           <Cell key={`type-cell-${index}`} fill={entry.color} stroke={axisColor} strokeWidth={2} />
                         ))}
                       </Pie>
-                      <Tooltip content={<CustomPixelTooltip unit="Quests" isEink={isEink} />} />
+                      <Tooltip content={<CustomPixelTooltip unit="Quests" />} />
                       <Legend 
                         verticalAlign="bottom" 
-                        wrapperStyle={{ fontSize: '11px', fontFamily: 'monospace' }} 
+                        wrapperStyle={{ fontSize: '11px', fontFamily: 'monospace', color: '#111113' }} 
                       />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className={`h-full flex flex-col items-center justify-center text-center p-6 font-mono text-xs ${
-                    isEink ? 'text-[#4a4943]' : 'text-zinc-400'
-                  }`}>
-                    <p className={`font-pixel text-sm mb-1 ${isEink ? 'text-[#111113]' : 'text-[#f5f4ef]'}`}>
+                  <div className="h-full flex flex-col items-center justify-center text-center p-6 font-mono text-xs text-[#111113]">
+                    <p className="font-pixel text-sm mb-1 text-[#111113]">
                       NO ACTIVE QUESTS LOGGED
                     </p>
-                    <p>Create new quests to populate classification charts!</p>
+                    <p className="text-[#111113]">Create new quests to populate classification charts!</p>
                   </div>
                 )}
               </div>
@@ -877,96 +807,84 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
 
           {/* Habit & Consistency Milestones */}
           <div className="double-bezel">
-            <div className={`double-bezel-inner p-5 border space-y-4 ${
-              isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
-            }`}>
-              <div className={`flex items-center justify-between border-b pb-3 ${
-                isEink ? 'border-[#18181c]' : 'border-[#33322d]'
-              }`}>
+            <div className="double-bezel-inner p-5 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-4">
+              <div className="flex items-center justify-between border-b border-[#18181c] pb-3">
                 <div className="flex items-center gap-2">
-                  <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
+                  <Flame className="w-5 h-5 text-[#111113] animate-pulse" />
                   <div>
-                    <h4 className="font-pixel text-xs font-bold uppercase tracking-wider">
+                    <h4 className="font-pixel text-xs font-bold uppercase tracking-wider text-[#111113]">
                       MILESTONES & STREAK ACCUMULATOR
                     </h4>
-                    <p className={`font-mono text-[10px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+                    <p className="font-mono text-[10px] text-[#111113]">
                       Progress toward key RPG accomplishments
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-3 font-mono text-xs">
+              <div className="space-y-3 font-mono text-xs text-[#111113]">
                 {/* Milestone 1 */}
-                <div className={`p-3 border flex items-center justify-between ${
-                  isEink ? 'bg-[#ebeae4] border-[#18181c]' : 'bg-[#212026] border-[#33322d]'
-                }`}>
+                <div className="p-3 border border-[#18181c] bg-[#ebeae4] flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <span className="text-xl">⚔️</span>
                     <div>
-                      <div className="font-bold">First Quest Completed</div>
-                      <div className={`text-[10px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>Begin your journey as an adventurer</div>
+                      <div className="font-bold text-[#111113]">First Quest Completed</div>
+                      <div className="text-[10px] text-[#111113]">Begin your journey as an adventurer</div>
                     </div>
                   </div>
-                  <span className={`px-2 py-0.5 font-pixel text-[10px] font-bold ${
-                    completedQuests >= 1 ? 'bg-emerald-700 text-white' : isEink ? 'bg-zinc-300 text-zinc-600' : 'bg-[#26252a] text-zinc-500'
+                  <span className={`px-2 py-0.5 font-pixel text-[10px] font-bold border border-[#18181c] ${
+                    completedQuests >= 1 ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#deddd6] text-[#111113]'
                   }`}>
                     {completedQuests >= 1 ? 'UNLOCKED' : 'LOCKED'}
                   </span>
                 </div>
 
                 {/* Milestone 2 */}
-                <div className={`p-3 border flex items-center justify-between ${
-                  isEink ? 'bg-[#ebeae4] border-[#18181c]' : 'bg-[#212026] border-[#33322d]'
-                }`}>
+                <div className="p-3 border border-[#18181c] bg-[#ebeae4] flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <span className="text-xl">🔥</span>
                     <div>
-                      <div className="font-bold">3-Day Habit Streak</div>
-                      <div className={`text-[10px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>Attain a 1.30x XP Multiplier</div>
+                      <div className="font-bold text-[#111113]">3-Day Habit Streak</div>
+                      <div className="text-[10px] text-[#111113]">Attain a 1.30x XP Multiplier</div>
                     </div>
                   </div>
-                  <span className={`px-2 py-0.5 font-pixel text-[10px] font-bold ${
-                    playerStats.streakDays >= 3 ? 'bg-orange-600 text-white' : isEink ? 'bg-zinc-300 text-zinc-600' : 'bg-[#26252a] text-zinc-500'
+                  <span className={`px-2 py-0.5 font-pixel text-[10px] font-bold border border-[#18181c] ${
+                    playerStats.streakDays >= 3 ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#deddd6] text-[#111113]'
                   }`}>
                     {playerStats.streakDays >= 3 ? 'UNLOCKED' : `${playerStats.streakDays}/3 DAYS`}
                   </span>
                 </div>
 
                 {/* Milestone 3 */}
-                <div className={`p-3 border flex items-center justify-between ${
-                  isEink ? 'bg-[#ebeae4] border-[#18181c]' : 'bg-[#212026] border-[#33322d]'
-                }`}>
+                <div className="p-3 border border-[#18181c] bg-[#ebeae4] flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <span className="text-xl">👑</span>
                     <div>
-                      <div className="font-bold">Level 5 Veteran Ascendance</div>
-                      <div className={`text-[10px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>Reach hero level 5 milestone</div>
+                      <div className="font-bold text-[#111113]">Level 5 Veteran Ascendance</div>
+                      <div className="text-[10px] text-[#111113]">Reach hero level 5 milestone</div>
                     </div>
                   </div>
-                  <span className={`px-2 py-0.5 font-pixel text-[10px] font-bold ${
-                    playerStats.level >= 5 ? 'bg-purple-700 text-white' : isEink ? 'bg-zinc-300 text-zinc-600' : 'bg-[#26252a] text-zinc-500'
+                  <span className={`px-2 py-0.5 font-pixel text-[10px] font-bold border border-[#18181c] ${
+                    playerStats.level >= 5 ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#deddd6] text-[#111113]'
                   }`}>
                     {playerStats.level >= 5 ? 'UNLOCKED' : `Lv.${playerStats.level}/5`}
                   </span>
                 </div>
 
                 {/* Milestone 4 */}
-                <div className={`p-3 border flex items-center justify-between ${
-                  isEink ? 'bg-[#ebeae4] border-[#18181c]' : 'bg-[#212026] border-[#33322d]'
-                }`}>
+                <div className="p-3 border border-[#18181c] bg-[#ebeae4] flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
                     <span className="text-xl">💀</span>
                     <div>
-                      <div className="font-bold">Boss Tier Conquered</div>
-                      <div className={`text-[10px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>Slay at least 1 Boss quest</div>
+                      <div className="font-bold text-[#111113]">Boss Tier Conquered</div>
+                      <div className="text-[10px] text-[#111113]">Slay at least 1 Boss quest</div>
                     </div>
                   </div>
                   {(() => {
                     const bossDone = quests.some(q => q.difficulty === 'boss' && q.completed);
                     return (
-                      <span className={`px-2 py-0.5 font-pixel text-[10px] font-bold ${
-                        bossDone ? 'bg-red-700 text-white' : isEink ? 'bg-zinc-300 text-zinc-600' : 'bg-[#26252a] text-zinc-500'
+                      <span className={`px-2 py-0.5 font-pixel text-[10px] font-bold border border-[#18181c] ${
+                        bossDone ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#deddd6] text-[#111113]'
                       }`}>
                         {bossDone ? 'UNLOCKED' : 'LOCKED'}
                       </span>

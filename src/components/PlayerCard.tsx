@@ -66,7 +66,7 @@ export const PlayerCard: FC<PlayerCardProps> = () => {
                     {playerStats.name}
                   </h2>
                 </div>
-                <p className="font-mono text-xs text-[#4a4943]">
+                <p className="font-mono text-xs text-[#111113]">
                   Level {playerStats.level} Questmaster • {playerStats.totalCompletedQuests} Quests Completed
                 </p>
               </div>
@@ -74,9 +74,9 @@ export const PlayerCard: FC<PlayerCardProps> = () => {
 
             {/* Quick Currency Counter */}
             <div className="flex items-center gap-2 self-start sm:self-auto font-mono text-xs">
-              <span className="flex items-center gap-1 bg-[#f5f4ef] border border-[#18181c] px-2.5 py-1 text-amber-800 font-bold shadow-pixel-sm">
-                <Coins className="w-3.5 h-3.5" />
-                <span>{playerStats.gold} Gold</span>
+              <span className="flex items-center gap-1 bg-[#f5f4ef] border border-[#18181c] px-2.5 py-1 text-[#111113] font-bold shadow-pixel-sm">
+                <Coins className="w-3.5 h-3.5 text-[#111113]" />
+                <span className="text-[#111113]">{playerStats.gold} Gold</span>
               </span>
             </div>
           </div>
@@ -85,10 +85,10 @@ export const PlayerCard: FC<PlayerCardProps> = () => {
           <div className="mb-5">
             <div className="flex justify-between items-center text-xs font-mono mb-1">
               <span className="flex items-center gap-1 font-bold text-[#111113] font-pixel">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <Sparkles className="w-3.5 h-3.5 text-[#111113]" />
                 CHARACTER LEVEL {playerStats.level} XP
               </span>
-              <span className="text-[#4a4943] font-bold">
+              <span className="text-[#111113] font-bold">
                 {playerStats.xp} / {playerStats.xpToNextLevel} XP ({xpPercent}%)
               </span>
             </div>
@@ -103,11 +103,11 @@ export const PlayerCard: FC<PlayerCardProps> = () => {
           {/* RPG Attributes Grid */}
           <div className="space-y-3">
             <div className="flex items-center justify-between border-b-2 border-[#18181c] pb-1">
-              <h3 className="font-pixel text-xs font-bold text-[#4a4943] uppercase tracking-widest flex items-center gap-1.5">
-                <Award className="w-3.5 h-3.5 text-amber-600" />
+              <h3 className="font-pixel text-xs font-bold text-[#111113] uppercase tracking-widest flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5 text-[#111113]" />
                 RPG Attribute Stats (5-Category Matrix)
               </h3>
-              <span className="font-mono text-[10px] text-[#71717a] hidden sm:inline">
+              <span className="font-mono text-[10px] text-[#111113] hidden sm:inline">
                 Completing tasks directly levels up corresponding stats
               </span>
             </div>
@@ -124,7 +124,7 @@ export const PlayerCard: FC<PlayerCardProps> = () => {
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-1.5">
-                          <Icon className={`w-3.5 h-3.5 ${meta.color}`} />
+                          <Icon className="w-3.5 h-3.5 text-[#111113]" />
                           <span className="font-bold text-[#111113] capitalize font-pixel text-xs">
                             {meta.name}
                           </span>
@@ -134,13 +134,13 @@ export const PlayerCard: FC<PlayerCardProps> = () => {
                         </span>
                       </div>
                       
-                      <p className="font-serif text-[11px] text-[#71717a] italic mb-2 line-clamp-1">
+                      <p className="font-serif text-[11px] text-[#111113] italic mb-2 line-clamp-1">
                         {meta.desc}
                       </p>
                     </div>
 
                     <div>
-                      <div className="flex justify-between text-[10px] text-[#4a4943] mb-1 font-bold">
+                      <div className="flex justify-between text-[10px] text-[#111113] mb-1 font-bold">
                         <span>XP Progress</span>
                         <span>{stat.xp} / {stat.xpToNextLevel}</span>
                       </div>
