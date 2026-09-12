@@ -20,11 +20,13 @@ process.on('warning', (warning) => {
   console.warn(warning);
 });
 
-// Configure Node.js DNS resolver to Google (8.8.8.8) and Cloudflare (1.1.1.1) to resolve MongoDB SRV records reliably
-try {
-  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
-} catch {
-  // Ignore DNS override errors if in restricted environment
+// Configure Node.js DNS resolver on Windows local dev environment to bypass Windows SRV resolution bugs
+if (process.platform === 'win32' && !process.env.VERCEL) {
+  try {
+    dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+  } catch {
+    // Ignore DNS override errors if in restricted environment
+  }
 }
 
 // Load environment variables
@@ -56,8 +58,8 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
 
   if (!cached.promise) {
     const opts = {
-      bufferCommands: false,
-      serverSelectionTimeoutMS: 5000,
+      bufferCommands: true,
+      serverSelectionTimeoutMS: 8000,
     };
 
     cached.promise = mongoose.connect(primaryUri, opts)
