@@ -94,3 +94,16 @@ export const playSubtask = () => {
 export const playDeleteSound = () => {
   playTone(220, 'sawtooth', 0.12, 0.08, 0.001);
 };
+
+export const playSound = (type: 'click' | 'questComplete' | 'levelUp' | 'drone' | 'purchase' | 'subtask' | 'delete' | 'error') => {
+  switch (type) {
+    case 'click': return playClick();
+    case 'questComplete': return playQuestComplete();
+    case 'levelUp': return playLevelUp();
+    case 'drone': return playDroneBeep();
+    case 'purchase': return playShopBuy();
+    case 'subtask': return playSubtask();
+    case 'delete':
+    case 'error': return playDeleteSound();
+  }
+};

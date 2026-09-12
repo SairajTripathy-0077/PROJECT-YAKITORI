@@ -1,5 +1,7 @@
-import type { FC } from 'react';
+import { useState, type FC } from 'react';
 import { useGame } from '../context/GameContext';
+import { useAuth } from '../context/AuthContext';
+import { AuthModal } from './AuthModal';
 import { 
   Volume2, 
   VolumeX, 
@@ -10,7 +12,10 @@ import {
   Coins, 
   Award,
   Plus,
-  ArrowRight
+  ArrowRight,
+  UserCheck,
+  LogOut,
+  LogIn
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -35,6 +40,9 @@ export const Navbar: FC<NavbarProps> = ({
     scanlineEnabled, 
     toggleScanlines 
   } = useGame();
+
+  const { user, logout } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-30 bg-[#f5f4ef]/95 backdrop-blur-md border-b-2 border-[#18181c] px-4 py-3">
@@ -61,16 +69,31 @@ export const Navbar: FC<NavbarProps> = ({
           </button>
         </div>
 
-        {/* LANDING PAGE NAVBAR: Only show clean "ENTER ENGINE" button */}
+        {/* LANDING PAGE NAVBAR: Show Auth status or ENTER ENGINE button */}
         {viewMode === 'landing' ? (
-          <div>
-            <button
-              onClick={onToggleViewMode}
-              className="px-4 py-2 pixel-btn-primary font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-2"
-            >
-              <span>ENTER APP</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+          <div className="flex items-center gap-2">
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs font-bold text-[#111113] bg-[#ebeae4] px-2.5 py-1 border border-[#18181c] hidden sm:inline-block">
+                  {user.isAnonymous ? 'GUEST HERO' : user.email || 'HERO'}
+                </span>
+                <button
+                  onClick={onToggleViewMode}
+                  className="px-4 py-2 pixel-btn-primary font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-2"
+                >
+                  <span>ENTER APP</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="px-4 py-2 pixel-btn-primary font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-2"
+              >
+                <LogIn className="w-3.5 h-3.5 text-amber-400" />
+                <span>SIGN IN</span>
+              </button>
+            )}
           </div>
         ) : (
           /* APP DASHBOARD NAVBAR: Show full RPG player stats & controls */
@@ -105,6 +128,30 @@ export const Navbar: FC<NavbarProps> = ({
             {/* Right: Actions & Controls */}
             <div className="flex items-center gap-2">
               
+              {/* User Identity / Logout Button */}
+              {user ? (
+                <button
+                  onClick={() => logout()}
+                  className="px-2.5 py-1.5 pixel-btn flex items-center gap-1 text-xs font-mono"
+                  title={`Logged in as ${user.email || 'Guest'}. Click to Logout.`}
+                >
+                  <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
+                  <span className="hidden lg:inline text-[11px] max-w-[100px] truncate">
+                    {user.isAnonymous ? 'Guest' : user.email?.split('@')[0]}
+                  </span>
+                  <LogOut className="w-3.5 h-3.5 text-red-600" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="px-2.5 py-1.5 pixel-btn flex items-center gap-1 text-xs font-mono"
+                  title="Sign In"
+                >
+                  <LogIn className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="hidden lg:inline text-[11px]">Sign In</span>
+                </button>
+              )}
+
               {/* New Quest Button */}
               <button
                 onClick={onOpenNewQuest}
@@ -159,6 +206,12 @@ export const Navbar: FC<NavbarProps> = ({
         )}
 
       </div>
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={() => onToggleViewMode()}
+      />
     </header>
   );
 };

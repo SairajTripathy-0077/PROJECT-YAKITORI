@@ -34,6 +34,7 @@ import {
   playDeleteSound,
   setSoundEnabled as setAudioEnabled
 } from '../utils/sound';
+import { useAuth } from './AuthContext';
 
 interface GameContextType {
   quests: Quest[];
@@ -61,70 +62,16 @@ interface GameContextType {
   setDroneMessage: (msg: string, expression?: DroneExpression) => void;
 }
 
-const STORAGE_KEY = 'yakitori_rpg_game_state_v3';
-
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [quests, setQuests] = useState<Quest[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.quests) && parsed.quests.length > 0) {
-          return parsed.quests;
-        }
-      } catch (e) {
-        console.error('Failed to parse saved quests', e);
-      }
-    }
-    return DEFAULT_QUESTS;
-  });
+  const { user } = useAuth();
+  const storageKey = user ? `yakitori_rpg_state_${user.uid}` : 'yakitori_rpg_game_state_v3';
 
-  const [playerStats, setPlayerStats] = useState<PlayerStats>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.playerStats) {
-          return { ...DEFAULT_PLAYER_STATS, ...parsed.playerStats };
-        }
-      } catch (e) {
-        console.error('Failed to parse player stats', e);
-      }
-    }
-    return DEFAULT_PLAYER_STATS;
-  });
-
-  const [attributes, setAttributes] = useState<AttributeMap>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.attributes) {
-          return { ...DEFAULT_ATTRIBUTES, ...parsed.attributes };
-        }
-      } catch (e) {
-        console.error('Failed to parse attributes', e);
-      }
-    }
-    return DEFAULT_ATTRIBUTES;
-  });
-
-  const [shopItems, setShopItems] = useState<ShopItem[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.shopItems) && parsed.shopItems.length > 0) {
-          return parsed.shopItems;
-        }
-      } catch (e) {
-        console.error('Failed to parse shop items', e);
-      }
-    }
-    return INITIAL_SHOP_ITEMS;
-  });
+  const [quests, setQuests] = useState<Quest[]>(DEFAULT_QUESTS);
+  const [playerStats, setPlayerStats] = useState<PlayerStats>(DEFAULT_PLAYER_STATS);
+  const [attributes, setAttributes] = useState<AttributeMap>(DEFAULT_ATTRIBUTES);
+  const [shopItems, setShopItems] = useState<ShopItem[]>(INITIAL_SHOP_ITEMS);
 
   const [droneState, setDroneState] = useState<DroneState>(INITIAL_DRONE_STATE);
   const [soundEnabled, setSoundEnabledState] = useState<boolean>(true);
@@ -132,7 +79,36 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [theme, setTheme] = useState<'noir' | 'eink'>('noir');
   const [levelUpModalData, setLevelUpModalData] = useState<LevelUpModalData | null>(null);
 
-  // Sync state to LocalStorage
+  // Load user data whenever storageKey changes
+  useEffect(() => {
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.quests) && parsed.quests.length > 0) {
+          setQuests(parsed.quests);
+        } else {
+          setQuests(DEFAULT_QUESTS);
+        }
+        setPlayerStats({ ...DEFAULT_PLAYER_STATS, ...(parsed.playerStats || {}) });
+        setAttributes({ ...DEFAULT_ATTRIBUTES, ...(parsed.attributes || {}) });
+        if (Array.isArray(parsed.shopItems) && parsed.shopItems.length > 0) {
+          setShopItems(parsed.shopItems);
+        } else {
+          setShopItems(INITIAL_SHOP_ITEMS);
+        }
+      } catch (e) {
+        console.error('Failed to load user progress', e);
+      }
+    } else {
+      setQuests(DEFAULT_QUESTS);
+      setPlayerStats(DEFAULT_PLAYER_STATS);
+      setAttributes(DEFAULT_ATTRIBUTES);
+      setShopItems(INITIAL_SHOP_ITEMS);
+    }
+  }, [storageKey]);
+
+  // Sync state to LocalStorage for active user
   useEffect(() => {
     try {
       const stateToSave = {
@@ -142,11 +118,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         shopItems,
         timestamp: Date.now(),
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+      localStorage.setItem(storageKey, JSON.stringify(stateToSave));
     } catch (e) {
       console.error('Failed to persist RPG game state', e);
     }
-  }, [quests, playerStats, attributes, shopItems]);
+  }, [quests, playerStats, attributes, shopItems, storageKey]);
 
   // Check and update Daily Streak & Auto-refresh Daily Habits on session mount
   useEffect(() => {
@@ -392,7 +368,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const resetAllProgress = () => {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(storageKey);
     setQuests(DEFAULT_QUESTS);
     setPlayerStats(DEFAULT_PLAYER_STATS);
     setAttributes(DEFAULT_ATTRIBUTES);

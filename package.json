@@ -13,6 +13,7 @@
     "@gsap/react": "^2.1.2",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
+    "firebase": "^11.10.0",
     "gsap": "^3.15.0",
     "lucide-react": "^1.45.0",
     "react": "^19.2.8",
