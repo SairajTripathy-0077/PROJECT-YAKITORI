@@ -119,7 +119,11 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
               isOnline: true,
               isStudying: idx === 0,
               currentTask: isCurrentUser ? 'Active Study Session' : 'Studying in Guild',
-              equippedCharacter: isCurrentUser ? playerStats.equippedCharacter : u.equippedCharacter,
+              equippedCharacter: isCurrentUser 
+                ? playerStats.equippedCharacter 
+                : (u.equippedCharacter !== undefined 
+                    ? u.equippedCharacter 
+                    : (u._id ? parseInt(u._id.slice(-6), 16) % 192 : 0)),
             };
           });
 
