@@ -1,5 +1,4 @@
 import { type FC } from 'react';
-import spriteSheetUrl from '../assets/sprite_sheet.png';
 
 export interface SpriteCharacterProps {
   /** Index from 0 to 191 */
@@ -18,27 +17,19 @@ export const SpriteCharacter: FC<SpriteCharacterProps> = ({
 }) => {
   // Ensure index is constrained between 0 and 191
   const safeIndex = Math.max(0, Math.min(191, Math.floor(index)));
-  const row = Math.floor(safeIndex / 12); // 0 to 15 (16 rows)
-  const col = safeIndex % 12;            // 0 to 11 (12 cols)
-
-  const bgWidth = size * 12;
-  const bgHeight = size * 16;
-  const posX = -(col * size);
-  const posY = -(row * size);
+  
+  // Directly load the individual avatar from Cloudinary
+  const cloudinaryUrl = `https://res.cloudinary.com/yi1cnaq4/image/upload/yakitori_avatars/avatar_${safeIndex}.png`;
 
   return (
-    <div
-      role="img"
-      aria-label={alt}
-      className={`inline-block shrink-0 relative overflow-hidden select-none ${className}`}
-      style={{
-        width: `${size}px`,
-        height: `${size}px`,
-        backgroundImage: `url('${spriteSheetUrl}')`,
-        backgroundPosition: `${posX}px ${posY}px`,
-        backgroundSize: `${bgWidth}px ${bgHeight}px`,
-        imageRendering: 'pixelated',
-      }}
+    <img
+      src={cloudinaryUrl}
+      alt={alt}
+      width={size}
+      height={size}
+      className={`inline-block shrink-0 ${className}`}
+      style={{ imageRendering: 'pixelated', objectFit: 'contain' }}
+      loading="lazy"
     />
   );
 };

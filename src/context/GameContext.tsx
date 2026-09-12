@@ -76,7 +76,7 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, dbProfile } = useAuth();
   const storageKey = user ? `yakitori_rpg_state_${user.uid}` : 'yakitori_rpg_game_state_v3';
 
   const [quests, setQuests] = useState<Quest[]>(DEFAULT_QUESTS);
@@ -90,6 +90,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [scanlineEnabled, setScanlineEnabled] = useState<boolean>(false);
   const [theme, setTheme] = useState<'noir' | 'eink'>('noir');
   const [levelUpModalData, setLevelUpModalData] = useState<LevelUpModalData | null>(null);
+
+  // Sync profile data from backend to local context if present
+  useEffect(() => {
+    if (dbProfile) {
+      setPlayerStats(prev => {
+        if (
+          prev.equippedCharacter !== dbProfile.equippedCharacter ||
+          JSON.stringify(prev.inventory) !== JSON.stringify(dbProfile.inventory)
+        ) {
+          return {
+            ...prev,
+            equippedCharacter: dbProfile.equippedCharacter ?? prev.equippedCharacter,
+            inventory: dbProfile.inventory ?? prev.inventory,
+          };
+        }
+        return prev;
+      });
+    }
+  }, [dbProfile]);
 
   // Load user data whenever storageKey changes
   useEffect(() => {
@@ -121,24 +140,45 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           loadedStats.activeMultiplier = 1.0;
           loadedStats.activityHistory = [];
         }
+        // Retroactively ensure equipped character is in inventory
+        if (loadedStats.equippedCharacter !== undefined) {
+          const equippedId = `char_sprite_${loadedStats.equippedCharacter}`;
+          if (!loadedStats.inventory) loadedStats.inventory = [];
+          if (!loadedStats.inventory.includes(equippedId)) {
+            loadedStats.inventory.push(equippedId);
+          }
+        }
+        
         setPlayerStats(loadedStats);
         setAttributes({ ...DEFAULT_ATTRIBUTES, ...(parsed.attributes || {}) });
         if (Array.isArray(parsed.shopItems) && parsed.shopItems.length > 0) {
           const savedMap = new Map<string, ShopItem>(parsed.shopItems.map((s: ShopItem) => [s.id, s]));
           const mergedItems = INITIAL_SHOP_ITEMS.map(initial => {
             const saved = savedMap.get(initial.id);
+            const isEquipped = loadedStats.equippedCharacter !== undefined && initial.id === `char_sprite_${loadedStats.equippedCharacter}`;
+            
             if (saved) {
               return {
                 ...initial,
-                purchased: saved.purchased ?? initial.purchased,
+                purchased: isEquipped ? true : (saved.purchased ?? initial.purchased),
                 equipped: saved.equipped ?? initial.equipped,
               };
             }
-            return initial;
+            return {
+              ...initial,
+              purchased: isEquipped ? true : initial.purchased
+            };
           });
           setShopItems(mergedItems);
         } else {
-          setShopItems(INITIAL_SHOP_ITEMS);
+          // If no shop items saved, ensure equipped character is purchased in defaults
+          const items = INITIAL_SHOP_ITEMS.map(i => {
+            if (loadedStats.equippedCharacter !== undefined && i.id === `char_sprite_${loadedStats.equippedCharacter}`) {
+              return { ...i, purchased: true };
+            }
+            return i;
+          });
+          setShopItems(items);
         }
       } catch (e) {
         console.error('Failed to load user progress', e);
@@ -195,9 +235,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         streakDays: playerStats.streakDays,
         characterClass: playerStats.characterClass,
         avatarIcon,
+        equippedCharacter: playerStats.equippedCharacter,
+        inventory: playerStats.inventory,
       }).catch(() => {});
     }
-  }, [user, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass]);
+  }, [user, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass, playerStats.equippedCharacter, playerStats.inventory]);
 
   // Check Daily Streak break & Auto-refresh Daily Habits on session mount
   useEffect(() => {
@@ -514,10 +556,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updatePlayerCharacter = (data: { name?: string; characterClass?: string; equippedCharacter?: number; avatar?: string }) => {
-    setPlayerStats(prev => ({
-      ...prev,
-      ...data,
-    }));
+    setPlayerStats(prev => {
+      const next = { ...prev, ...data };
+      
+      // Auto-add newly equipped character to inventory if missing
+      if (data.equippedCharacter !== undefined) {
+        const spriteId = `char_sprite_${data.equippedCharacter}`;
+        if (!next.inventory) next.inventory = [];
+        if (!next.inventory.includes(spriteId)) {
+          next.inventory = [...next.inventory, spriteId];
+        }
+      }
+      return next;
+    });
+
+    // Auto-mark as purchased in shop
+    if (data.equippedCharacter !== undefined) {
+      const spriteId = `char_sprite_${data.equippedCharacter}`;
+      setShopItems(prev => prev.map(i => i.id === spriteId ? { ...i, purchased: true } : i));
+    }
   };
 
   const updateAttributes = (newAttrs: AttributeMap) => {

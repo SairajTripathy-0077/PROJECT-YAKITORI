@@ -10,7 +10,7 @@ interface ShopModalProps {
 
 export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
   const { playerStats, shopItems, purchaseItem, equipItem } = useGame();
-  const [activeCategory, setActiveCategory] = useState<'all' | 'character' | 'equipment' | 'theme' | 'badge'>('all');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'owned' | 'character' | 'equipment' | 'theme' | 'badge'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -29,10 +29,17 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
   const equipmentCount = shopItems.filter(i => i.category === 'equipment').length;
   const badgeCount = shopItems.filter(i => i.category === 'badge').length;
   const themeCount = shopItems.filter(i => i.category === 'theme').length;
+  const ownedCount = shopItems.filter(i => i.purchased).length;
 
   const filteredItems = shopItems.filter(item => {
     if (item.category === 'drone') return false;
-    if (activeCategory !== 'all' && item.category !== activeCategory) return false;
+    
+    if (activeCategory === 'owned') {
+      if (!item.purchased) return false;
+    } else if (activeCategory !== 'all' && item.category !== activeCategory) {
+      return false;
+    }
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return (
@@ -87,6 +94,7 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
             <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
               {[
                 { key: 'all', label: `All (${shopItems.length})` },
+                { key: 'owned', label: `🎒 Owned (${ownedCount})` },
                 { key: 'character', label: `🎭 Characters (${characterCount})` },
                 { key: 'equipment', label: `⚔️ Equipment (${equipmentCount})` },
                 { key: 'badge', label: `🎖️ Badges (${badgeCount})` },
@@ -167,7 +175,7 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
                     </div>
 
                     {item.purchased ? (
-                      item.equipped ? (
+                      (item.category === 'character' ? playerStats.equippedCharacter === item.spriteIndex : item.equipped) ? (
                         <span className="px-2.5 py-1 bg-[#18181c] text-[#f5f4ef] text-[10px] font-pixel uppercase font-bold flex items-center gap-1">
                           <Check className="w-3 h-3 text-amber-400" />
                           EQUIPPED

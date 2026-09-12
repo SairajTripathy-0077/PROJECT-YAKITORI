@@ -35,6 +35,8 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response): P
     const streakDays = typeof body.streakDays === 'number' && body.streakDays >= 0 ? body.streakDays : undefined;
     const characterClass = ['Warrior', 'Mage', 'Rogue', 'Paladin'].includes(body.characterClass) ? body.characterClass : undefined;
     const avatarIcon = typeof body.avatarIcon === 'string' ? sanitizeString(body.avatarIcon, 10) : undefined;
+    const equippedCharacter = typeof body.equippedCharacter === 'number' && body.equippedCharacter >= 0 ? body.equippedCharacter : undefined;
+    const inventory = Array.isArray(body.inventory) ? body.inventory.filter((id: any) => typeof id === 'string') : undefined;
 
     // Upsert user in MongoDB
     let user = await User.findOne({ firebaseUid: uid });
@@ -49,6 +51,8 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response): P
       if (streakDays !== undefined) user.streakDays = streakDays;
       if (characterClass !== undefined) user.characterClass = characterClass;
       if (avatarIcon !== undefined) user.avatarIcon = avatarIcon;
+      if (equippedCharacter !== undefined) user.equippedCharacter = equippedCharacter;
+      if (inventory !== undefined) user.inventory = inventory;
       user.lastLoginAt = new Date();
       user.loginCount = (user.loginCount || 0) + 1;
       await user.save();
@@ -65,6 +69,8 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response): P
         streakDays: streakDays || 1,
         characterClass: characterClass || 'Warrior',
         avatarIcon: avatarIcon || '⚔️',
+        equippedCharacter: equippedCharacter || 0,
+        inventory: inventory || [],
         lastLoginAt: new Date(),
         loginCount: 1,
         isBanned: false,
@@ -140,7 +146,7 @@ router.get('/members', async (_req: Request, res: Response): Promise<void> => {
 
     // Fetch real registered users from MongoDB
     const users = await User.find({ isBanned: false })
-      .select('displayName email photoURL level xp streakDays characterClass avatarIcon lastLoginAt createdAt')
+      .select('displayName email photoURL level xp streakDays characterClass avatarIcon equippedCharacter lastLoginAt createdAt')
       .sort({ level: -1, xp: -1 })
       .limit(50)
       .lean();
