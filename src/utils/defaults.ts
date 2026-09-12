@@ -34,23 +34,242 @@ export const DEFAULT_PLAYER_STATS: PlayerStats = {
 
 export const DEFAULT_QUESTS: Quest[] = [];
 
-const ROW_TITLES = [
-  'Crimson Vanguard', 'Blaze Champions', 'Flame Sorcerers', 'Desert Wanderers',
-  'Sunblade Paladins', 'Forest Druids', 'Jade Hunters', 'Sea Tacticians',
-  'Ocean Guardians', 'Cobalt Shinobi', 'Shadow Stalkers', 'Dusk Marshals',
-  'Mystic Enchanters', 'Spectral Walkers', 'Cyber Ninjas', 'Silver Champions'
+const CHARACTER_DATA: Array<{ name: string; desc: string }> = [
+  // 1-12: Jujutsu Kaisen
+  { name: 'Gojo', desc: 'The Limitless sorcerer who expands domain expansion to achieve 100% focus and zero study errors.' },
+  { name: 'Sukuna', desc: 'The King of Curses who slashes through massive assignment backlogs with terrifying efficiency.' },
+  { name: 'Yuji', desc: 'A physically gifted scholar powered by relentless stamina and unbreakable determination.' },
+  { name: 'Megumi', desc: 'A shadow manipulator who summons shadowy study companions to tackle complex research tasks.' },
+  { name: 'Nobara', desc: 'A sharp, confident warrior who nails every single task requirement with fierce style.' },
+  { name: 'Nanami', desc: 'The ultimate overtime specialist who converts strict working hours into pure productivity gains.' },
+  { name: 'Maki', desc: 'A weapon master with zero cursed energy who relies on sheer grit to conquer top rank goals.' },
+  { name: 'Toge', desc: 'A cursed speech user who commands tasks to be completed instantly with a single word.' },
+  { name: 'Panda', desc: 'A rare cursed corpse who brings warm strength and steady motivation to the study room.' },
+  { name: 'Todo', desc: 'A 530,000 IQ strategist who swaps tough blockers for instant solutions with a clap.' },
+  { name: 'Toji', desc: 'A heavenly restricted assassin who eliminates hard tasks with zero wasted movement.' },
+  { name: 'Yuta', desc: 'A prodigy infused with boundless energy who copies successful study methods effortlessly.' },
+
+  // 13-24: Demon Slayer
+  { name: 'Tanjiro', desc: 'A compassionate sun-breather whose keen sense of smell tracks down missing answers.' },
+  { name: 'Nezuko', desc: 'A gentle demon warrior who charges energy inside her bamboo box for explosive focus bursts.' },
+  { name: 'Zenitsu', desc: 'A thunder breathing sleeper who wakes up to solve impossible problems at godspeed.' },
+  { name: 'Inosuke', desc: 'A wild beast warrior who charges headfirst into difficult tasks with boar-headed passion.' },
+  { name: 'Giyuu', desc: 'A quiet water hashira who maintains dead calm focus amidst chaotic study deadlines.' },
+  { name: 'Shinobu', desc: 'An insect hashira whose precise, delicate methods poison procrastination at its root.' },
+  { name: 'Rengoku', desc: 'A flame hashira whose burning passion sets the study room ablaze with heart-fueled focus.' },
+  { name: 'Tengen', desc: 'A flamboyant sound hashira who turns study marathons into flashy musical spectacles.' },
+  { name: 'Muichiro', desc: 'A mist hashira whose hazy, daydreaming demeanor hides unmatched genius speed.' },
+  { name: 'Mitsuri', desc: 'A love hashira whose boundless enthusiasm turns grueling study sessions into pure joy.' },
+  { name: 'Obanai', desc: 'A serpent hashira whose strict precision slithers through dense technical notes.' },
+  { name: 'Sanemi', desc: 'A tempestuous wind hashira whose aggressive drive shreds through exam prep.' },
+
+  // 25-36: Naruto
+  { name: 'Naruto', desc: 'The hyperactive shinobi who creates shadow clones to conquer multi-tasking challenges.' },
+  { name: 'Sasuke', desc: 'A lightning strategist whose Sharingan analyzes complex code and formulas instantly.' },
+  { name: 'Kakashi', desc: 'The copy ninja who reads scroll manuals effortlessly while mastering any subject.' },
+  { name: 'Itachi', desc: 'A silent genius who traps study fatigue inside Tsukuyomi while finishing work in seconds.' },
+  { name: 'Sakura', desc: 'A medical ninja whose precise chakra control heals burnt-out study motivation.' },
+  { name: 'Gaara', desc: 'A sand guardian whose absolute defense shields daily study streaks from all distractions.' },
+  { name: 'Shikamaru', desc: 'A shadow strategist with a 200 IQ who finds the easiest path to solve complex problems.' },
+  { name: 'Neji', desc: 'A Byakugan master whose 360-degree vision catches every detail in study documents.' },
+  { name: 'Tsunade', desc: 'A legendary Sannin whose monstrous strength crushes massive project roadmaps.' },
+  { name: 'Jiraiya', desc: 'A toad sage whose rich life experience inspires grand, creative writing quests.' },
+  { name: 'Minato', desc: 'The Yellow Flash who teleports across task queues at instantaneous speeds.' },
+  { name: 'Madara', desc: 'A legendary warlord who drops meteors of pure productivity onto the leaderboard.' },
+
+  // 37-48: One Piece
+  { name: 'Luffy', desc: 'The future King of the Pirates who stretches limits to conquer any study voyage.' },
+  { name: 'Zoro', desc: 'A three-sword master who cuts through tough assignments with relentless endurance.' },
+  { name: 'Nami', desc: 'A master navigator who maps out optimal study roadmaps and maximizes gold earnings.' },
+  { name: 'Usopp', desc: 'A creative sniper who hits far-off deadlines with inventive, unexpected strategies.' },
+  { name: 'Sanji', desc: 'A black-leg scholar who cooks up delicious study routines and fuels team energy.' },
+  { name: 'Chopper', desc: 'A brilliant doctor who cures study burnout with transformative brain point boosts.' },
+  { name: 'Robin', desc: 'An archaeologist who sprouts multiple arms to read whole libraries simultaneously.' },
+  { name: 'Franky', desc: 'A super cyborg builder who constructs indestructible daily habit workflows.' },
+  { name: 'Brook', desc: 'A soulful musician whose upbeat tempo keeps study room morale soaring high.' },
+  { name: 'Jinbe', desc: 'A fishman karate master who flows through heavy workloads like calm ocean water.' },
+  { name: 'Shanks', desc: 'A conqueror-haki captain whose majestic aura commands instant focus and respect.' },
+  { name: 'Ace', desc: 'A fiery adventurer whose blazing spirit lights up late-night study sessions.' },
+
+  // 49-60: Attack on Titan
+  { name: 'Levi', desc: 'Humanity\'s strongest soldier who cleans up task backlogs with razor-sharp precision.' },
+  { name: 'Eren', desc: 'An unstoppable titan who keeps moving forward until every single quest is destroyed.' },
+  { name: 'Mikasa', desc: 'A fiercely loyal protector who guards study goals with unmatched martial discipline.' },
+  { name: 'Armin', desc: 'A brilliant strategist whose analytical mind discovers breakthroughs in hopeless situations.' },
+  { name: 'Erwin', desc: 'A legendary commander who leads ambitious study campaigns with inspiring speeches.' },
+  { name: 'Hange', desc: 'A curious researcher whose eccentric passion unlocks deep scientific secrets.' },
+  { name: 'Reiner', desc: 'An armored titan scholar who withstands immense pressure without breaking.' },
+  { name: 'Annie', desc: 'A martial arts specialist who executes focused work sprints with cold efficiency.' },
+  { name: 'Historia', desc: 'A noble ruler who inspires study room members with genuine kindness and grace.' },
+  { name: 'Ymir', desc: 'A pragmatic wanderer who stays true to personal goals regardless of external noise.' },
+  { name: 'Jean', desc: 'A reliable leader who evaluates risks carefully and keeps study teams on schedule.' },
+  { name: 'Sasha', desc: 'A motivated hunter fueled by potato snacks to power through long study sessions.' },
+
+  // 61-72: Dragon Ball
+  { name: 'Goku', desc: 'A Saiyan warrior who pushes past limits to achieve Super Saiyan study productivity.' },
+  { name: 'Vegeta', desc: 'The Prince of Saiyans whose intense pride drives continuous self-improvement.' },
+  { name: 'Gohan', desc: 'A scholar warrior whose dormant potential erupts when deadlines draw near.' },
+  { name: 'Piccolo', desc: 'A wise Namekian strategist who meditates deeply to master complex subjects.' },
+  { name: 'Trunks', desc: 'A time-traveling hero who arrives from the future to slice through present blockers.' },
+  { name: 'Krillin', desc: 'A hardworking martial artist whose clever tactics yield constant steady progress.' },
+  { name: 'Frieza', desc: 'A golden tyrant who demands perfection and dominates leaderboards with ease.' },
+  { name: 'Cell', desc: 'A perfect lifeform who absorbs knowledge from all domains to achieve completeness.' },
+  { name: 'Majin', desc: 'A magical force whose cheerful energy turns hard study into effortless fun.' },
+  { name: 'Beerus', desc: 'A god of destruction who obliterates procrastination before taking cat naps.' },
+  { name: 'Whis', desc: 'An angelic attendant who rewinds time to correct minor study errors seamlessly.' },
+  { name: 'Broly', desc: 'A legendary berserker whose overflowing power annihilates entire task lists.' },
+
+  // 73-84: Bleach
+  { name: 'Ichigo', desc: 'A substitute Soul Reaper who unleashes Bankai focus to protect daily habit goals.' },
+  { name: 'Rukia', desc: 'An ice-element Shinigami who freezes distractions into crystal-clear clarity.' },
+  { name: 'Renji', desc: 'A roaring soul who strikes repeatedly until tough problems break open.' },
+  { name: 'Byakuya', desc: 'An aristocrat captain whose Senbonzakura precision leaves no flaw in work.' },
+  { name: 'Kenpachi', desc: 'A formidable captain who craves the hardest study challenges for pure thrill.' },
+  { name: 'Toshiro', desc: 'A child prodigy captain who keeps a cool, frosty composure under crunch.' },
+  { name: 'Aizen', desc: 'A mastermind who plans study goals according to perfect, untouchable design.' },
+  { name: 'Ulquiorra', desc: 'A stoic Espada who analyzes data with cold, objective perfection.' },
+  { name: 'Grimmjow', desc: 'A panther warrior who aggressively pounces on new learning opportunities.' },
+  { name: 'Yoruichi', desc: 'A flash-master goddess who speeds through assignments faster than light.' },
+  { name: 'Kisuke', desc: 'An inventive scientist who provides ingenious solutions for tricky problems.' },
+  { name: 'Gin', desc: 'A subtle strategist whose sharp intellect strikes unexpectedly from distance.' },
+
+  // 85-96: Hunter x Hunter
+  { name: 'Killua', desc: 'A lightning assassin who uses Godspeed mode to finish tasks at electric speeds.' },
+  { name: 'Gon', desc: 'An innocent enhancement user whose raw sincerity powers massive progress gains.' },
+  { name: 'Kurapika', desc: 'A conjurer whose scarlet eyes unlock absolute specialization during study sprints.' },
+  { name: 'Leorio', desc: 'A big-hearted medical aspirant whose pragmatic focus keeps goals grounded.' },
+  { name: 'Hisoka', desc: 'A versatile magician who uses Bungee Gum flexibility to adapt to any subject.' },
+  { name: 'Chrollo', desc: 'A thief of talent who steals effective study habits and masters them all.' },
+  { name: 'Meruem', desc: 'The Chimera Ant King who achieves supreme intellectual perfection in record time.' },
+  { name: 'Netero', desc: 'A martial grandmaster who offers 10,000 daily gratitude punches for focus.' },
+  { name: 'Feitan', desc: 'A swift phantom troupe assassin who converts task pain into burning output.' },
+  { name: 'Machi', desc: 'A Nen stitcher who sews fragmented research notes into flawless reports.' },
+  { name: 'Illumi', desc: 'A needle manipulator who pins mind focus strictly to target goals.' },
+  { name: 'Kaito', desc: 'A slot master whose crazy slots roll out the exact tool needed for any task.' },
+
+  // 97-108: My Hero Academia
+  { name: 'Deku', desc: 'A hero who analyzes strategy in notebooks to deliver One For All study blasts.' },
+  { name: 'Bakugo', desc: 'A explosive competitor whose fierce desire to win pushes leaderboards higher.' },
+  { name: 'Todoroki', desc: 'A dual-element hero balancing hot passion with ice-cool study discipline.' },
+  { name: 'Ochaco', desc: 'A gravity manipulator who lifts heavy study stress to keep morale weightless.' },
+  { name: 'Iida', desc: 'An engine-powered representative who bursts into work with disciplined speed.' },
+  { name: 'Tsuyu', desc: 'A calm, observant frog hero who stays grounded and composed under pressure.' },
+  { name: 'Kirishima', desc: 'An unyielding hero whose hardened resolve deflects all study fatigue.' },
+  { name: 'Kaminari', desc: 'A high-voltage student who electrifies study sessions with high-octane energy.' },
+  { name: 'Tokoyami', desc: 'A shadow wielder who utilizes Dark Shadow for deep night-shift study work.' },
+  { name: 'Aizawa', desc: 'An Eraser hero who erases all excuses and demands 100% focused silence.' },
+  { name: 'Allmight', desc: 'The Symbol of Peace who smiles brightly while carrying heavy study loads.' },
+  { name: 'Hawks', desc: 'A swift hero with feather blades who breezes through errands effortlessly.' },
+
+  // 109-120: One Punch Man
+  { name: 'Saitama', desc: 'The One-Punch hero who finishes complex assignments with a single easy effort.' },
+  { name: 'Genos', desc: 'A cyborg scholar who upgrades processing power to record detailed study logs.' },
+  { name: 'Tatsumaki', desc: 'A esper powerhouse who telekinetically organizes massive file archives.' },
+  { name: 'Garou', desc: 'A martial prodigy who adapts to any difficulty tier and grows stronger daily.' },
+  { name: 'Fubuki', desc: 'A group leader who organizes collaborative study groups for shared success.' },
+  { name: 'Boros', desc: 'A cosmic conqueror seeking worthy academic challenges across the universe.' },
+  { name: 'Sonic', desc: 'A lightning ninja who maneuvers through task queues with supersonic agility.' },
+  { name: 'Suiryu', desc: 'A relaxed martial artist who finds easy flow state in high-stakes tests.' },
+  { name: 'Mumen', desc: 'A dedicated bicycle hero who never gives up on daily study habit goals.' },
+  { name: 'Drive', desc: 'A tactical transformer who changes form to tackle specific subject domains.' },
+  { name: 'Metal', desc: 'A tech mastermind deploying autonomous study drones for automated metrics.' },
+  { name: 'Bang', desc: 'A martial master who deflects incoming stress with Water Stream Rock Smashing style.' },
+
+  // 121-132: Fullmetal Alchemist
+  { name: 'Edward', desc: 'The Fullmetal Alchemist who transmutes effort into gold-standard knowledge.' },
+  { name: 'Alphonse', desc: 'A gentle armor guardian with an ironclad spirit and unshakeable patience.' },
+  { name: 'Mustang', desc: 'A flame alchemist who snaps fingers to incinerate giant task backlogs.' },
+  { name: 'Hawkeye', desc: 'A sharp sniper officer whose steady aim ensures 100% accuracy in details.' },
+  { name: 'Ling', desc: 'A royal seeker who devours knowledge with an insatiable appetite for growth.' },
+  { name: 'Greed', desc: 'An avaricious homunculus who wants all achievements, gold, and top ranks.' },
+  { name: 'Envy', desc: 'A shapeshifter who adapts form to fit into any study role or requirement.' },
+  { name: 'Wrath', desc: 'An Ultimate Eye commander who executes task decisions with zero hesitation.' },
+  { name: 'Hughes', desc: 'A devoted supporter whose warm encouragement boosts team study morale.' },
+  { name: 'Armstrong', desc: 'A muscular alchemist whose artistic passion has been passed down generations.' },
+  { name: 'Winry', desc: 'A mechanical genius who tunes up study tools and keeps systems running smooth.' },
+  { name: 'Scar', desc: 'A relentless seeker who deconstructs complex problems down to basic truths.' },
+
+  // 133-144: Death Note & Tokyo Ghoul & Mob
+  { name: 'Light', desc: 'A master strategist who executes planned study schedules with godlike precision.' },
+  { name: 'Ryuk', desc: 'A shinigami observer who enjoys watching steady productivity gains over apples.' },
+  { name: 'Near', desc: 'A logical detective who solves complex code puzzles while stacking toys.' },
+  { name: 'Mello', desc: 'A passionate rival who fuels study sprints with sweet chocolate energy.' },
+  { name: 'Misa', desc: 'A devoted icon who brings vibrant energy and star flair to the study room.' },
+  { name: 'Kaneki', desc: 'An eyepatch scholar who balances human wisdom with ghoul-like study drive.' },
+  { name: 'Touka', desc: 'A swift winged ghoul who protects study quiet with fierce dedication.' },
+  { name: 'Juzo', desc: 'An unpredictable investigator whose wild creativity cuts through boredom.' },
+  { name: 'Arima', desc: 'An undefeated investigator known as the Reaper of uncompleted task lists.' },
+  { name: 'Mob', desc: 'A quiet student whose psychic potential explodes to 100% during focus mode.' },
+  { name: 'Reigen', desc: 'A master mentor whose persuasive wisdom guides learners through any dilemma.' },
+  { name: 'Ritsu', desc: 'A gifted honor student driven to match high academic standards.' },
+
+  // 145-156: Re:Zero & Slime & Chainsaw Man
+  { name: 'Subaru', desc: 'A persistent hero who uses Return by Death lessons to retry until success.' },
+  { name: 'Rem', desc: 'A devoted maid whose gentle support keeps study spaces immaculate and orderly.' },
+  { name: 'Ram', desc: 'A sharp-tongued maid who keeps high expectations and zero tolerance for slack.' },
+  { name: 'Emilia', desc: 'An ice-spirit scholar whose silver heart brings pure harmony to study halls.' },
+  { name: 'Rimuru', desc: 'A slime leader who absorbs new skills instantly and builds thriving communities.' },
+  { name: 'Veldora', desc: 'A storm dragon whose booming laughter inspires legendary quest courage.' },
+  { name: 'Milim', desc: 'A dragonoid powerhouse who clears hard study quests with super explosive fun.' },
+  { name: 'Diablo', desc: 'A primordially faithful secretary who executes commands with flawless elegance.' },
+  { name: 'Denji', desc: 'A chainsaw devil worker who revs up engine power to slice through tasks.' },
+  { name: 'Makima', desc: 'A controlling strategist whose quiet gaze ensures absolute goal compliance.' },
+  { name: 'Power', desc: 'A blood devil who claims first place on leaderboards through sheer boastful energy.' },
+  { name: 'Aki', desc: 'A stoic fox contractor who sacrifices leisure time for dedicated goal mastery.' },
+
+  // 157-168: Solo Leveling & Blue Lock & Haikyuu
+  { name: 'Jinwoo', desc: 'The Shadow Monarch who arises from E-rank to solo-level through all task dungeons.' },
+  { name: 'Beru', desc: 'An ant king soldier who obeys study commands with intense loyal devotion.' },
+  { name: 'Isagi', desc: 'A spatial genius who reconstructs study fields to score high productivity goals.' },
+  { name: 'Nagi', desc: 'A natural genius who traps complex concepts effortlessly with zero wasted effort.' },
+  { name: 'Bachira', desc: 'A creative dribbler who listens to his inner demon to spark wild ideas.' },
+  { name: 'Barou', desc: 'The King of the field who demands absolute perfection in daily habits.' },
+  { name: 'Shoyo', desc: 'A high-flying volleyball player who leaps over tall study hurdles with excitement.' },
+  { name: 'Kageyama', desc: 'A king setter whose pinpoint passes set up perfect study execution.' },
+  { name: 'Tsukishima', desc: 'A tall blocker whose calm logical mind shuts down exam distractions.' },
+  { name: 'Nishinoya', desc: 'A guardian libero who keeps study streaks alive with incredible saves.' },
+  { name: 'Oikawa', desc: 'A master setter who draws out 100% potential from every study team member.' },
+  { name: 'Bokuto', desc: 'An energetic ace whose hype moments power through midnight study marathons.' },
+
+  // 169-180: Cyberpunk & Vinland & JoJo
+  { name: 'David', desc: 'A Sandevistan mercenary who activates bullet-time focus for rapid work bursts.' },
+  { name: 'Lucy', desc: 'A skilled netrunner who dives into deep web research and extracts data.' },
+  { name: 'Rebecca', desc: 'A trigger-happy ally who brings loud, energetic support to study rooms.' },
+  { name: 'Thorfinn', desc: 'A true warrior who realizes he has no enemies, working in serene peace.' },
+  { name: 'Askeladd', desc: 'A cunning mercenary leader who maneuvers through politics and difficult tasks.' },
+  { name: 'Canute', desc: 'A visionary prince who transforms chaos into an orderly, peaceful domain.' },
+  { name: 'Jotaro', desc: 'A Stand user whose Star Platinum delivers Ora-Ora punches to tough math problems.' },
+  { name: 'Dio', desc: 'A vampire lord who stops time with Za Warudo to finish assignments early.' },
+  { name: 'Joseph', desc: 'A clever trickster who predicts what the next exam question will be.' },
+  { name: 'Giorno', desc: 'A Golden Wind leader with a dream to cultivate flourishing study habits.' },
+  { name: 'Jolyne', desc: 'A resilient warrior who weaves string nets to catch every stray assignment.' },
+  { name: 'Kars', desc: 'An ultimate lifeform who adapts to any academic environment effortlessly.' },
+
+  // 181-192: Code Geass & Steins;Gate & Fate
+  { name: 'Lelouch', desc: 'A Geass strategist who commands absolute obedience from his own study schedule.' },
+  { name: 'Suzaku', desc: 'A Lancelot pilot whose physical reflexes dodge all study procrastination.' },
+  { name: 'Okabe', desc: 'A mad scientist who shifts world lines to discover the optimal study timeline.' },
+  { name: 'Kurisu', desc: 'A brilliant researcher who solves complex science theories before coffee cools.' },
+  { name: 'Saber', desc: 'A noble king whose Excalibur beam cuts clean pathways to goal completion.' },
+  { name: 'Archer', desc: 'An Unlimited Blade Works master who projects infinite study tools on demand.' },
+  { name: 'Gilgamesh', desc: 'The King of Heroes who opens Gate of Babylon to unleash treasures of wisdom.' },
+  { name: 'Tohsaka', desc: 'A jewel mage who invests high standards into every single academic project.' },
+  { name: 'Shirou', desc: 'A dedicated idealist who works tirelessly to forge a world of completed goals.' },
+  { name: 'Lancer', desc: 'A swift spearman whose Gae Bolg strike never misses a critical task target.' },
+  { name: 'Berserker', desc: 'An unstoppable heroic titan who smashes through study obstacles with Nine Lives.' },
+  { name: 'Rider', desc: 'A Pegasus rider who glides swiftly above complex project landscapes.' },
 ];
 
-export const SPRITE_CHARACTER_ITEMS: ShopItem[] = Array.from({ length: 192 }, (_, i) => {
+export const SPRITE_CHARACTER_ITEMS: ShopItem[] = CHARACTER_DATA.map((item, i) => {
   const row = Math.floor(i / 12);
-  const col = (i % 12) + 1;
-  const group = ROW_TITLES[row] || 'Hero Guild';
-  const price = i === 0 ? 0 : 50 + (row * 10) + ((i % 5) * 5);
+  const col = i % 12;
+  // Prices are guaranteed multiples of 10: 0g for index 0, and 50g + row*10 + (col%5)*10 for others
+  const price = i === 0 ? 0 : 50 + (row * 10) + ((col % 5) * 10);
 
   return {
     id: `char_sprite_${i}`,
-    name: `${group} #${col}`,
-    description: `Sliced pixel character #${i + 1} from ${group}. Equippable live avatar for study room presence & leaderboards!`,
+    name: item.name,
+    description: item.desc,
     price,
     icon: '👤',
     category: 'character',
