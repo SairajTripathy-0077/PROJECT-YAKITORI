@@ -17,6 +17,7 @@ import {
   Sparkles, 
   Coins,
   Calendar,
+  AlertCircle,
   Repeat, 
   Clock,
   Edit2
