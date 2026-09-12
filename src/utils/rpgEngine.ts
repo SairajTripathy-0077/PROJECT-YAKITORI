@@ -388,3 +388,72 @@ export const getWeeklyActivityStatus = (activityHistory: string[] = []): { dayLa
     };
   });
 };
+
+export interface MonthCalendarDay {
+  dayNum: number | null;
+  dateStr: string;
+  isActive: boolean;
+  isToday: boolean;
+  isCurrentMonth: boolean;
+}
+
+/**
+ * Returns month grid days (Sun - Sat) with active status & today marker.
+ */
+export const getMonthCalendarGrid = (
+  year: number,
+  month: number,
+  activityHistory: string[] = []
+): {
+  days: MonthCalendarDay[];
+  monthLabel: string;
+  activeCount: number;
+} => {
+  const historySet = new Set(activityHistory);
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const firstDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month + 1, 0);
+
+  const startDayOfWeek = firstDayOfMonth.getDay(); // 0 is Sunday
+  const totalDays = lastDayOfMonth.getDate();
+
+  const monthLabel = firstDayOfMonth.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+
+  const days: MonthCalendarDay[] = [];
+
+  // Leading empty padding cells
+  for (let i = 0; i < startDayOfWeek; i++) {
+    days.push({
+      dayNum: null,
+      dateStr: '',
+      isActive: false,
+      isToday: false,
+      isCurrentMonth: false,
+    });
+  }
+
+  let activeCount = 0;
+  for (let day = 1; day <= totalDays; day++) {
+    const d = new Date(year, month, day);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dayFormatted = String(day).padStart(2, '0');
+    const dateStr = `${y}-${m}-${dayFormatted}`;
+
+    const isActive = historySet.has(dateStr);
+    if (isActive) activeCount++;
+
+    const isToday = dateStr === todayStr;
+
+    days.push({
+      dayNum: day,
+      dateStr,
+      isActive,
+      isToday,
+      isCurrentMonth: true,
+    });
+  }
+
+  return { days, monthLabel, activeCount };
+};
