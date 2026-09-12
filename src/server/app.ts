@@ -99,6 +99,8 @@ if (!admin.apps.length) {
 }
 
 const app = express();
+app.set('trust proxy', 1);
+
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // -------------------------------------------------------------
@@ -151,6 +153,7 @@ const globalLimiter = rateLimit({
   max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { trustProxy: false, xForwardedForHeader: false },
   message: {
     success: false,
     error: 'TOO_MANY_REQUESTS',
@@ -164,6 +167,7 @@ const authLimiter = rateLimit({
   max: 500,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { trustProxy: false, xForwardedForHeader: false },
   message: {
     success: false,
     error: 'RATE_LIMIT_EXCEEDED',
