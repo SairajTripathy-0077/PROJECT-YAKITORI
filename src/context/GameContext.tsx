@@ -37,6 +37,7 @@ import {
   setSoundEnabled as setAudioEnabled
 } from '../utils/sound';
 import { useAuth } from './AuthContext';
+import { dispatchCompanionGreeting } from './CompanionContext';
 import { api } from '../utils/api';
 
 interface GameContextType {
@@ -304,7 +305,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           unlockedTitle: result.newTitle,
           attributeLevelUps: result.attributeLevelUps,
         });
-        triggerGreeting('LEVEL_UP', {
+        dispatchCompanionGreeting('LEVEL_UP', {
           newLevel: result.updatedPlayerStats.level,
           title: result.newTitle,
           playerName: playerStats.name,
@@ -313,7 +314,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setDroneMessage(`VICTORY! You ascended to Level ${result.updatedPlayerStats.level} (${result.newTitle})! Phenomenal performance!`, 'VICTORY');
       } else if (result.attributeLevelUps.length > 0) {
         const topAttr = result.attributeLevelUps[0];
-        triggerGreeting('TASK_COMPLETE', {
+        dispatchCompanionGreeting('TASK_COMPLETE', {
           playerName: playerStats.name,
           questTitle: targetQuest.title,
           xpEarned: result.earnedXp,
@@ -325,7 +326,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         const quotes = DRONE_QUOTES.QUEST_COMPLETED;
         const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-        triggerGreeting('TASK_COMPLETE', {
+        dispatchCompanionGreeting('TASK_COMPLETE', {
           playerName: playerStats.name,
           questTitle: targetQuest.title,
           xpEarned: result.earnedXp,
@@ -410,7 +411,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         rewardGold: currentLevel * 50,
         unlockedTitle: newTitle,
       });
-      triggerGreeting('LEVEL_UP', {
+      dispatchCompanionGreeting('LEVEL_UP', {
         newLevel: currentLevel,
         title: newTitle,
         playerName: playerStats.name,

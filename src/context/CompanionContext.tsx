@@ -163,6 +163,19 @@ export const CompanionProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [activeGreeting, startDialoguePlayback]);
 
+  // Global window listener for companion-greeting custom events (decoupled from React context hierarchy)
+  useEffect(() => {
+    const handleCustomGreeting = (e: Event) => {
+      const customEvt = e as CustomEvent<{ event: CompanionEvent; metadata?: GreetingMetadata }>;
+      if (customEvt.detail?.event) {
+        triggerGreeting(customEvt.detail.event, customEvt.detail.metadata);
+      }
+    };
+
+    window.addEventListener('companion-greeting', handleCustomGreeting);
+    return () => window.removeEventListener('companion-greeting', handleCustomGreeting);
+  }, [triggerGreeting]);
+
   return (
     <CompanionContext.Provider
       value={{
@@ -184,6 +197,12 @@ export const CompanionProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       {children}
     </CompanionContext.Provider>
   );
+};
+
+export const dispatchCompanionGreeting = (event: CompanionEvent, metadata?: GreetingMetadata) => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('companion-greeting', { detail: { event, metadata } }));
+  }
 };
 
 export const useCompanion = (): CompanionContextType => {
