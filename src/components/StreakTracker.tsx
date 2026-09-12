@@ -1,7 +1,23 @@
 import { useState, useEffect, useMemo, type FC } from 'react';
 import { useGame } from '../context/GameContext';
-import { Flame, ChevronLeft, ChevronRight, HelpCircle, ShieldCheck, X } from 'lucide-react';
+import { Flame, ChevronLeft, ChevronRight, ShieldCheck, X, Zap } from 'lucide-react';
 import { getMonthCalendarGrid, type MonthCalendarDay } from '../utils/rpgEngine';
+
+// XP multiplier tiers
+const XP_TIERS = [
+  { minDay: 1,  maxDay: 2,  multiplier: 1.0, label: 'Day 1–2',  color: 'bg-zinc-200 text-[#111113]' },
+  { minDay: 3,  maxDay: 6,  multiplier: 1.3, label: 'Day 3–6',  color: 'bg-amber-200 text-amber-900' },
+  { minDay: 7,  maxDay: 9,  multiplier: 1.9, label: 'Day 7–9',  color: 'bg-orange-300 text-orange-900' },
+  { minDay: 10, maxDay: 999, multiplier: 3.0, label: 'Day 10+', color: 'bg-red-400 text-white' },
+];
+
+function getCurrentMultiplier(streakDays: number): number {
+  const day = streakDays > 0 ? streakDays : 1;
+  if (day >= 10) return 3.0;
+  if (day >= 7)  return 1.9;
+  if (day >= 3)  return 1.3;
+  return 1.0;
+}
 
 export const StreakTracker: FC = () => {
   const { playerStats, theme } = useGame();
@@ -60,13 +76,11 @@ export const StreakTracker: FC = () => {
 
   // Calculate current week index (W1..W5)
   const currentDayOfMonth = now.getDate();
-  const currentWeekIdx = Math.min(5, Math.ceil(currentDayOfMonth / 7));
-
-  // Days left in current week (Sunday = end of week)
-  const dayOfWeek = now.getDay();
-  const daysLeftInWeek = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+  void currentDayOfMonth; // kept for future use
 
   const todayNum = now.getDate();
+  const currentMultiplier = getCurrentMultiplier(playerStats.streakDays);
+  const streakDay = playerStats.streakDays > 0 ? playerStats.streakDays : 1;
 
   return (
     <div className="double-bezel h-full">
@@ -193,43 +207,54 @@ export const StreakTracker: FC = () => {
             </div>
           </div>
 
-          {/* Weekly RPG Bonus — container style */}
-          <div className="mt-3.5 border-2 border-[#111113] bg-white shadow-[2px_2px_0px_#000] p-3 space-y-2">
-            <div className="flex items-center justify-between font-mono text-xs">
-              <div className="flex items-center gap-1.5 font-bold font-pixel tracking-wide text-[#111113]">
-                <span>Weekly RPG Bonus</span>
-                <button
-                  onClick={() => setShowRulesModal(true)}
-                  className="text-amber-700 hover:text-black transition-colors"
-                  title="View Streak Rules"
-                >
-                  <HelpCircle className="w-3.5 h-3.5" />
-                </button>
+          {/* XP Multiplier Panel */}
+          <div className="mt-3.5 border-2 border-[#111113] bg-white shadow-[2px_2px_0px_#000] overflow-hidden">
+            {/* Panel Header */}
+            <div className="flex items-center justify-between px-3 py-2 bg-[#111113] text-white">
+              <div className="flex items-center gap-1.5 font-pixel text-[11px] font-bold uppercase tracking-wider">
+                <Zap className="w-3.5 h-3.5 text-amber-400" />
+                <span>XP Multiplier</span>
               </div>
-              <span className="text-[10px] text-[#4a4943]">
-                {daysLeftInWeek === 0 ? 'Last day of week' : `${daysLeftInWeek} days left`}
-              </span>
+              {/* Live multiplier badge */}
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-[10px] text-zinc-400">Active:</span>
+                <span className={`font-pixel text-sm font-bold px-2 py-0.5 border-2 border-amber-400 ${
+                  currentMultiplier >= 3.0 ? 'text-red-400' :
+                  currentMultiplier >= 1.9 ? 'text-orange-400' :
+                  currentMultiplier >= 1.3 ? 'text-amber-400' :
+                  'text-zinc-300'
+                }`}>
+                  {currentMultiplier.toFixed(2)}x
+                </span>
+              </div>
             </div>
 
-            {/* Weeks Row W1..W5 */}
-            <div className="flex items-center justify-between px-1">
-              {[1, 2, 3, 4, 5].map((w) => {
-                const isCurrentWeek = w === currentWeekIdx;
-                const isCompletedWeek = w < currentWeekIdx || (w === currentWeekIdx && playerStats.streakDays >= 7);
-
+            {/* Tier Guideline Bar */}
+            <div className="flex border-t-2 border-[#111113]">
+              {XP_TIERS.map((tier, i) => {
+                const isActive = streakDay >= tier.minDay && streakDay <= tier.maxDay;
+                const isPast   = streakDay > tier.maxDay;
                 return (
                   <div
-                    key={w}
-                    className={`w-7 h-7 border-2 flex items-center justify-center font-mono text-[11px] font-bold transition-all ${
-                      isCurrentWeek
-                        ? 'bg-amber-400 text-[#111113] border-[#111113] shadow-[2px_2px_0px_#000] animate-pulse font-pixel'
-                        : isCompletedWeek
-                        ? 'bg-[#111113] text-amber-400 border-[#111113]'
-                        : 'bg-white text-[#4a4943] border-[#111113]'
+                    key={i}
+                    className={`flex-1 flex flex-col items-center py-2 gap-0.5 border-r-2 border-[#111113] last:border-r-0 transition-all ${
+                      isActive
+                        ? tier.color + ' shadow-inner'
+                        : isPast
+                        ? 'bg-[#111113] text-white'
+                        : 'bg-white text-[#4a4943]'
                     }`}
-                    title={`Week ${w} Streak Milestone`}
+                    title={`${tier.label}: ${tier.multiplier}x XP`}
                   >
-                    W{w}
+                    <span className="font-pixel text-[10px] font-bold leading-none">
+                      {tier.multiplier.toFixed(1)}x
+                    </span>
+                    <span className="font-mono text-[8px] leading-none opacity-80">
+                      {tier.label}
+                    </span>
+                    {isActive && (
+                      <span className="w-1 h-1 rounded-full bg-current mt-0.5 animate-pulse" />
+                    )}
                   </div>
                 );
               })}
@@ -246,11 +271,9 @@ export const StreakTracker: FC = () => {
 
           <button
             onClick={() => setShowRulesModal(true)}
-            className={`transition-colors underline text-[11px] ${
-              isEink ? 'text-[#111113] hover:text-amber-800' : 'text-zinc-400 hover:text-amber-400'
-            }`}
+            className="transition-colors underline text-[11px] text-[#111113] hover:text-amber-700"
           >
-            Rules & Multiplier
+            Streak Rules
           </button>
         </div>
 
@@ -280,29 +303,28 @@ export const StreakTracker: FC = () => {
               <p>
                 <strong className="text-[#111113]">1. Daily Activation:</strong> Complete at least 1 main, daily, or side quest each day before midnight to maintain your streak.
               </p>
+              <p><strong className="text-[#111113]">2. XP Multipliers:</strong></p>
+              {/* Tier table */}
+              <div className="border-2 border-[#111113] overflow-hidden">
+                {XP_TIERS.map((tier, i) => (
+                  <div key={i} className={`flex items-center justify-between px-3 py-1.5 border-b border-[#111113] last:border-b-0 ${
+                    getCurrentMultiplier(playerStats.streakDays) === tier.multiplier ? 'bg-amber-100 font-bold' : ''
+                  }`}>
+                    <span className="font-pixel text-[10px]">{tier.label}</span>
+                    <span className={`font-pixel text-xs px-2 py-0.5 border border-[#111113] ${tier.color}`}>
+                      {tier.multiplier.toFixed(2)}x
+                    </span>
+                  </div>
+                ))}
+              </div>
               <p>
-                <strong className="text-[#111113]">2. XP Multipliers:</strong>
-                <br />
-                • Day 1: 1.00x Base XP
-                <br />
-                • Day 3+: 1.30x XP Boost
-                <br />
-                • Day 7+: 1.90x XP Bonus
-                <br />
-                • Day 10+: Up to 3.00x Maximum Multiplier!
-              </p>
-              <p>
-                <strong className={isEink ? 'text-[#111113]' : 'text-white'}>3. Red Dots & Today Badge:</strong> Red dots mark days with completed quests. Today's date is highlighted with a green or high-contrast badge!
+                <strong className="text-[#111113]">3. Dot Markers:</strong> Amber dots mark days with completed quests. Today is highlighted in purple.
               </p>
             </div>
 
             <button
               onClick={() => setShowRulesModal(false)}
-              className={`w-full py-2 font-pixel font-bold text-xs uppercase tracking-wider transition-colors ${
-                isEink 
-                  ? 'bg-[#18181c] text-[#f5f4ef] hover:bg-black' 
-                  : 'bg-amber-500 hover:bg-amber-400 text-black'
-              }`}
+              className="w-full py-2 font-pixel font-bold text-xs uppercase tracking-wider transition-colors bg-[#111113] text-white hover:bg-amber-700"
             >
               GOT IT, HERO!
             </button>
