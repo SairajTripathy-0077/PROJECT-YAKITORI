@@ -33,7 +33,7 @@ const MainAppContent: FC = () => {
   // Character only greets on: actual sign-in, entering dashboard from landing (after customization), task completion, level-up.
 
   const [viewMode, setViewModeState] = useState<'landing' | 'app' | 'study' | 'analytics'>(() => {
-    const saved = localStorage.getItem('yakitori_view_mode');
+    const saved = localStorage.getItem('yakitodo_view_mode');
     if (saved === 'app' || saved === 'study' || saved === 'analytics') {
       return saved as 'app' | 'study' | 'analytics';
     }
@@ -50,7 +50,7 @@ const MainAppContent: FC = () => {
   ) => {
     setViewModeState((prev) => {
       const next = typeof modeOrUpdater === 'function' ? modeOrUpdater(prev) : modeOrUpdater;
-      localStorage.setItem('yakitori_view_mode', next);
+      localStorage.setItem('yakitodo_view_mode', next);
       return next;
     });
   };

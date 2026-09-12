@@ -51,7 +51,7 @@ export const KeyboardShortcutsModal: FC<KeyboardShortcutsModalProps> = ({ isOpen
           </div>
 
           <p className="font-serif text-xs text-[#4a4943] mb-4 leading-relaxed italic">
-            YAKITORI is fully accessible and navigable via keyboard hotkeys for maximum productivity.
+            YAKITODO is fully accessible and navigable via keyboard hotkeys for maximum productivity.
           </p>
 
           <div className="space-y-2 font-mono text-xs mb-6">

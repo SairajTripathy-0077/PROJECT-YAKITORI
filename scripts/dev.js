@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 
-console.log('[Dev] Starting Yakitori Monolith API Server & Vite Dev Server...');
+console.log('[Dev] Starting Yakitodo Monolith API Server & Vite Dev Server...');
 
 // Start Express Backend API on port 5000
 const serverProc = spawn('npx', ['tsx', 'src/server/index.ts'], {

@@ -29,7 +29,7 @@ export const LoadingScreen: FC<{ onComplete: () => void }> = ({ onComplete }) =>
           </div>
 
           <h1 className="font-pixel text-xl font-bold mb-2 tracking-wider text-white">
-            YAKITORI // QUEST ENGINE
+            YAKITODO // QUEST ENGINE
           </h1>
 
           <p className="font-serif italic text-zinc-400 text-xs sm:text-sm mb-6">

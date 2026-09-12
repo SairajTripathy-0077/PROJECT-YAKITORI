@@ -94,16 +94,16 @@ export const Navbar: FC<NavbarProps> = ({
           <button
             onClick={() => onToggleViewMode()}
             className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 focus:outline-none group text-left"
-            title="YAKITORI Pixel RPG"
+            title="YAKITODO Pixel RPG"
           >
             <img 
               src={yakitoriImg} 
-              alt="YAKITORI Logo" 
+              alt="YAKITODO Logo" 
               className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 object-cover border-2 border-[#18181c] shadow-pixel-sm shrink-0 rounded-sm" 
             />
             <div>
               <h1 className="font-pixel text-xs xs:text-sm sm:text-base md:text-lg font-bold tracking-wider text-[#111113] leading-none">
-                YAKITORI
+                YAKITODO
               </h1>
             </div>
           </button>

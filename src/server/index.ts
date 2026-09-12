@@ -8,7 +8,7 @@ async function startServer() {
     await connectToDatabase();
 
     app.listen(PORT, () => {
-      console.log(`[Server] Yakitori Monolith API running on http://localhost:${PORT}`);
+      console.log(`[Server] Yakitodo Monolith API running on http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error('[Server] Startup error:', error);

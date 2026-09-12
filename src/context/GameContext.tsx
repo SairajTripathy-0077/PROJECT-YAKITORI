@@ -78,7 +78,7 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, dbProfile } = useAuth();
-  const storageKey = user ? `yakitori_rpg_state_${user.uid}` : 'yakitori_rpg_game_state_v3';
+  const storageKey = user ? `yakitodo_rpg_state_${user.uid}` : 'yakitodo_rpg_game_state_v3';
 
   const [quests, setQuests] = useState<Quest[]>(DEFAULT_QUESTS);
   const [playerStats, setPlayerStats] = useState<PlayerStats>(DEFAULT_PLAYER_STATS);

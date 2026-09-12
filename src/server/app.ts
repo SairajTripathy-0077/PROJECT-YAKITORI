@@ -51,8 +51,8 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
     return cached.conn;
   }
 
-  const primaryUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb+srv://tryinghard75days_db_user:3XlBThxna1ntMXCY@devchoice.krymjtr.mongodb.net/yakitori_app?retryWrites=true&w=majority';
-  const fallbackUri = 'mongodb://tryinghard75days_db_user:3XlBThxna1ntMXCY@devchoice-shard-00-00.krymjtr.mongodb.net:27017,devchoice-shard-00-01.krymjtr.mongodb.net:27017,devchoice-shard-00-02.krymjtr.mongodb.net:27017/yakitori_app?replicaSet=atlas-devchoice-shard-0&ssl=true&authSource=admin';
+  const primaryUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb+srv://tryinghard75days_db_user:3XlBThxna1ntMXCY@devchoice.krymjtr.mongodb.net/yakitodo_app?retryWrites=true&w=majority';
+  const fallbackUri = 'mongodb://tryinghard75days_db_user:3XlBThxna1ntMXCY@devchoice-shard-00-00.krymjtr.mongodb.net:27017,devchoice-shard-00-01.krymjtr.mongodb.net:27017,devchoice-shard-00-02.krymjtr.mongodb.net:27017/yakitodo_app?replicaSet=atlas-devchoice-shard-0&ssl=true&authSource=admin';
 
   if (!cached.promise) {
     const opts = {

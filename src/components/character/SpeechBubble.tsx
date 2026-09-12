@@ -19,7 +19,7 @@ export const SpeechBubble: React.FC<SpeechBubbleProps> = ({
   isTypingComplete,
   onDismiss,
   onReplay,
-  speakerName = 'COMPANION // YAKITORI',
+  speakerName = 'COMPANION // YAKITODO',
   className = '',
   tailDirection = 'right',
 }) => {
@@ -98,7 +98,7 @@ export const SpeechBubble: React.FC<SpeechBubbleProps> = ({
           {/* Status Subtitle */}
           <div className="mt-2 pt-1 border-t border-[#18181c]/15 flex items-center justify-between text-[9px] font-mono text-[#5f5d56]">
             <span>{isSpeaking ? 'VOICE SYNCHRONIZED' : 'DIALOGUE COMPLETE'}</span>
-            <span className="text-[8px] uppercase tracking-wider text-[#88867f]">YAKITORI RPG</span>
+            <span className="text-[8px] uppercase tracking-wider text-[#88867f]">YAKITODO RPG</span>
           </div>
 
         </div>

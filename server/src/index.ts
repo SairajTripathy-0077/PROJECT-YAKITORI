@@ -134,7 +134,7 @@ app.use('/api/auth', authRoutes);
 app.get('/api/health', (_req, res) => {
   res.json({
     success: true,
-    service: 'yakitori-server',
+    service: 'yakitodo-server',
     environment: NODE_ENV,
     timestamp: new Date().toISOString(),
   });

@@ -149,7 +149,7 @@ export const AuthModal: FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) =>
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="hero@yakitori.rpg"
+                placeholder="hero@yakitodo.rpg"
                 className="w-full px-3 py-2 bg-[#ebeae4] border-2 border-[#18181c] focus:outline-none focus:bg-white text-[#111113] shadow-inner font-mono text-sm"
               />
             </div>
