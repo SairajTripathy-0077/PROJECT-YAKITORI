@@ -9,7 +9,7 @@ interface ShopModalProps {
 
 export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
   const { playerStats, shopItems, purchaseItem, equipItem } = useGame();
-  const [activeCategory, setActiveCategory] = useState<'all' | 'equipment' | 'theme' | 'badge' | 'drone'>('all');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'equipment' | 'theme' | 'badge'>('all');
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -24,7 +24,7 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   const filteredItems = shopItems.filter(item => 
-    activeCategory === 'all' ? true : item.category === activeCategory
+    item.category === 'drone' ? false : (activeCategory === 'all' ? true : item.category === activeCategory)
   );
 
   return (
@@ -41,7 +41,7 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
                   PIXEL ARMORY & MARKETPLACE
                 </h2>
                 <p className="font-mono text-xs text-[#4a4943]">
-                  Spend Gold Coins ($G) to unlock equipment, badges, and drone gear
+                  Spend Gold Coins ($G) to unlock equipment, themes, and badges
                 </p>
               </div>
             </div>
@@ -68,7 +68,6 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
               { key: 'all', label: 'All Items' },
               { key: 'equipment', label: '⚔️ Equipment' },
               { key: 'badge', label: '🎖️ Badges' },
-              { key: 'drone', label: '🤖 Drone Gear' },
             ].map(cat => (
               <button
                 key={cat.key}

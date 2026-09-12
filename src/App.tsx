@@ -5,7 +5,6 @@ import { LandingHero } from './components/LandingHero';
 import { PlayerCard } from './components/PlayerCard';
 import { StreakTracker } from './components/StreakTracker';
 import { QuestList } from './components/QuestList';
-import { DroneCompanion } from './components/DroneCompanion';
 import { LevelUpOverlay } from './components/LevelUpOverlay';
 import { QuestModal } from './components/QuestModal';
 import { ShopModal } from './components/ShopModal';
@@ -69,14 +68,14 @@ const MainAppContent: FC = () => {
         onToggleViewMode={() => setViewMode(prev => prev === 'landing' ? 'app' : 'landing')}
       />
 
-      {/* Main Content Container (Full Width Usage) */}
-      <main className="flex-1 max-w-[1700px] w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+      {/* Main Content Container */}
+      <main className={viewMode === 'landing' ? 'flex-1 w-full' : 'flex-1 max-w-[1700px] w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8'}>
         
         {viewMode === 'landing' ? (
-          /* Landing Hero View */
+          /* Landing Hero View - Full Edge-to-Edge Image */
           <LandingHero onEnterApp={() => setViewMode('app')} />
         ) : (
-          /* App Dashboard View */
+          /* App Dashboard View - Full RPG Controls & Stats */
           <div className="space-y-6 animate-fade-in">
             {/* Top Bento Grid: Player Profile & Streak Tracker */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -116,12 +115,14 @@ const MainAppContent: FC = () => {
           </p>
 
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setViewMode(prev => prev === 'landing' ? 'app' : 'landing')}
-              className="text-[11px] underline font-pixel font-bold hover:text-black"
-            >
-              {viewMode === 'landing' ? 'Open Dashboard →' : '← Landing Page'}
-            </button>
+            {viewMode === 'app' && (
+              <button
+                onClick={() => setViewMode('landing')}
+                className="text-[11px] underline font-pixel font-bold hover:text-black"
+              >
+                ← Landing Page
+              </button>
+            )}
 
             <button
               onClick={() => {
@@ -139,8 +140,6 @@ const MainAppContent: FC = () => {
         </div>
       </footer>
 
-      {/* Floating Interactive Elements */}
-      <DroneCompanion />
       <LevelUpOverlay />
 
       {/* Modals */}
