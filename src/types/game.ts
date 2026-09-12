@@ -22,6 +22,7 @@ export interface Quest {
   createdAt: number;
   completedAt?: number;
   lastCompletedDate?: string; // YYYY-MM-DD date when quest was completed
+  completionDates?: string[]; // Array of YYYY-MM-DD dates this quest was completed on
   dueDate?: string; // YYYY-MM-DD or ISO date string
   subtasks: Subtask[];
   xpReward: number;
