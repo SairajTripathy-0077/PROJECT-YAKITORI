@@ -519,17 +519,18 @@ export const QuestList: FC<QuestListProps> = ({ onOpenNewQuest, onEditQuest, sea
               >
                 <option value="easy">Easy (+25 XP)</option>
                 <option value="medium">Medium (+50 XP)</option>
-              <option value="hard">Hard (+100 XP)</option>
-              <option value="boss">Boss (+220 XP)</option>
-            </select>
+                <option value="hard">Hard (+100 XP)</option>
+                <option value="boss">Boss (+220 XP)</option>
+              </select>
 
-            <button
-              type="submit"
-              disabled={!quickTitle.trim()}
-              className="px-3 py-1.5 pixel-btn-primary font-pixel text-xs font-bold text-white uppercase disabled:opacity-50 shrink-0"
-            >
-              LOG
-            </button>
+              <button
+                type="submit"
+                disabled={!quickTitle.trim()}
+                className="px-3 py-1.5 pixel-btn-primary font-pixel text-xs font-bold text-white uppercase disabled:opacity-50 shrink-0"
+              >
+                LOG
+              </button>
+            </div>
           </form>
 
         </div>
