@@ -24,7 +24,8 @@ import {
   checkStreakBreak,
   calculateCharacterXpThreshold,
   calculateAttributeXpThreshold,
-  getCharacterTitle
+  getCharacterTitle,
+  getLocalTodayStr
 } from '../utils/rpgEngine';
 import { 
   playQuestComplete, 
@@ -82,7 +83,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [playerStats, setPlayerStats] = useState<PlayerStats>(DEFAULT_PLAYER_STATS);
   const [attributes, setAttributes] = useState<AttributeMap>(DEFAULT_ATTRIBUTES);
   const [shopItems, setShopItems] = useState<ShopItem[]>(INITIAL_SHOP_ITEMS);
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(() => new Date().toISOString().split('T')[0]);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(() => getLocalTodayStr());
 
   const [droneState, setDroneState] = useState<DroneState>(INITIAL_DRONE_STATE);
   const [soundEnabled, setSoundEnabledState] = useState<boolean>(true);
@@ -221,7 +222,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check Daily Streak break & Auto-refresh Daily Habits on session mount
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalTodayStr();
     const { streakDays, activeMultiplier } = checkStreakBreak(
       playerStats.lastActiveDate,
       playerStats.streakDays
@@ -239,7 +240,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setQuests(prev => prev.map(q => {
       if (q.questType === 'daily' && q.completed) {
         const completedOnPastDay = q.lastCompletedDate && q.lastCompletedDate !== today;
-        const fallbackPastDay = !q.lastCompletedDate && q.completedAt && (new Date(q.completedAt).toISOString().split('T')[0] !== today);
+        const fallbackPastDay = !q.lastCompletedDate && q.completedAt && (getLocalTodayStr(new Date(q.completedAt)) !== today);
         if (completedOnPastDay || fallbackPastDay) {
           return {
             ...q,
@@ -286,7 +287,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!targetQuest) return;
 
     const willBeCompleted = !targetQuest.completed;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalTodayStr();
 
     // Update quest list state
     setQuests(prev => prev.map(q => {

@@ -107,13 +107,13 @@ export const CompanionProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsTypingComplete(true);
         setTypingProgress(1);
 
-        // Disappear after completion of her greeting
+        // Disappear after completion of her greeting (4.5s buffer for reading)
         if (autoDismissTimerRef.current) {
           clearTimeout(autoDismissTimerRef.current);
         }
         autoDismissTimerRef.current = setTimeout(() => {
           dismissGreeting();
-        }, 1000);
+        }, 4500);
       },
       onError: () => {
         setIsSpeaking(false);
@@ -121,13 +121,13 @@ export const CompanionProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsTypingComplete(true);
         setTypingProgress(1);
 
-        // Disappear after completion of her greeting on error/fallback too
+        // Disappear after completion of her greeting on error/fallback too (4.5s buffer)
         if (autoDismissTimerRef.current) {
           clearTimeout(autoDismissTimerRef.current);
         }
         autoDismissTimerRef.current = setTimeout(() => {
           dismissGreeting();
-        }, 1000);
+        }, 4500);
       }
     });
   }, [dismissGreeting]);
