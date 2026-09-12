@@ -221,13 +221,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
               purchased: isEquipped ? true : initial.purchased
             };
           });
-              };
-            }
-            return {
-              ...initial,
-              purchased: isEquipped ? true : initial.purchased
-            };
-          });
           setShopItems(mergedItems);
         } else {
           // If no shop items saved, ensure equipped character is purchased in defaults
