@@ -160,6 +160,14 @@ export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
                     <span>{deadlineInfo.text}</span>
                   </span>
                 )}
+
+                {/* Completed on Date Badge */}
+                {(quest.lastCompletedDate || (quest.completionDates && quest.completionDates.length > 0)) && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 border border-emerald-800 bg-emerald-100 text-emerald-900 text-[10px] font-mono font-bold shadow-pixel-sm">
+                    <Calendar className="w-3 h-3 text-emerald-700" />
+                    <span>Done: {quest.lastCompletedDate || quest.completionDates?.[quest.completionDates.length - 1]}</span>
+                  </span>
+                )}
               </div>
 
               {/* Title */}

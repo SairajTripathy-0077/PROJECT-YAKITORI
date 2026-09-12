@@ -67,6 +67,8 @@ interface GameContextType {
   interactWithDrone: () => void;
   resetAllProgress: () => void;
   setDroneMessage: (msg: string, expression?: DroneExpression) => void;
+  selectedCalendarDate: string | null;
+  setSelectedCalendarDate: (dateStr: string | null) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -79,6 +81,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [playerStats, setPlayerStats] = useState<PlayerStats>(DEFAULT_PLAYER_STATS);
   const [attributes, setAttributes] = useState<AttributeMap>(DEFAULT_ATTRIBUTES);
   const [shopItems, setShopItems] = useState<ShopItem[]>(INITIAL_SHOP_ITEMS);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(() => new Date().toISOString().split('T')[0]);
 
   const [droneState, setDroneState] = useState<DroneState>(INITIAL_DRONE_STATE);
   const [soundEnabled, setSoundEnabledState] = useState<boolean>(true);
@@ -250,11 +253,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Update quest list state
     setQuests(prev => prev.map(q => {
       if (q.id === id) {
+        const existingDates = q.completionDates || (q.lastCompletedDate ? [q.lastCompletedDate] : []);
+        const updatedDates = willBeCompleted
+          ? Array.from(new Set([...existingDates, today]))
+          : existingDates.filter(d => d !== today);
+
         return {
           ...q,
           completed: willBeCompleted,
           completedAt: willBeCompleted ? Date.now() : undefined,
           lastCompletedDate: willBeCompleted ? today : undefined,
+          completionDates: updatedDates,
           subtasks: q.subtasks.map(s => ({ ...s, completed: willBeCompleted }))
         };
       }
@@ -526,6 +535,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       interactWithDrone,
       resetAllProgress,
       setDroneMessage,
+      selectedCalendarDate,
+      setSelectedCalendarDate,
     }}>
       {children}
     </GameContext.Provider>

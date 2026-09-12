@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, type FC } from 'react';
 import { useGame } from '../context/GameContext';
-import { Flame, ChevronLeft, ChevronRight, ShieldCheck, X, Zap } from 'lucide-react';
+import { Flame, ChevronLeft, ChevronRight, ShieldCheck, X, Zap, CheckCircle2, Calendar } from 'lucide-react';
 import { getMonthCalendarGrid, type MonthCalendarDay } from '../utils/rpgEngine';
 
 // XP multiplier tiers
@@ -20,13 +20,12 @@ function getCurrentMultiplier(streakDays: number): number {
 }
 
 export const StreakTracker: FC = () => {
-  const { playerStats, theme } = useGame();
+  const { playerStats, theme, quests, selectedCalendarDate, setSelectedCalendarDate } = useGame();
   const isEink = theme === 'eink';
 
   const now = new Date();
   const [currentYear, setCurrentYear] = useState<number>(now.getFullYear());
   const [currentMonth, setCurrentMonth] = useState<number>(now.getMonth());
-  const [selectedDayStr, setSelectedDayStr] = useState<string | null>(null);
   const [showRulesModal, setShowRulesModal] = useState<boolean>(false);
 
   // Live countdown timer until midnight
@@ -79,8 +78,19 @@ export const StreakTracker: FC = () => {
   void currentDayOfMonth; // kept for future use
 
   const todayNum = now.getDate();
+  const todayDateStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const activeDate = selectedCalendarDate || todayDateStr;
   const currentMultiplier = getCurrentMultiplier(playerStats.streakDays);
   const streakDay = playerStats.streakDays > 0 ? playerStats.streakDays : 1;
+
+  // Quests completed on the activeDate
+  const completedQuestsForActiveDate = useMemo(() => {
+    return quests.filter(q => {
+      if (q.lastCompletedDate === activeDate) return true;
+      if (q.completionDates && q.completionDates.includes(activeDate)) return true;
+      return false;
+    });
+  }, [quests, activeDate]);
 
   return (
     <div className="double-bezel h-full">
