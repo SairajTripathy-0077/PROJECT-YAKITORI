@@ -103,9 +103,6 @@ export const Navbar: FC<NavbarProps> = ({
               <h1 className="font-pixel text-sm sm:text-base md:text-lg font-bold tracking-wider text-[#111113] leading-none">
                 YAKITORI
               </h1>
-              <p className="font-mono text-[9px] sm:text-[10px] text-[#4a4943] uppercase tracking-widest hidden md:block">
-                E-Ink Monochrome Edition
-              </p>
             </div>
           </button>
         </div>
