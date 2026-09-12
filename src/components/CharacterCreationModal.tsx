@@ -60,7 +60,7 @@ export const CharacterCreationModal: FC<CharacterCreationModalProps> = ({
   onCompleted,
 }) => {
   const { playerStats, attributes, updatePlayerCharacter, updateAttributes } = useGame();
-  const { user, dbProfile } = useAuth();
+  const { user, dbProfile, refreshProfile } = useAuth();
 
   // Generate initial random sprite index (0 - 191)
   const getRandomSpriteIndex = () => Math.floor(Math.random() * 192);
@@ -140,6 +140,8 @@ export const CharacterCreationModal: FC<CharacterCreationModalProps> = ({
         level: playerStats.level,
         xp: playerStats.xp,
         streakDays: playerStats.streakDays,
+      }).then(() => {
+        refreshProfile();
       }).catch(() => {});
     }
 

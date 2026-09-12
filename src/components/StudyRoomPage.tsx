@@ -564,11 +564,23 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
                   {/* Hero Avatar & Details */}
                   <div className="flex items-start gap-4">
                     <div className="w-14 h-14 bg-[#ebeae4] border-2 border-[#18181c] flex items-center justify-center shadow-pixel-sm shrink-0 transition-transform duration-150 hover:scale-105 overflow-hidden" aria-hidden="true">
-                      <SpriteCharacter 
-                        index={hero.equippedCharacter !== undefined ? hero.equippedCharacter : 0} 
-                        size={44} 
-                        alt={`${hero.displayName}'s Character Sprite`} 
-                      />
+                      {(() => {
+                        const isSelf = Boolean(
+                          (user?.email && hero.email?.toLowerCase() === user.email.toLowerCase()) ||
+                          (currentHeroName && hero.displayName?.toLowerCase() === currentHeroName.toLowerCase())
+                        );
+                        const displayIndex = isSelf && playerStats.equippedCharacter !== undefined
+                          ? playerStats.equippedCharacter
+                          : (hero.equippedCharacter !== undefined ? hero.equippedCharacter : 0);
+
+                        return (
+                          <SpriteCharacter 
+                            index={displayIndex} 
+                            size={44} 
+                            alt={`${hero.displayName}'s Character Sprite`} 
+                          />
+                        );
+                      })()}
                     </div>
 
                     <div className="space-y-1 min-w-0 flex-1">
