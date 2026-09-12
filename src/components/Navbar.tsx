@@ -237,7 +237,7 @@ export const Navbar: FC<NavbarProps> = ({
                       >
                         <span className="flex items-center gap-2">
                           <LayoutDashboard className="w-4 h-4 text-amber-600" />
-                          <span>Quest Dashboard</span>
+                          <span>To-Do List</span>
                         </span>
                         {viewMode === 'app' && <span className="text-[10px] font-pixel text-amber-400">ACTIVE</span>}
                       </button>
