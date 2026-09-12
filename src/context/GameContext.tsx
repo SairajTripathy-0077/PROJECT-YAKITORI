@@ -52,6 +52,8 @@ interface GameContextType {
   theme: 'noir' | 'eink';
   levelUpModalData: LevelUpModalData | null;
   closeLevelUpModal: () => void;
+  updatePlayerCharacter: (data: { name?: string; characterClass?: string; equippedCharacter?: number; avatar?: string }) => void;
+  updateAttributes: (newAttrs: AttributeMap) => void;
   addQuest: (questData: Omit<Quest, 'id' | 'createdAt' | 'completed' | 'xpReward' | 'goldReward'> & { xpReward?: number; goldReward?: number }) => void;
   toggleQuest: (id: string) => void;
   completeQuest: (id: string) => void;
@@ -486,6 +488,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setDroneMessage(randomTip, 'THINKING');
   };
 
+  const updatePlayerCharacter = (data: { name?: string; characterClass?: string; equippedCharacter?: number; avatar?: string }) => {
+    setPlayerStats(prev => ({
+      ...prev,
+      ...data,
+    }));
+  };
+
+  const updateAttributes = (newAttrs: AttributeMap) => {
+    setAttributes(newAttrs);
+  };
+
   const closeLevelUpModal = () => {
     setLevelUpModalData(null);
   };
@@ -511,6 +524,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       theme,
       levelUpModalData,
       closeLevelUpModal,
+      updatePlayerCharacter,
+      updateAttributes,
       addQuest,
       toggleQuest,
       completeQuest,
