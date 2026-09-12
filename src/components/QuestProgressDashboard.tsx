@@ -332,7 +332,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
                 title="Open Character Inventory & Marketplace"
               >
                 <ShoppingBag className="w-4 h-4 text-amber-400" />
-                <span>🎒 INVENTORY</span>
+                <span>INVENTORY</span>
               </button>
             )}
           </div>

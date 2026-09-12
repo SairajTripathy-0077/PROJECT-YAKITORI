@@ -91,9 +91,9 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
             {/* Category Tabs */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
               {[
-                { key: 'all', label: `🛒 ALL STORE (${totalCharacters})` },
-                { key: 'owned', label: `🎒 INVENTORY (${ownedCount})` },
-                { key: 'locked', label: `🔒 LOCKED (${lockedCount})` },
+                { key: 'all', label: `ALL STORE (${totalCharacters})` },
+                { key: 'owned', label: `INVENTORY (${ownedCount})` },
+                { key: 'locked', label: `LOCKED (${lockedCount})` },
               ].map(cat => (
                 <button
                   key={cat.key}
