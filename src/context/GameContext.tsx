@@ -119,7 +119,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setPlayerStats(loadedStats);
         setAttributes({ ...DEFAULT_ATTRIBUTES, ...(parsed.attributes || {}) });
         if (Array.isArray(parsed.shopItems) && parsed.shopItems.length > 0) {
-          setShopItems(parsed.shopItems);
+          const existingIds = new Set(parsed.shopItems.map((item: ShopItem) => item.id));
+          const newItems = INITIAL_SHOP_ITEMS.filter(item => !existingIds.has(item.id));
+          setShopItems([...parsed.shopItems, ...newItems]);
         } else {
           setShopItems(INITIAL_SHOP_ITEMS);
         }
@@ -133,6 +135,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setShopItems(INITIAL_SHOP_ITEMS);
     }
   }, [storageKey]);
+
+  // Ensure all newly added initial shop items (like the 192 characters) are guaranteed to be present in state
+  useEffect(() => {
+    setShopItems(prev => {
+      const existingIds = new Set(prev.map(i => i.id));
+      const missing = INITIAL_SHOP_ITEMS.filter(i => !existingIds.has(i.id));
+      if (missing.length > 0) {
+        return [...prev, ...missing];
+      }
+      return prev;
+    });
+  }, []);
 
   // Sync state to LocalStorage for active user
   useEffect(() => {
@@ -439,6 +453,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const isEink = item.id.includes('eink');
       setTheme(isEink ? 'eink' : 'noir');
       document.documentElement.classList.toggle('dark', !isEink);
+    } else if (item.category === 'character' && item.spriteIndex !== undefined) {
+      setPlayerStats(prev => ({ ...prev, equippedCharacter: item.spriteIndex }));
     }
 
     playClick();

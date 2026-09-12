@@ -61,6 +61,7 @@ export interface PlayerStats {
   equippedTheme: string;
   equippedBadge: string;
   equippedDroneSkin: string;
+  equippedCharacter?: number; // spriteIndex 0-191
   inventory: string[]; // item IDs
 }
 
@@ -70,7 +71,8 @@ export interface ShopItem {
   description: string;
   price: number;
   icon: string;
-  category: 'equipment' | 'theme' | 'badge' | 'drone';
+  category: 'equipment' | 'theme' | 'badge' | 'drone' | 'character';
+  spriteIndex?: number; // 0 to 191 index in sprite sheet
   effect: string;
   statBonus?: { attribute: AttributeType | 'all' | 'gold'; boost: number; type?: 'percent' | 'flat' };
   purchased: boolean;

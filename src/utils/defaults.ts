@@ -34,7 +34,35 @@ export const DEFAULT_PLAYER_STATS: PlayerStats = {
 
 export const DEFAULT_QUESTS: Quest[] = [];
 
+const ROW_TITLES = [
+  'Crimson Vanguard', 'Blaze Champions', 'Flame Sorcerers', 'Desert Wanderers',
+  'Sunblade Paladins', 'Forest Druids', 'Jade Hunters', 'Sea Tacticians',
+  'Ocean Guardians', 'Cobalt Shinobi', 'Shadow Stalkers', 'Dusk Marshals',
+  'Mystic Enchanters', 'Spectral Walkers', 'Cyber Ninjas', 'Silver Champions'
+];
+
+export const SPRITE_CHARACTER_ITEMS: ShopItem[] = Array.from({ length: 192 }, (_, i) => {
+  const row = Math.floor(i / 12);
+  const col = (i % 12) + 1;
+  const group = ROW_TITLES[row] || 'Hero Guild';
+  const price = i === 0 ? 0 : 50 + (row * 10) + ((i % 5) * 5);
+
+  return {
+    id: `char_sprite_${i}`,
+    name: `${group} #${col}`,
+    description: `Sliced pixel character #${i + 1} from ${group}. Equippable live avatar for study room presence & leaderboards!`,
+    price,
+    icon: '👤',
+    category: 'character',
+    spriteIndex: i,
+    effect: `Avatar Sprite #${i + 1}`,
+    purchased: i === 0,
+    equipped: i === 0,
+  };
+});
+
 export const INITIAL_SHOP_ITEMS: ShopItem[] = [
+  ...SPRITE_CHARACTER_ITEMS,
   {
     id: 'equip_katana',
     name: 'Cyber Pixel Katana',

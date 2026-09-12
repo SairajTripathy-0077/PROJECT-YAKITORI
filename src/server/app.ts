@@ -9,7 +9,16 @@ import mongoose from 'mongoose';
 import admin from 'firebase-admin';
 import dotenv from 'dotenv';
 import dns from 'node:dns';
-import authRoutes from './routes/auth';
+import authRoutes from './routes/auth.ts';
+
+// Suppress non-fatal Node.js DNS MetadataLookupWarning when querying MongoDB SRV records on Windows
+process.on('warning', (warning) => {
+  const str = String(warning) + (warning.message || '') + (warning.name || '');
+  if (str.includes('MetadataLookupWarning') || str.includes('All promises were rejected')) {
+    return;
+  }
+  console.warn(warning);
+});
 
 // Configure Node.js DNS resolver to Google (8.8.8.8) and Cloudflare (1.1.1.1) to resolve MongoDB SRV records reliably
 try {

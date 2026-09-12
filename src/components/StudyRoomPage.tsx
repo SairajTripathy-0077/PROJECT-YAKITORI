@@ -20,6 +20,7 @@ import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
 import { playSound } from '../utils/sound';
 import { api } from '../utils/api';
+import { SpriteCharacter } from './SpriteCharacter';
 
 export interface StudyHero {
   id: string;
@@ -233,9 +234,11 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
 
   const progressPercent = Math.round(((MODE_TIMES[mode] - timeLeft) / MODE_TIMES[mode]) * 100);
 
-  // Filtered & Sorted roster
+  // Filtered & Sorted roster (excludes current user since they have a dedicated "YOU" card)
   const filteredRoster = roster
     .filter((hero) => {
+      if (user?.email && hero.email === user.email) return false;
+      if (hero.displayName === currentHeroName) return false;
       if (filterMode === 'online' && !hero.isOnline) return false;
       if (searchQuery) {
         return (
@@ -571,7 +574,11 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
 
                 <div className="flex items-start gap-4">
                   <div className="w-14 h-14 bg-[#f5f4ef] border-2 border-[#18181c] flex items-center justify-center text-3xl shadow-pixel-sm shrink-0 transition-transform duration-150 hover:scale-105" aria-hidden="true">
-                    {currentHeroAvatar}
+                    {playerStats.equippedCharacter !== undefined ? (
+                      <SpriteCharacter index={playerStats.equippedCharacter} size={44} alt="Equipped Hero Sprite" />
+                    ) : (
+                      currentHeroAvatar
+                    )}
                   </div>
 
                   <div className="space-y-1 min-w-0 flex-1">
