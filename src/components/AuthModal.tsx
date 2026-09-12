@@ -1,5 +1,5 @@
 import { useState, useEffect, type FC, type FormEvent } from 'react';
-import { X, LogIn, UserPlus, Shield, Sparkles, Chrome, AlertCircle } from 'lucide-react';
+import { X, LogIn, UserPlus, Shield, Sparkles, AlertCircle, Globe } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { playSound } from '../utils/sound';
 
@@ -216,7 +216,7 @@ export const AuthModal: FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) =>
               disabled={isSubmitting}
               className="w-full py-2.5 bg-[#ebeae4] text-[#111113] font-mono text-xs font-bold uppercase border-2 border-[#18181c] hover:bg-white transition-colors shadow-pixel-sm flex items-center justify-center gap-2"
             >
-              <Chrome className="w-4 h-4 text-emerald-700" />
+              <Globe className="w-4 h-4 text-emerald-700" />
               <span>Continue with Google</span>
             </button>
 
