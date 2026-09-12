@@ -22,7 +22,10 @@ import {
   applyQuestCompletion, 
   revertQuestCompletion, 
   calculateBaseRewards,
-  processDailyStreak
+  processDailyStreak,
+  calculateCharacterXpThreshold,
+  calculateAttributeXpThreshold,
+  getCharacterTitle
 } from '../utils/rpgEngine';
 import { 
   playQuestComplete, 
@@ -50,6 +53,8 @@ interface GameContextType {
   closeLevelUpModal: () => void;
   addQuest: (questData: Omit<Quest, 'id' | 'createdAt' | 'completed' | 'xpReward' | 'goldReward'> & { xpReward?: number; goldReward?: number }) => void;
   toggleQuest: (id: string) => void;
+  completeQuest: (id: string) => void;
+  gainXP: (amount: number, attribute?: AttributeType) => void;
   deleteQuest: (id: string) => void;
   toggleSubtask: (questId: string, subtaskId: string) => void;
   addSubtask: (questId: string, title: string) => void;
@@ -86,8 +91,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.quests) && parsed.quests.length > 0) {
-          setQuests(parsed.quests);
+        if (Array.isArray(parsed.quests)) {
+          const legacyDummyIds = new Set(['quest-1', 'quest-2', 'quest-3', 'quest-4', 'quest-5']);
+          const cleanQuests = parsed.quests.filter(
+            (q: Quest) => !legacyDummyIds.has(q.id) && !q.title.toLowerCase().includes('gsap')
+          );
+          setQuests(cleanQuests);
         } else {
           setQuests(DEFAULT_QUESTS);
         }
@@ -262,6 +271,76 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const completeQuest = (id: string) => {
+    const targetQuest = quests.find(q => q.id === id);
+    if (targetQuest && !targetQuest.completed) {
+      toggleQuest(id);
+    }
+  };
+
+  const gainXP = (amount: number, attribute: AttributeType = 'intellect') => {
+    if (amount <= 0) return;
+
+    let currentXp = playerStats.xp + amount;
+    let currentLevel = playerStats.level;
+    let xpThreshold = playerStats.xpToNextLevel || calculateCharacterXpThreshold(currentLevel);
+    let leveledUpPlayer = false;
+
+    while (currentXp >= xpThreshold) {
+      currentXp -= xpThreshold;
+      currentLevel += 1;
+      xpThreshold = calculateCharacterXpThreshold(currentLevel);
+      leveledUpPlayer = true;
+    }
+
+    const newTitle = getCharacterTitle(currentLevel);
+    const levelUpBonusGold = leveledUpPlayer ? (currentLevel * 50) : 0;
+
+    setPlayerStats(prev => ({
+      ...prev,
+      level: currentLevel,
+      title: newTitle,
+      xp: currentXp,
+      xpToNextLevel: xpThreshold,
+      nextLevelXp: xpThreshold,
+      totalXpEarned: (prev.totalXpEarned || 0) + amount,
+      gold: prev.gold + levelUpBonusGold,
+    }));
+
+    setAttributes(prev => {
+      const currentAttr = prev[attribute] || { level: 1, xp: 0, xpToNextLevel: calculateAttributeXpThreshold(1) };
+      let attrXp = currentAttr.xp + amount;
+      let attrLevel = currentAttr.level;
+      let attrThreshold = currentAttr.xpToNextLevel || calculateAttributeXpThreshold(attrLevel);
+
+      while (attrXp >= attrThreshold) {
+        attrXp -= attrThreshold;
+        attrLevel += 1;
+        attrThreshold = calculateAttributeXpThreshold(attrLevel);
+      }
+
+      return {
+        ...prev,
+        [attribute]: {
+          level: attrLevel,
+          xp: attrXp,
+          xpToNextLevel: attrThreshold,
+        },
+      };
+    });
+
+    if (leveledUpPlayer) {
+      playLevelUp();
+      setLevelUpModalData({
+        show: true,
+        newLevel: currentLevel,
+        rewardGold: currentLevel * 50,
+        unlockedTitle: newTitle,
+      });
+      setDroneMessage(`VICTORY! You reached Level ${currentLevel} (${newTitle})!`, 'VICTORY');
+    }
+  };
+
   const deleteQuest = (id: string) => {
     setQuests(prev => prev.filter(q => q.id !== id));
     playDeleteSound();
@@ -405,6 +484,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       closeLevelUpModal,
       addQuest,
       toggleQuest,
+      completeQuest,
+      gainXP,
       deleteQuest,
       toggleSubtask,
       addSubtask,

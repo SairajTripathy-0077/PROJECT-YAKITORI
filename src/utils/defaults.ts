@@ -1,119 +1,38 @@
 import type { Quest, PlayerStats, AttributeMap, ShopItem, DroneState } from '../types/game';
 
 export const DEFAULT_ATTRIBUTES: AttributeMap = {
-  intellect: { level: 1, xp: 45, xpToNextLevel: 80 },
-  strength: { level: 1, xp: 30, xpToNextLevel: 80 },
-  creativity: { level: 1, xp: 55, xpToNextLevel: 80 },
-  vitality: { level: 1, xp: 40, xpToNextLevel: 80 },
-  discipline: { level: 1, xp: 35, xpToNextLevel: 80 },
+  intellect: { level: 1, xp: 0, xpToNextLevel: 80 },
+  strength: { level: 1, xp: 0, xpToNextLevel: 80 },
+  creativity: { level: 1, xp: 0, xpToNextLevel: 80 },
+  vitality: { level: 1, xp: 0, xpToNextLevel: 80 },
+  discipline: { level: 1, xp: 0, xpToNextLevel: 80 },
 };
 
 const todayStr = new Date().toISOString().split('T')[0];
-const yesterdayDate = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-const twoDaysAgoDate = new Date(Date.now() - 172800000).toISOString().split('T')[0];
 
 export const DEFAULT_PLAYER_STATS: PlayerStats = {
-  name: 'Pixel Questmaster',
+  name: 'Adventurer',
   title: 'Novice Adventurer',
   avatar: '🤖',
   level: 1,
-  xp: 65,
+  xp: 0,
   xpToNextLevel: 150,
-  totalXpEarned: 165,
-  gold: 150,
-  totalCompletedQuests: 2,
-  streakDays: 3,
+  nextLevelXp: 150,
+  characterClass: 'Warrior',
+  totalXpEarned: 0,
+  gold: 0,
+  totalCompletedQuests: 0,
+  streakDays: 0,
   lastActiveDate: todayStr,
-  activeMultiplier: 1.3,
-  activityHistory: [twoDaysAgoDate, yesterdayDate, todayStr],
+  activeMultiplier: 1.0,
+  activityHistory: [],
   equippedTheme: 'noir',
   equippedBadge: 'badge_novice',
   equippedDroneSkin: 'default',
   inventory: ['theme_noir', 'badge_novice'],
 };
 
-export const DEFAULT_QUESTS: Quest[] = [
-  {
-    id: 'quest-1',
-    title: 'Master GSAP Scroll Animations',
-    description: 'Implement 60fps smooth scroll triggers with Lenis for the YAKITORI app',
-    attribute: 'intellect',
-    difficulty: 'hard',
-    questType: 'main',
-    completed: false,
-    createdAt: Date.now() - 86400000,
-    dueDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-    subtasks: [
-      { id: 'sub-1', title: 'Setup GSAP useGSAP hook', completed: true },
-      { id: 'sub-2', title: 'Integrate Lenis smooth scrolling', completed: true },
-      { id: 'sub-3', title: 'Verify mobile performance & 60fps', completed: false }
-    ],
-    xpReward: 100,
-    goldReward: 75,
-  },
-  {
-    id: 'quest-2',
-    title: '30-Min High-Intensity Workout',
-    description: 'Hit the gym or perform bodyweight exercises to boost Physical Strength attribute',
-    attribute: 'strength',
-    difficulty: 'medium',
-    questType: 'daily',
-    completed: false,
-    createdAt: Date.now() - 3600000,
-    subtasks: [
-      { id: 'sub-2-1', title: 'Warmup & Stretching', completed: false },
-      { id: 'sub-2-2', title: 'Core Workout Routine', completed: false }
-    ],
-    xpReward: 50,
-    goldReward: 35,
-  },
-  {
-    id: 'quest-3',
-    title: 'Design Pixel Art UI Blueprint',
-    description: 'Craft double-bezel off-black e-ink layouts with Bookerly typography',
-    attribute: 'creativity',
-    difficulty: 'boss',
-    questType: 'main',
-    completed: true,
-    createdAt: Date.now() - 500000,
-    completedAt: Date.now() - 100000,
-    subtasks: [
-      { id: 'sub-3-1', title: 'Select Off-Black/Off-White Palette', completed: true },
-      { id: 'sub-3-2', title: 'Create Drone Companion Sprite', completed: true }
-    ],
-    xpReward: 220,
-    goldReward: 150,
-  },
-  {
-    id: 'quest-4',
-    title: 'Drink 2.5L Water & Meditate',
-    description: 'Keep hydrated and complete a 10-minute mindfulness session',
-    attribute: 'vitality',
-    difficulty: 'easy',
-    questType: 'daily',
-    completed: false,
-    createdAt: Date.now(),
-    subtasks: [
-      { id: 'sub-4-1', title: 'Drink 1L morning hydration', completed: true },
-      { id: 'sub-4-2', title: '10-minute breathwork session', completed: false }
-    ],
-    xpReward: 25,
-    goldReward: 15,
-  },
-  {
-    id: 'quest-5',
-    title: 'Organize Workspace & Clear Email Inbox',
-    description: 'Maintain high Discipline stats by decluttering physical and digital space',
-    attribute: 'discipline',
-    difficulty: 'easy',
-    questType: 'side',
-    completed: false,
-    createdAt: Date.now(),
-    subtasks: [],
-    xpReward: 25,
-    goldReward: 15,
-  }
-];
+export const DEFAULT_QUESTS: Quest[] = [];
 
 export const INITIAL_SHOP_ITEMS: ShopItem[] = [
   {
