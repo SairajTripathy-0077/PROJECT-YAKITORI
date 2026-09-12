@@ -1,9 +1,13 @@
 import type { Request, Response, NextFunction } from 'express';
 import admin from 'firebase-admin';
-import User from '../models/User';
+import User from '../models/User.js';
 
+export interface AuthenticatedRequest extends Request {
+  firebaseUser?: admin.auth.DecodedIdToken;
+  dbUser?: InstanceType<typeof User>;
+}
 
-// Extend Express Request with our custom user types
+// Extend Express Request globally
 declare global {
   namespace Express {
     interface Request {
@@ -15,16 +19,9 @@ declare global {
 
 /**
  * Middleware: Verify Firebase ID token from Authorization header.
- * 
- * Security measures:
- * - Checks for Bearer token format
- * - Verifies token signature with Firebase Admin SDK
- * - Checks token revocation status
- * - Checks if user is banned in our database
- * - Attaches decoded Firebase user & DB user to request
  */
 export async function verifyFirebaseToken(
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> {

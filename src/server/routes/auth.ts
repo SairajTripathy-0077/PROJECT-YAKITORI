@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from 'express';
-import { verifyFirebaseToken } from '../middleware/auth';
-import User from '../models/User';
-import { sanitizeString, sanitizeUrl, validateEmail, validateProvider } from '../utils/sanitize';
+import { verifyFirebaseToken, type AuthenticatedRequest } from '../middleware/auth.js';
+import User from '../models/User.js';
+import { sanitizeString, sanitizeUrl, validateEmail, validateProvider } from '../utils/sanitize.js';
 
 const router = Router();
 
@@ -10,7 +10,7 @@ const router = Router();
  * Syncs Firebase user with MongoDB profile upon sign-in or profile update.
  * Protected by verifyFirebaseToken middleware.
  */
-router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response): Promise<void> => {
+router.post('/sync', verifyFirebaseToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const firebaseUser = req.firebaseUser;
     if (!firebaseUser) {
@@ -109,7 +109,7 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response): P
  * GET /api/auth/me
  * Retrieves current user's profile from MongoDB.
  */
-router.get('/me', verifyFirebaseToken, async (req: Request, res: Response): Promise<void> => {
+router.get('/me', verifyFirebaseToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const firebaseUser = req.firebaseUser;
     if (!firebaseUser) {

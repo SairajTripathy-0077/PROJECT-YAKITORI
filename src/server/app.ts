@@ -9,7 +9,7 @@ import mongoose from 'mongoose';
 import admin from 'firebase-admin';
 import dotenv from 'dotenv';
 import dns from 'node:dns';
-import authRoutes from './routes/auth';
+import authRoutes from './routes/auth.js';
 
 // Suppress non-fatal Node.js DNS MetadataLookupWarning when querying MongoDB SRV records on Windows
 process.on('warning', (warning) => {
