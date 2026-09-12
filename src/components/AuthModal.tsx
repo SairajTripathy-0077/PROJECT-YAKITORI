@@ -1,5 +1,5 @@
 import { useState, useEffect, type FC, type FormEvent } from 'react';
-import { X, LogIn, UserPlus, Shield, Sparkles, AlertCircle } from 'lucide-react';
+import { X, LogIn, UserPlus, Shield, Sparkles, AlertCircle, Globe } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { playSound } from '../utils/sound';
 
@@ -216,9 +216,7 @@ export const AuthModal: FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) =>
               disabled={isSubmitting}
               className="w-full py-2.5 bg-[#ebeae4] text-[#111113] font-mono text-xs font-bold uppercase border-2 border-[#18181c] hover:bg-white transition-colors shadow-pixel-sm flex items-center justify-center gap-2"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12.24 10.285V13.4h6.887C18.2 16.29 15.65 18.5 12.24 18.5c-3.59 0-6.5-2.91-6.5-6.5s2.91-6.5 6.5-6.5c1.64 0 3.13.61 4.28 1.62l2.36-2.36C17.18 3.12 14.86 2.2 12.24 2.2 6.84 2.2 2.5 6.54 2.5 12s4.34 9.8 9.74 9.8c5.64 0 9.38-3.97 9.38-9.55 0-.64-.06-1.28-.18-1.965H12.24z"/>
-              </svg>
+              <Globe className="w-4 h-4 text-emerald-700" />
               <span>Continue with Google</span>
             </button>
 

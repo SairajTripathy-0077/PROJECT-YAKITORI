@@ -95,15 +95,36 @@ export const playDeleteSound = () => {
   playTone(220, 'sawtooth', 0.12, 0.08, 0.001);
 };
 
-export const playSound = (type: 'click' | 'questComplete' | 'levelUp' | 'drone' | 'purchase' | 'subtask' | 'delete' | 'error') => {
+export type SoundType = 'click' | 'purchase' | 'buy' | 'levelUp' | 'questComplete' | 'complete' | 'error' | 'delete' | 'subtask' | 'drone';
+
+export const playSound = (type: SoundType) => {
   switch (type) {
-    case 'click': return playClick();
-    case 'questComplete': return playQuestComplete();
-    case 'levelUp': return playLevelUp();
-    case 'drone': return playDroneBeep();
-    case 'purchase': return playShopBuy();
-    case 'subtask': return playSubtask();
+    case 'click':
+      playClick();
+      break;
+    case 'purchase':
+    case 'buy':
+      playShopBuy();
+      break;
+    case 'levelUp':
+      playLevelUp();
+      break;
+    case 'questComplete':
+    case 'complete':
+      playQuestComplete();
+      break;
+    case 'error':
     case 'delete':
-    case 'error': return playDeleteSound();
+      playDeleteSound();
+      break;
+    case 'subtask':
+      playSubtask();
+      break;
+    case 'drone':
+      playDroneBeep();
+      break;
+    default:
+      playClick();
+      break;
   }
 };
