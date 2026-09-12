@@ -17,16 +17,11 @@ const MODE_TIMES: Record<TimerMode, number> = {
 };
 
 export const StudyRoomModal: FC<StudyRoomModalProps> = ({ isOpen, onClose }) => {
-  const { quests, completeQuest, gainXP } = useGame();
+  const { gainXP } = useGame();
   const [mode, setMode] = useState<TimerMode>('work');
   const [timeLeft, setTimeLeft] = useState(MODE_TIMES.work);
   const [isActive, setIsActive] = useState(false);
-  const [selectedQuestId, setSelectedQuestId] = useState<string>('');
-  const [ambientSound, setAmbientSound] = useState<boolean>(false);
   const [completedSessions, setCompletedSessions] = useState(0);
-
-  const ambientOscRef = useRef<OscillatorNode | null>(null);
-  const ambientGainRef = useRef<GainNode | null>(null);
 
   // Keyboard shortcut (Escape to close)
   useEffect(() => {
@@ -55,12 +50,6 @@ export const StudyRoomModal: FC<StudyRoomModalProps> = ({ isOpen, onClose }) => 
       // Award 50 XP to player on session completion
       gainXP(50);
 
-      // Auto reward if active quest selected
-      if (selectedQuestId && mode === 'work') {
-        completeQuest(selectedQuestId);
-      }
-
-
       // Reset timer for next mode
       if (mode === 'work') {
         const nextMode = (completedSessions + 1) % 4 === 0 ? 'longBreak' : 'shortBreak';
@@ -75,54 +64,7 @@ export const StudyRoomModal: FC<StudyRoomModalProps> = ({ isOpen, onClose }) => 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeLeft, mode, selectedQuestId, completedSessions, completeQuest]);
-
-  // Toggle ambient Lofi synth drone
-  useEffect(() => {
-    if (ambientSound && isOpen) {
-      try {
-        const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        const ctx = new AudioContextClass();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(110, ctx.currentTime); // Low A note drone
-        gain.gain.setValueAtTime(0.02, ctx.currentTime);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-
-        ambientOscRef.current = osc;
-        ambientGainRef.current = gain;
-      } catch (e) {
-        console.warn('Ambient sound error:', e);
-      }
-    } else {
-      if (ambientOscRef.current) {
-        try {
-          ambientOscRef.current.stop();
-          ambientOscRef.current.disconnect();
-        } catch {
-          // Cleanup ignore
-        }
-        ambientOscRef.current = null;
-      }
-    }
-
-    return () => {
-      if (ambientOscRef.current) {
-        try {
-          ambientOscRef.current.stop();
-          ambientOscRef.current.disconnect();
-        } catch {
-          // Cleanup ignore
-        }
-        ambientOscRef.current = null;
-      }
-    };
-  }, [ambientSound, isOpen]);
+  }, [isActive, timeLeft, mode, completedSessions, gainXP]);
 
   if (!isOpen) return null;
 
@@ -248,59 +190,13 @@ export const StudyRoomModal: FC<StudyRoomModalProps> = ({ isOpen, onClose }) => 
             </div>
           </div>
 
-          {/* Quest Integration & Ambiance Controls */}
-          <div className="space-y-3 font-mono text-xs">
-            
-            {/* Quest Focus Selection */}
-            <div>
-              <label className="block font-bold uppercase mb-1 text-[#111113] flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                <span>Link Quest for Completion Reward:</span>
-              </label>
-              <select
-                value={selectedQuestId}
-                onChange={(e) => setSelectedQuestId(e.target.value)}
-                className="w-full p-2 bg-[#ebeae4] border-2 border-[#18181c] text-[#111113] font-mono text-xs focus:outline-none"
-              >
-                <option value="">-- Select Active Quest (Optional) --</option>
-                {quests
-                  .filter((q) => !q.completed)
-                    .map((q) => (
-                      <option key={q.id} value={q.id}>
-                        [{(q.category || 'QUEST').toUpperCase()}] {q.title} (+{q.xpReward} XP)
-                      </option>
-                    ))}
-              </select>
-            </div>
-
-            {/* Ambient Sound Toggle */}
-            <div className="flex items-center justify-between bg-[#ebeae4] p-3 border-2 border-[#18181c]">
-              <div className="flex items-center gap-2">
-                <Headphones className="w-4 h-4 text-[#18181c]" />
-                <span className="font-bold uppercase text-xs">8-Bit Lofi Drone Ambiance</span>
-              </div>
-              <button
-                onClick={() => {
-                  playSound('click');
-                  setAmbientSound(!ambientSound);
-                }}
-                className={`px-3 py-1 font-pixel text-xs border border-[#18181c] font-bold uppercase transition-all ${
-                  ambientSound ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#f5f4ef] text-[#18181c]'
-                }`}
-              >
-                {ambientSound ? 'ON' : 'OFF'}
-              </button>
-            </div>
-
-            {/* Stats Summary */}
-            <div className="flex items-center justify-between text-zinc-600 text-[11px] pt-1">
-              <span className="flex items-center gap-1">
-                <Award className="w-3.5 h-3.5 text-amber-600" />
-                Completed Sessions: {completedSessions}
-              </span>
-              <span>+25 XP per Pomodoro</span>
-            </div>
-
+          {/* Stats Summary */}
+          <div className="flex items-center justify-between text-zinc-600 font-mono text-xs pt-1 border-t border-[#18181c]/20">
+            <span className="flex items-center gap-1 font-bold text-[#111113]">
+              <Award className="w-3.5 h-3.5 text-amber-600" />
+              Completed Sessions: {completedSessions}
+            </span>
+            <span className="font-bold text-amber-800">+50 XP per Pomodoro</span>
           </div>
 
         </div>

@@ -115,10 +115,10 @@ export const Navbar: FC<NavbarProps> = ({
                 <button
                   onClick={logout}
                   className="px-3 py-2 pixel-btn font-pixel text-[10px] font-bold uppercase tracking-wider text-red-700 flex items-center gap-1.5"
-                  title="Switch Account"
+                  title="Sign Out"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">SWITCH</span>
+                  <span className="hidden sm:inline">SIGN OUT</span>
                 </button>
                 <span className="font-mono text-xs font-bold text-[#111113] bg-[#ebeae4] px-2.5 py-1.5 border border-[#18181c] hidden sm:inline-block">
                   {user.isAnonymous ? 'GUEST HERO' : playerStats.name || 'HERO'}

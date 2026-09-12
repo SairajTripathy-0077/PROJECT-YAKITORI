@@ -58,16 +58,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
   const [mode, setMode] = useState<TimerMode>('work');
   const [timeLeft, setTimeLeft] = useState(MODE_TIMES.work);
   const [isActive, setIsActive] = useState(false);
-  const [selectedQuestId, setSelectedQuestId] = useState<string>('');
-  const [ambientSound, setAmbientSound] = useState<boolean>(false);
   const [completedSessions, setCompletedSessions] = useState(0);
-
-  // Roster state - exclusively real MongoDB users
-  const [roster, setRoster] = useState<StudyHero[]>([]);
-  const [filterMode, setFilterMode] = useState<'all' | 'online' | 'top'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const ambientOscRef = useRef<OscillatorNode | null>(null);
 
   // Fetch backend members roster & sync current player stats to MongoDB
   useEffect(() => {
@@ -152,11 +143,6 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
       // Award XP to player
       gainXP(50);
 
-      // Auto reward if active quest selected
-      if (selectedQuestId && mode === 'work') {
-        completeQuest(selectedQuestId);
-      }
-
       // Reset timer for next mode
       if (mode === 'work') {
         const nextMode = (completedSessions + 1) % 4 === 0 ? 'longBreak' : 'shortBreak';
@@ -171,53 +157,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeLeft, mode, selectedQuestId, completedSessions, completeQuest, gainXP]);
-
-  // Ambient sound synthesizer
-  useEffect(() => {
-    if (ambientSound) {
-      try {
-        const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        const ctx = new AudioContextClass();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(110, ctx.currentTime);
-        gain.gain.setValueAtTime(0.02, ctx.currentTime);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-
-        ambientOscRef.current = osc;
-      } catch {
-        // Ignore AudioContext issues
-      }
-    } else {
-      if (ambientOscRef.current) {
-        try {
-          ambientOscRef.current.stop();
-          ambientOscRef.current.disconnect();
-        } catch {
-          // Ignore
-        }
-        ambientOscRef.current = null;
-      }
-    }
-
-    return () => {
-      if (ambientOscRef.current) {
-        try {
-          ambientOscRef.current.stop();
-          ambientOscRef.current.disconnect();
-        } catch {
-          // Ignore
-        }
-        ambientOscRef.current = null;
-      }
-    };
-  }, [ambientSound]);
+  }, [isActive, timeLeft, mode, completedSessions, gainXP]);
 
   const handleModeChange = (newMode: TimerMode) => {
     playSound('click');
@@ -439,54 +379,6 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
                     title="Reset Timer"
                   >
                     <RotateCcw className="w-4 h-4" strokeWidth={2} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Options */}
-              <div className="space-y-3 font-mono text-xs">
-                <div>
-                  <label 
-                    htmlFor="link-quest-select" 
-                    className="block font-bold uppercase mb-1 text-[#111113] flex items-center gap-1"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-700" strokeWidth={2} />
-                    <span>Link Quest for Completion:</span>
-                  </label>
-                  <select
-                    id="link-quest-select"
-                    value={selectedQuestId}
-                    onChange={(e) => setSelectedQuestId(e.target.value)}
-                    className="w-full p-2 bg-[#ebeae4] border-2 border-[#18181c] text-[#111113] font-mono text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-[#18181c]"
-                  >
-                    <option value="">-- Select Active Quest (Optional) --</option>
-                    {quests
-                      .filter((q) => !q.completed)
-                      .map((q) => (
-                        <option key={q.id} value={q.id}>
-                          [{(q.category || 'QUEST').toUpperCase()}] {q.title} (+{q.xpReward} XP)
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                <div className="flex items-center justify-between bg-[#ebeae4] p-3 border-2 border-[#18181c]">
-                  <div className="flex items-center gap-2">
-                    <Headphones className="w-4 h-4 text-[#18181c]" strokeWidth={2} />
-                    <span className="font-bold uppercase text-xs text-[#111113]">Lofi Drone Sound</span>
-                  </div>
-                  <button
-                    onClick={() => {
-                      playSound('click');
-                      setAmbientSound(!ambientSound);
-                    }}
-                    aria-pressed={ambientSound}
-                    aria-label="Toggle Lofi Drone Ambiance Sound"
-                    className={`px-3 py-1 font-pixel text-xs border border-[#18181c] font-bold uppercase transition-all duration-150 active:scale-[0.96] focus-visible:ring-2 focus-visible:ring-[#18181c] focus-visible:outline-none ${
-                      ambientSound ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#f5f4ef] text-[#18181c]'
-                    }`}
-                  >
-                    {ambientSound ? 'ON' : 'OFF'}
                   </button>
                 </div>
               </div>
