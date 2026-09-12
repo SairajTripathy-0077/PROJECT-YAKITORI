@@ -329,7 +329,7 @@ export const QuestList: FC<QuestListProps> = ({ onOpenNewQuest, onEditQuest, sea
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-24 sm:pb-32">
       {/* Overdue Warning Alert Pill */}
       {overdueQuestsCount > 0 && !isViewingSpecificDate && (
         <div className="double-bezel bg-red-100 border-2 border-red-800 shadow-pixel-sm animate-pulse">

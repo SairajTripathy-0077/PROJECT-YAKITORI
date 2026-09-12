@@ -226,7 +226,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
   }, [attributes]);
 
   return (
-    <div className="space-y-6 animate-fade-in pb-12 text-[#111113]">
+    <div className="space-y-6 animate-fade-in pb-28 sm:pb-36 text-[#111113]">
       {/* Top Header Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b-2 border-[#18181c] pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3">

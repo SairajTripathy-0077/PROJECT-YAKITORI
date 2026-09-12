@@ -139,7 +139,7 @@ const MainAppContent: FC = () => {
       />
 
       {/* Main Content Container */}
-      <main className={viewMode === 'landing' ? 'flex-1 w-full flex flex-col' : 'flex-1 max-w-[1700px] w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8'}>
+      <main className={viewMode === 'landing' ? 'flex-1 w-full flex flex-col' : 'flex-1 max-w-[1700px] w-full mx-auto p-3.5 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 pb-32 sm:pb-40'}>
         
         {viewMode === 'landing' ? (
           /* Landing Hero View - Full Edge-to-Edge Image */

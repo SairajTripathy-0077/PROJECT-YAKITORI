@@ -226,7 +226,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
     });
 
   return (
-    <div className="max-w-[1700px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-fade-in text-[#111113]">
+    <div className="max-w-[1700px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-fade-in text-[#111113] pb-28 sm:pb-36">
       
       {/* Top Banner Header */}
       <div className="double-bezel">
