@@ -84,23 +84,23 @@ export const Navbar: FC<NavbarProps> = ({
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 bg-[#f5f4ef]/95 backdrop-blur-md border-b-2 border-[#18181c] px-2.5 sm:px-4 py-2 sm:py-3">
-      <div className="max-w-[1700px] mx-auto flex items-center justify-between gap-2 sm:gap-4">
+    <header className="sticky top-0 z-30 bg-[#f5f4ef]/95 backdrop-blur-md border-b-2 border-[#18181c] px-2 xs:px-2.5 sm:px-4 py-1.5 xs:py-2 sm:py-3">
+      <div className="max-w-[1700px] mx-auto flex items-center justify-between gap-1.5 xs:gap-2 sm:gap-4">
         
         {/* Left: App Logo & Title */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <button
             onClick={() => onToggleViewMode()}
-            className="flex items-center gap-2 sm:gap-3 focus:outline-none group text-left"
+            className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 focus:outline-none group text-left"
             title="YAKITORI Pixel RPG"
           >
             <img 
               src={yakitoriImg} 
               alt="YAKITORI Logo" 
-              className="w-8 h-8 sm:w-9 sm:h-9 object-cover border-2 border-[#18181c] shadow-pixel-sm shrink-0 rounded-sm" 
+              className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 object-cover border-2 border-[#18181c] shadow-pixel-sm shrink-0 rounded-sm" 
             />
             <div>
-              <h1 className="font-pixel text-sm sm:text-base md:text-lg font-bold tracking-wider text-[#111113] leading-none">
+              <h1 className="font-pixel text-xs xs:text-sm sm:text-base md:text-lg font-bold tracking-wider text-[#111113] leading-none">
                 YAKITORI
               </h1>
             </div>
@@ -109,12 +109,12 @@ export const Navbar: FC<NavbarProps> = ({
 
         {/* LANDING PAGE NAVBAR: Show Auth status or ENTER ENGINE button */}
         {viewMode === 'landing' ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {user ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
                   onClick={logout}
-                  className="px-3 py-2 pixel-btn font-pixel text-[10px] font-bold uppercase tracking-wider text-red-700 flex items-center gap-1.5"
+                  className="px-2.5 sm:px-3 py-1.5 sm:py-2 pixel-btn font-pixel text-[10px] font-bold uppercase tracking-wider text-red-700 flex items-center gap-1 sm:gap-1.5"
                   title="Sign Out"
                 >
                   <LogOut className="w-3.5 h-3.5" />
@@ -125,7 +125,7 @@ export const Navbar: FC<NavbarProps> = ({
                 </span>
                 <button
                   onClick={() => onToggleViewMode('app')}
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 pixel-btn-primary font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 sm:gap-2"
+                  className="px-2.5 sm:px-4 py-1.5 sm:py-2 pixel-btn-primary font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 sm:gap-2"
                 >
                   <span>ENTER APP</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -145,43 +145,43 @@ export const Navbar: FC<NavbarProps> = ({
           /* APP DASHBOARD NAVBAR: Player Stats & Menu Dropdown */
           <>
             {/* Center: Player Mini Stats */}
-            <div className="flex items-center gap-1.5 sm:gap-3 bg-[#ebeae4] px-2 sm:px-3 py-1 sm:py-1.5 border border-[#18181c] font-mono text-[11px] sm:text-xs shadow-pixel-sm shrink-0">
+            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-3 bg-[#ebeae4] px-1.5 xs:px-2 sm:px-3 py-1 sm:py-1.5 border border-[#18181c] font-mono text-[10px] xs:text-[11px] sm:text-xs shadow-pixel-sm shrink-0">
               {/* Level & Character Avatar */}
               <div className="flex items-center gap-1 sm:gap-1.5" title="Character Level">
                 {playerStats.equippedCharacter !== undefined ? (
-                  <SpriteCharacter index={playerStats.equippedCharacter} size={18} alt="Player Avatar" />
+                  <SpriteCharacter index={playerStats.equippedCharacter} size={16} alt="Player Avatar" className="sm:w-[18px] sm:h-[18px]" />
                 ) : (
-                  <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600" />
+                  <Award className="w-3 h-3 sm:w-4 sm:h-4 text-amber-600" />
                 )}
                 <span className="font-mono font-bold tabular-nums text-[#111113]">
                   Lv.{Math.max(1, Number(playerStats.level) || 1)}
                 </span>
               </div>
 
-              <div className="h-3.5 sm:h-4 w-px bg-[#18181c]/30"></div>
+              <div className="h-3 sm:h-4 w-px bg-[#18181c]/30"></div>
 
               {/* Gold */}
-              <div className="flex items-center gap-1 text-amber-700 font-bold" title="Gold Currency">
-                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <div className="flex items-center gap-0.5 sm:gap-1 text-amber-700 font-bold" title="Gold Currency">
+                <Coins className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>{playerStats.gold}g</span>
               </div>
 
-              <div className="h-3.5 sm:h-4 w-px bg-[#18181c]/30"></div>
+              <div className="h-3 sm:h-4 w-px bg-[#18181c]/30"></div>
 
               {/* Streak */}
-              <div className="flex items-center gap-1 text-orange-600 font-bold" title={`Current Streak: ${playerStats.streakDays} Days (${playerStats.activeMultiplier}x XP)`}>
-                <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" />
+              <div className="flex items-center gap-0.5 sm:gap-1 text-orange-600 font-bold" title={`Current Streak: ${playerStats.streakDays} Days (${playerStats.activeMultiplier}x XP)`}>
+                <Flame className="w-3 h-3 sm:w-4 sm:h-4 animate-pulse" />
                 <span>{playerStats.streakDays}d</span>
               </div>
             </div>
 
             {/* Right: Primary Action + Dropdown Menu */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               
               {/* New Quest Button */}
               <button
                 onClick={onOpenNewQuest}
-                className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 pixel-btn-primary font-pixel text-xs font-bold"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 xs:px-2.5 sm:px-3.5 py-1.5 pixel-btn-primary font-pixel text-[10px] xs:text-[11px] sm:text-xs font-bold min-h-[34px] sm:min-h-[38px]"
                 title="Add New Quest (Hotkey: N)"
               >
                 <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
@@ -193,7 +193,7 @@ export const Navbar: FC<NavbarProps> = ({
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className={`px-2.5 sm:px-3 py-1.5 pixel-btn flex items-center gap-1 sm:gap-1.5 font-pixel text-xs font-bold uppercase transition-all ${
+                  className={`px-2 xs:px-2.5 sm:px-3 py-1.5 pixel-btn flex items-center gap-1 sm:gap-1.5 font-pixel text-[10px] xs:text-[11px] sm:text-xs font-bold uppercase transition-all min-h-[34px] sm:min-h-[38px] ${
                     isMenuOpen ? 'bg-[#18181c] text-[#f5f4ef]' : ''
                   }`}
                   aria-expanded={isMenuOpen}
@@ -207,7 +207,7 @@ export const Navbar: FC<NavbarProps> = ({
 
                 {/* Pixel-Art Dropdown Menu Card */}
                 {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-64 sm:w-72 max-w-[calc(100vw-1.5rem)] bg-[#f5f4ef] border-2 border-[#18181c] shadow-pixel-md z-50 animate-fade-in font-mono text-xs text-[#111113] overflow-hidden">
+                  <div className="absolute right-0 mt-2 w-64 sm:w-72 max-w-[calc(100vw-1.25rem)] bg-[#f5f4ef] border-2 border-[#18181c] shadow-pixel-md z-50 animate-fade-in font-mono text-xs text-[#111113] overflow-hidden">
                     
                     {/* User Profile Header in Dropdown */}
                     <div className="p-3 bg-[#ebeae4] border-b border-[#18181c] space-y-1">
@@ -231,7 +231,7 @@ export const Navbar: FC<NavbarProps> = ({
                           onToggleViewMode('app');
                           setIsMenuOpen(false);
                         }}
-                        className={`w-full text-left px-2.5 py-2 font-mono flex items-center justify-between transition-colors ${
+                        className={`w-full text-left px-2.5 py-2.5 sm:py-2 font-mono flex items-center justify-between transition-colors ${
                           viewMode === 'app' ? 'bg-[#18181c] text-[#f5f4ef] font-bold' : 'hover:bg-[#ebeae4]'
                         }`}
                       >
@@ -247,7 +247,7 @@ export const Navbar: FC<NavbarProps> = ({
                           onOpenStudyRoom();
                           setIsMenuOpen(false);
                         }}
-                        className={`w-full text-left px-2.5 py-2 font-mono flex items-center justify-between transition-colors ${
+                        className={`w-full text-left px-2.5 py-2.5 sm:py-2 font-mono flex items-center justify-between transition-colors ${
                           viewMode === 'study' ? 'bg-[#18181c] text-[#f5f4ef] font-bold' : 'hover:bg-[#ebeae4]'
                         }`}
                       >
@@ -263,7 +263,7 @@ export const Navbar: FC<NavbarProps> = ({
                           onOpenAnalytics();
                           setIsMenuOpen(false);
                         }}
-                        className={`w-full text-left px-2.5 py-2 font-mono flex items-center justify-between transition-colors ${
+                        className={`w-full text-left px-2.5 py-2.5 sm:py-2 font-mono flex items-center justify-between transition-colors ${
                           viewMode === 'analytics' ? 'bg-[#18181c] text-[#f5f4ef] font-bold' : 'hover:bg-[#ebeae4]'
                         }`}
                       >
@@ -279,7 +279,7 @@ export const Navbar: FC<NavbarProps> = ({
                           onOpenShop();
                           setIsMenuOpen(false);
                         }}
-                        className="w-full text-left px-2.5 py-2 font-mono flex items-center justify-between hover:bg-[#ebeae4] transition-colors"
+                        className="w-full text-left px-2.5 py-2.5 sm:py-2 font-mono flex items-center justify-between hover:bg-[#ebeae4] transition-colors"
                       >
                         <span className="flex items-center gap-2">
                           <ShoppingBag className="w-4 h-4 text-amber-700" />
@@ -300,7 +300,7 @@ export const Navbar: FC<NavbarProps> = ({
 
                       <button
                         onClick={toggleSound}
-                        className="w-full text-left px-2.5 py-2 font-mono flex items-center justify-between hover:bg-[#ebeae4] transition-colors"
+                        className="w-full text-left px-2.5 py-2.5 sm:py-2 font-mono flex items-center justify-between hover:bg-[#ebeae4] transition-colors"
                       >
                         <span className="flex items-center gap-2">
                           {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-700" /> : <VolumeX className="w-4 h-4 text-zinc-400" />}
@@ -313,7 +313,7 @@ export const Navbar: FC<NavbarProps> = ({
 
                       <button
                         onClick={toggleScanlines}
-                        className="w-full text-left px-2.5 py-2 font-mono flex items-center justify-between hover:bg-[#ebeae4] transition-colors"
+                        className="w-full text-left px-2.5 py-2.5 sm:py-2 font-mono flex items-center justify-between hover:bg-[#ebeae4] transition-colors"
                       >
                         <span className="flex items-center gap-2">
                           <Tv className={`w-4 h-4 ${scanlineEnabled ? 'text-amber-600' : ''}`} />
@@ -329,7 +329,7 @@ export const Navbar: FC<NavbarProps> = ({
                           onOpenShortcuts();
                           setIsMenuOpen(false);
                         }}
-                        className="w-full text-left px-2.5 py-2 font-mono flex items-center gap-2 hover:bg-[#ebeae4] transition-colors"
+                        className="w-full text-left px-2.5 py-2.5 sm:py-2 font-mono flex items-center gap-2 hover:bg-[#ebeae4] transition-colors"
                       >
                         <Keyboard className="w-4 h-4 text-indigo-700" />
                         <span>Hotkeys Guide (Esc)</span>
@@ -344,7 +344,7 @@ export const Navbar: FC<NavbarProps> = ({
                             logout();
                             setIsMenuOpen(false);
                           }}
-                          className="w-full text-left px-2.5 py-2 font-mono text-red-700 font-bold flex items-center justify-between hover:bg-red-50 transition-colors"
+                          className="w-full text-left px-2.5 py-2.5 sm:py-2 font-mono text-red-700 font-bold flex items-center justify-between hover:bg-red-50 transition-colors"
                         >
                           <span className="flex items-center gap-2">
                             <LogOut className="w-4 h-4" />
@@ -358,7 +358,7 @@ export const Navbar: FC<NavbarProps> = ({
                             onOpenAuth();
                             setIsMenuOpen(false);
                           }}
-                          className="w-full text-left px-2.5 py-2 font-mono text-amber-800 font-bold flex items-center gap-2 hover:bg-amber-100 transition-colors"
+                          className="w-full text-left px-2.5 py-2.5 sm:py-2 font-mono text-amber-800 font-bold flex items-center gap-2 hover:bg-amber-100 transition-colors"
                         >
                           <LogIn className="w-4 h-4" />
                           <span>Sign In / Register</span>

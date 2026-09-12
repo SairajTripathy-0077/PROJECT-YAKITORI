@@ -61,6 +61,12 @@
       "skillPath": "skills/interface-review/SKILL.md",
       "computedHash": "e8575144eb155448757a82a3b89825c87045a85ca2ed3bd9131c53fc9682c8a5"
     },
+    "responsive-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/ui-design/skills/responsive-design/SKILL.md",
+      "computedHash": "155eff4b1bc8d867ae6bea9900c485ab1081de0b4873c1900adb66bf62466aed"
+    },
     "variant": {
       "source": "jakubkrehel/skills",
       "sourceType": "github",
