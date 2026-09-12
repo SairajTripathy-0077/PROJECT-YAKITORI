@@ -37,7 +37,6 @@ import {
   setSoundEnabled as setAudioEnabled
 } from '../utils/sound';
 import { useAuth } from './AuthContext';
-import { useCompanion } from './CompanionContext';
 import { api } from '../utils/api';
 
 interface GameContextType {
@@ -76,7 +75,6 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const { triggerGreeting } = useCompanion();
   const storageKey = user ? `yakitori_rpg_state_${user.uid}` : 'yakitori_rpg_game_state_v3';
 
   const [quests, setQuests] = useState<Quest[]>(DEFAULT_QUESTS);

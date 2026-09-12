@@ -277,11 +277,11 @@ const MainAppContent: FC = () => {
 export function App() {
   return (
     <AuthProvider>
-      <CompanionProvider>
-        <GameProvider>
+      <GameProvider>
+        <CompanionProvider>
           <MainAppContent />
-        </GameProvider>
-      </CompanionProvider>
+        </CompanionProvider>
+      </GameProvider>
     </AuthProvider>
   );
 }
