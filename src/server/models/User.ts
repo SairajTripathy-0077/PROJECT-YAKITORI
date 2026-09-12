@@ -39,7 +39,6 @@ const userSchema = new Schema<IUser>(
       trim: true,
       maxlength: [254, 'Email too long'],
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format'],
-      default: null,
     },
     displayName: {
       type: String,
@@ -127,6 +126,6 @@ const userSchema = new Schema<IUser>(
 
 userSchema.index({ createdAt: -1 });
 
-const User = mongoose.model<IUser>('User', userSchema);
+const User = (mongoose.models.User as mongoose.Model<IUser>) || mongoose.model<IUser>('User', userSchema);
 
 export default User;

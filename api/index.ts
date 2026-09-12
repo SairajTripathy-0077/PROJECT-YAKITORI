@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import app, { connectToDatabase } from '../src/server/app.js';
+import app, { connectToDatabase } from '../src/server/app';
 
 export default async function handler(req: Request, res: Response) {
   try {

@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import admin from 'firebase-admin';
-import User from '../models/User.ts';
+import User from '../models/User';
 
 
 // Extend Express Request with our custom user types

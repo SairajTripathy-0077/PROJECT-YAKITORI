@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from 'express';
-import { verifyFirebaseToken } from '../middleware/auth.ts';
-import User from '../models/User.ts';
-import { sanitizeString, sanitizeUrl, validateEmail, validateProvider } from '../utils/sanitize.ts';
+import { verifyFirebaseToken } from '../middleware/auth';
+import User from '../models/User';
+import { sanitizeString, sanitizeUrl, validateEmail, validateProvider } from '../utils/sanitize';
 
 const router = Router();
 
@@ -22,7 +22,7 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response): P
     const body = req.body || {};
 
     // Validate and sanitize incoming data
-    const cleanEmail = validateEmail(email || body.email);
+    const cleanEmail = validateEmail(email || body.email) || undefined;
     const rawDisplayName = body.displayName || name || email?.split('@')[0] || 'Adventurer';
     const cleanDisplayName = sanitizeString(rawDisplayName, 50);
     const cleanPhotoURL = sanitizeUrl(body.photoURL || picture);
