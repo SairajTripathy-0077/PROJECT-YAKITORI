@@ -335,16 +335,6 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
                 <span>🎒 INVENTORY</span>
               </button>
             )}
-
-            {onOpenCharacterCreation && (
-              <button
-                onClick={onOpenCharacterCreation}
-                className="px-4 py-2.5 pixel-btn font-pixel text-xs font-bold text-[#111113] uppercase tracking-wider flex items-center gap-2 shadow-pixel-sm active:scale-[0.96] transition-transform"
-              >
-                <Dice5 className="w-4 h-4 text-[#111113]" />
-                <span>CUSTOMIZE / REROLL</span>
-              </button>
-            )}
           </div>
         </div>
       </div>
