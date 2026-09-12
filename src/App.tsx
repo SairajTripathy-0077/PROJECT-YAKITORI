@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, type FC } from 'react';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { CompanionProvider, useCompanion } from './context/CompanionContext';
 import { GameProvider, useGame } from './context/GameContext';
 import { Navbar } from './components/Navbar';
 import { LandingHero } from './components/LandingHero';
@@ -7,6 +8,7 @@ import { PlayerCard } from './components/PlayerCard';
 import { StreakTracker } from './components/StreakTracker';
 import { QuestList } from './components/QuestList';
 import { LevelUpOverlay } from './components/LevelUpOverlay';
+import { CharacterCompanion } from './components/character/CharacterCompanion';
 import { QuestModal } from './components/QuestModal';
 import { ShopModal } from './components/ShopModal';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
@@ -20,22 +22,52 @@ import { TrendingUp, BarChart3 } from 'lucide-react';
 
 const MainAppContent: FC = () => {
   const { 
-    playerStats,
     scanlineEnabled, 
-    toggleSound
+    toggleSound,
+    playerStats
   } = useGame();
 
-  const [viewMode, setViewMode] = useState<'landing' | 'app' | 'study' | 'analytics'>('landing');
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { user } = useAuth();
+  const { triggerGreeting } = useCompanion();
+  // NOTE: triggerGreeting intentionally NOT called on refresh.
+  // Character only greets on: actual sign-in, entering dashboard from landing (after customization), task completion, level-up.
+
+  const [viewMode, setViewModeState] = useState<'landing' | 'app' | 'study' | 'analytics'>(() => {
+    const saved = localStorage.getItem('yakitori_view_mode');
+    if (saved === 'app' || saved === 'study' || saved === 'analytics') {
+      return saved as 'app' | 'study' | 'analytics';
+    }
+    return 'landing';
+  });
+
+  const setViewMode = (
+    modeOrUpdater:
+      | 'landing'
+      | 'app'
+      | 'study'
+      | 'analytics'
+      | ((prev: 'landing' | 'app' | 'study' | 'analytics') => 'landing' | 'app' | 'study' | 'analytics')
+  ) => {
+    setViewModeState((prev) => {
+      const next = typeof modeOrUpdater === 'function' ? modeOrUpdater(prev) : modeOrUpdater;
+      localStorage.setItem('yakitori_view_mode', next);
+      return next;
+    });
+  };
+
   const [isQuestModalOpen, setIsQuestModalOpen] = useState(false);
   const [isShopModalOpen, setIsShopModalOpen] = useState(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [isStudyRoomOpen, setIsStudyRoomOpen] = useState(false);
   const [isCharacterCreationOpen, setIsCharacterCreationOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [editingQuest, setEditingQuest] = useState<Quest | null>(null);
   const [defaultDueDate, setDefaultDueDate] = useState<string>('');
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  // Tracks whether CharacterCreationModal was opened by a fresh auth (sign-in/signup) flow.
+  // Set to 'LOGIN' or 'NEW_USER' before opening the modal; cleared after greeting fires.
+  const pendingGreetingEventRef = useRef<'LOGIN' | 'NEW_USER' | null>(null);
 
   const handleOpenNewQuest = (dueDate?: string) => {
     setEditingQuest(null);
@@ -84,8 +116,18 @@ const MainAppContent: FC = () => {
         }}
         onOpenStudyRoom={() => setViewMode('study')}
         onOpenAnalytics={() => setViewMode('analytics')}
-        onOpenCharacterCreation={() => setIsCharacterCreationOpen(true)}
+        onOpenCharacterCreation={() => {
+          // Opened manually by user (not from auth) — no greeting after
+          pendingGreetingEventRef.current = null;
+          setIsCharacterCreationOpen(true);
+        }}
         onOpenAuth={() => setIsAuthModalOpen(true)}
+        onAuthSuccess={() => {
+          // Triggered after sign-in from Navbar: go to app, mark greeting pending, open customization
+          pendingGreetingEventRef.current = 'LOGIN';
+          setViewMode('app');
+          setIsCharacterCreationOpen(true);
+        }}
         viewMode={viewMode}
         onToggleViewMode={(mode) => {
           if (mode) {
@@ -102,6 +144,8 @@ const MainAppContent: FC = () => {
         {viewMode === 'landing' ? (
           /* Landing Hero View - Full Edge-to-Edge Image */
           <LandingHero onEnterApp={() => {
+            // From landing "Enter App" — logged-in user entering dashboard
+            pendingGreetingEventRef.current = 'LOGIN';
             setViewMode('app');
             // Only open character creation for brand new default characters
             if (playerStats.name === 'Adventurer') {
@@ -166,6 +210,9 @@ const MainAppContent: FC = () => {
 
       <LevelUpOverlay />
 
+      {/* Interactive Character Companion (Docked & Active Speech Stage) */}
+      {viewMode !== 'landing' && <CharacterCompanion />}
+
       {/* Modals */}
       <QuestModal
         isOpen={isQuestModalOpen}
@@ -196,12 +243,30 @@ const MainAppContent: FC = () => {
       <CharacterCreationModal
         isOpen={isCharacterCreationOpen}
         onClose={() => setIsCharacterCreationOpen(false)}
+        onCompleted={() => {
+          setIsCharacterCreationOpen(false);
+          const event = pendingGreetingEventRef.current;
+          pendingGreetingEventRef.current = null;
+          if (event) {
+            // Only greet when opened from an auth flow, not manual edits
+            const name = user?.displayName || playerStats.name || 'Hero';
+            setTimeout(() => {
+              triggerGreeting(event, { playerName: name });
+            }, 400);
+          }
+        }}
       />
 
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={() => setViewMode('app')}
+        onSuccess={() => {
+          setIsAuthModalOpen(false);
+          // Mark greeting pending and open character customization
+          pendingGreetingEventRef.current = 'LOGIN';
+          setViewMode('app');
+          setIsCharacterCreationOpen(true);
+        }}
       />
 
     </div>
@@ -212,9 +277,11 @@ const MainAppContent: FC = () => {
 export function App() {
   return (
     <AuthProvider>
-      <GameProvider>
-        <MainAppContent />
-      </GameProvider>
+      <CompanionProvider>
+        <GameProvider>
+          <MainAppContent />
+        </GameProvider>
+      </CompanionProvider>
     </AuthProvider>
   );
 }

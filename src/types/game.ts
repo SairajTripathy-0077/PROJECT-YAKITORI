@@ -97,3 +97,31 @@ export interface LevelUpModalData {
   attributeLevelUps?: { attribute: AttributeType; newLevel: number }[];
 }
 
+export type CharacterClass = 'Warrior' | 'Mage' | 'Rogue' | 'Paladin';
+
+export type CompanionEvent = 'LOGIN' | 'NEW_USER' | 'TASK_COMPLETE' | 'LEVEL_UP' | 'INTERACTIVE_CLICK' | 'STREAK';
+
+export type CompanionGesture = 'IDLE' | 'WELCOME' | 'NEW_USER' | 'TASK_COMPLETE' | 'LEVEL_UP' | 'EXIT';
+
+export interface GreetingMetadata {
+  playerName?: string;
+  questTitle?: string;
+  xpEarned?: number;
+  goldEarned?: number;
+  rewardGold?: number;
+  attribute?: AttributeType;
+  newLevel?: number;
+  title?: string;
+  streakDays?: number;
+  customMessage?: string;
+}
+
+export interface ActiveGreeting {
+  id: string;
+  event: CompanionEvent;
+  message: string;
+  gesture: CompanionGesture;
+  metadata?: GreetingMetadata;
+  timestamp: number;
+}
+
