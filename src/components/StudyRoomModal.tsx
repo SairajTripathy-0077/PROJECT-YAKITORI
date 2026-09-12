@@ -17,7 +17,7 @@ const MODE_TIMES: Record<TimerMode, number> = {
 };
 
 export const StudyRoomModal: FC<StudyRoomModalProps> = ({ isOpen, onClose }) => {
-  const { quests, completeQuest } = useGame();
+  const { quests, completeQuest, gainXP } = useGame();
   const [mode, setMode] = useState<TimerMode>('work');
   const [timeLeft, setTimeLeft] = useState(MODE_TIMES.work);
   const [isActive, setIsActive] = useState(false);
@@ -52,10 +52,14 @@ export const StudyRoomModal: FC<StudyRoomModalProps> = ({ isOpen, onClose }) => 
       playSound('levelUp');
       setCompletedSessions((prev) => prev + 1);
 
+      // Award 50 XP to player on session completion
+      gainXP(50);
+
       // Auto reward if active quest selected
       if (selectedQuestId && mode === 'work') {
         completeQuest(selectedQuestId);
       }
+
 
       // Reset timer for next mode
       if (mode === 'work') {

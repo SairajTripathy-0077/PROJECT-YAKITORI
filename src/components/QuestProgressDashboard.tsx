@@ -1,5 +1,6 @@
 import { useState, useMemo, type FC, type ReactNode } from 'react';
 import { useGame } from '../context/GameContext';
+import { SpriteCharacter } from './SpriteCharacter';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -38,13 +39,18 @@ import {
   ArrowLeft,
   Calendar,
   Layers,
-  Award
+  Award,
+  User,
+  Wand2,
+  Dice5
 } from 'lucide-react';
 import type { AttributeType, QuestDifficulty, QuestType } from '../types/game';
 
 interface QuestProgressDashboardProps {
   onBackToQuests?: () => void;
+  onOpenCharacterCreation?: () => void;
 }
+
 
 // Custom Pixel styled Tooltip for Recharts (Theme Reactive)
 interface CustomTooltipProps {
@@ -88,7 +94,7 @@ const CustomPixelTooltip: FC<CustomTooltipProps> = ({ active, payload, label, un
   return null;
 };
 
-export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBackToQuests }) => {
+export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBackToQuests, onOpenCharacterCreation }) => {
   const { quests, playerStats, attributes, theme } = useGame();
   const isEink = theme === 'eink';
 
@@ -165,13 +171,13 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
     return daysArray;
   }, [quests, timeRange]);
 
-  // 3. Difficulty Breakdown Data
-  const difficultyData = useMemo(() => {
-    const tiers: Record<QuestDifficulty, { label: string; color: string; completed: number; pending: number }> = {
-      easy: { label: 'Easy (★)', color: isEink ? '#059669' : '#10b981', completed: 0, pending: 0 },
-      medium: { label: 'Medium (★★)', color: isEink ? '#d97706' : '#f59e0b', completed: 0, pending: 0 },
-      hard: { label: 'Hard (★★★)', color: isEink ? '#c2410c' : '#ea580c', completed: 0, pending: 0 },
-      boss: { label: 'Boss (💀)', color: isEink ? '#7c3aed' : '#8b5cf6', completed: 0, pending: 0 },
+  // 3. Quest Difficulty Breakdown Data
+  const questDifficultyData = useMemo(() => {
+    const tiers: Record<QuestDifficulty, { label: string; completed: number; pending: number; color: string }> = {
+      easy: { label: 'Novice (Easy)', completed: 0, pending: 0, color: isEink ? '#059669' : '#10b981' },
+      medium: { label: 'Adept (Medium)', completed: 0, pending: 0, color: isEink ? '#d97706' : '#f59e0b' },
+      hard: { label: 'Master (Hard)', completed: 0, pending: 0, color: isEink ? '#dc2626' : '#ef4444' },
+      epic: { label: 'Legendary (Epic)', completed: 0, pending: 0, color: isEink ? '#7c3aed' : '#8b5cf6' },
     };
 
     quests.forEach(q => {
@@ -219,7 +225,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
       strength: '#ef4444',
       creativity: '#a855f7',
       vitality: '#10b981',
-      discipline: '#f59e0b',
+      discipline: '#f5f4ef',
     };
 
     const labels: Record<AttributeType, string> = {
@@ -252,7 +258,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
           {onBackToQuests && (
             <button
               onClick={onBackToQuests}
-              className="px-3 py-2 pixel-btn font-mono text-xs flex items-center gap-1.5"
+              className="px-3 py-2 pixel-btn font-mono text-xs flex items-center gap-1.5 active:scale-[0.96] transition-transform"
               title="Return to Quest Log"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -260,13 +266,13 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
             </button>
           )}
           <div>
-            <h2 className={`font-pixel text-xl sm:text-2xl font-bold tracking-wider flex items-center gap-2 ${
+            <h2 className={`font-pixel text-xl sm:text-2xl font-bold tracking-wider flex items-center gap-2 text-wrap-balance ${
               isEink ? 'text-[#111113]' : 'text-[#f5f4ef]'
             }`}>
               <TrendingUp className={`w-6 h-6 ${isEink ? 'text-amber-800' : 'text-amber-500'}`} />
               <span>QUEST PROGRESS & ANALYTICS</span>
             </h2>
-            <p className={`font-serif italic text-xs ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+            <p className={`font-serif italic text-xs text-wrap-pretty ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
               Real-time RPG progression telemetry, velocity trends, and attribute stats.
             </p>
           </div>
@@ -279,7 +285,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
           }`}>
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-3 py-1 font-bold transition-all ${
+              className={`px-3 py-1 font-bold transition-all active:scale-[0.96] ${
                 activeTab === 'overview' 
                   ? isEink ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#f5f4ef] text-[#111113]' 
                   : isEink ? 'text-[#33322d] hover:bg-[#deddd6]' : 'text-zinc-300 hover:bg-[#2e2d36]'
@@ -289,7 +295,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
             </button>
             <button
               onClick={() => setActiveTab('attributes')}
-              className={`px-3 py-1 font-bold transition-all ${
+              className={`px-3 py-1 font-bold transition-all active:scale-[0.96] ${
                 activeTab === 'attributes' 
                   ? isEink ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#f5f4ef] text-[#111113]' 
                   : isEink ? 'text-[#33322d] hover:bg-[#deddd6]' : 'text-zinc-300 hover:bg-[#2e2d36]'
@@ -299,7 +305,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
             </button>
             <button
               onClick={() => setActiveTab('breakdown')}
-              className={`px-3 py-1 font-bold transition-all ${
+              className={`px-3 py-1 font-bold transition-all active:scale-[0.96] ${
                 activeTab === 'breakdown' 
                   ? isEink ? 'bg-[#18181c] text-[#f5f4ef]' : 'bg-[#f5f4ef] text-[#111113]' 
                   : isEink ? 'text-[#33322d] hover:bg-[#deddd6]' : 'text-zinc-300 hover:bg-[#2e2d36]'
@@ -308,6 +314,57 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
               BREAKDOWN
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Hero Character Identity & Origin Card */}
+      <div className="double-bezel">
+        <div className={`double-bezel-inner p-5 border flex flex-col md:flex-row items-start md:items-center justify-between gap-6 ${
+          isEink ? 'bg-[#ebeae4] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
+        }`}>
+          <div className="flex items-center gap-4">
+            {/* Assigned Sprite Avatar Display */}
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#f5f4ef] border-2 border-[#18181c] shadow-pixel flex items-center justify-center shrink-0 relative overflow-hidden">
+              <SpriteCharacter index={playerStats.equippedCharacter ?? 0} size={64} alt="Assigned Hero Sprite" />
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-pixel text-lg sm:text-xl font-bold uppercase tracking-wider text-amber-500">
+                  {playerStats.name || 'Hero Adventurer'}
+                </h3>
+                <span className="font-mono text-xs px-2 py-0.5 border font-bold bg-amber-500/10 text-amber-500 border-amber-500/30 tabular-nums">
+                  Lv.{playerStats.level}
+                </span>
+                <span className={`font-mono text-xs px-2 py-0.5 border font-bold ${
+                  isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#26252a] text-zinc-300 border-zinc-700'
+                }`}>
+                  Class: {playerStats.characterClass || 'Warrior'}
+                </span>
+              </div>
+
+              <div className="font-mono text-xs text-amber-600 font-bold flex items-center gap-2">
+                <Award className="w-3.5 h-3.5" />
+                <span>Title: "{playerStats.title || 'Pixel Knight'}"</span>
+                <span>•</span>
+                <span className="tabular-nums">{playerStats.xp} XP</span>
+              </div>
+
+              <p className={`font-mono text-[11px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+                Assigned Sprite Avatar: <span className="font-bold text-amber-500">#{(playerStats.equippedCharacter ?? 0) + 1} / 192</span>
+              </p>
+            </div>
+          </div>
+
+          {onOpenCharacterCreation && (
+            <button
+              onClick={onOpenCharacterCreation}
+              className="px-4 py-2.5 pixel-btn font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-pixel-sm active:scale-[0.96] transition-transform"
+            >
+              <Dice5 className="w-4 h-4 text-amber-500" />
+              <span>CUSTOMIZE / REROLL SPRITE</span>
+            </button>
+          )}
         </div>
       </div>
 

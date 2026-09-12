@@ -97,20 +97,27 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
         }> }>('/api/auth/members');
 
         if (res.data && Array.isArray(res.data)) {
-          const apiHeroes: StudyHero[] = res.data.map((u, idx) => ({
-            id: u._id || `user-${idx}`,
-            displayName: u.displayName || u.email?.split('@')[0] || 'Hero',
-            email: u.email,
-            photoURL: u.photoURL,
-            level: u.level || 1,
-            xp: u.xp || 0,
-            streakDays: u.streakDays || 1,
-            characterClass: u.characterClass || 'Warrior',
-            avatarIcon: u.avatarIcon || (u.characterClass === 'Mage' ? '🧙‍♂️' : u.characterClass === 'Rogue' ? '🥷' : u.characterClass === 'Paladin' ? '🛡️' : '⚔️'),
-            isOnline: true,
-            isStudying: idx === 0,
-            currentTask: u.displayName === currentHeroName ? 'Active Study Session' : 'Studying in Guild',
-          }));
+          const apiHeroes: StudyHero[] = res.data.map((u, idx) => {
+            const isCurrentUser = Boolean(
+              (user?.email && u.email?.toLowerCase() === user.email.toLowerCase()) ||
+              (currentHeroName && u.displayName?.toLowerCase() === currentHeroName.toLowerCase())
+            );
+
+            return {
+              id: u._id || `user-${idx}`,
+              displayName: u.displayName || u.email?.split('@')[0] || 'Hero',
+              email: u.email,
+              photoURL: u.photoURL,
+              level: isCurrentUser ? playerStats.level : (u.level || 1),
+              xp: isCurrentUser ? playerStats.xp : (u.xp || 0),
+              streakDays: isCurrentUser ? playerStats.streakDays : (u.streakDays || 1),
+              characterClass: isCurrentUser ? playerStats.characterClass : (u.characterClass || 'Warrior'),
+              avatarIcon: u.avatarIcon || (u.characterClass === 'Mage' ? '🧙‍♂️' : u.characterClass === 'Rogue' ? '🥷' : u.characterClass === 'Paladin' ? '🛡️' : '⚔️'),
+              isOnline: true,
+              isStudying: idx === 0,
+              currentTask: isCurrentUser ? 'Active Study Session' : 'Studying in Guild',
+            };
+          });
 
           // Set roster directly from MongoDB actual users
           setRoster(apiHeroes);
@@ -121,7 +128,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
     };
 
     syncAndFetchMembers();
-    const pollInterval = setInterval(syncAndFetchMembers, 10000);
+    const pollInterval = setInterval(syncAndFetchMembers, 5000);
     return () => clearInterval(pollInterval);
   }, [user, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass, currentHeroAvatar, currentHeroName]);
 
@@ -237,8 +244,8 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
   // Filtered & Sorted roster (excludes current user since they have a dedicated "YOU" card)
   const filteredRoster = roster
     .filter((hero) => {
-      if (user?.email && hero.email === user.email) return false;
-      if (hero.displayName === currentHeroName) return false;
+      if (user?.email && hero.email?.toLowerCase() === user.email.toLowerCase()) return false;
+      if (currentHeroName && hero.displayName?.toLowerCase() === currentHeroName.toLowerCase()) return false;
       if (filterMode === 'online' && !hero.isOnline) return false;
       if (searchQuery) {
         return (
@@ -315,14 +322,15 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
                     {currentHeroName}
                   </h3>
                   <div className="flex items-center gap-2 font-mono text-xs text-[#33322d] font-semibold">
-                    <span className="font-bold text-amber-800">Lv.{playerStats.level}</span>
+                    <span className="font-bold text-amber-800 tabular-nums">Lv.{Math.max(1, Number(playerStats.level) || 1)}</span>
                     <span>•</span>
                     <span>{playerStats.characterClass}</span>
                     <span>•</span>
-                    <span className="text-amber-800 font-bold">🔥 {playerStats.streakDays}d</span>
+                    <span className="text-amber-800 font-bold tabular-nums">🔥 {playerStats.streakDays}d</span>
                   </div>
                 </div>
               </div>
+
 
               {/* XP Progress Bar */}
               <div className="space-y-1.5 font-mono text-xs">
@@ -567,8 +575,8 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
                     🟢 YOU (HERO)
                   </span>
                   
-                  <span className="font-pixel text-xs font-bold text-amber-900 bg-[#ebeae4] px-2 py-0.5 border border-[#18181c]">
-                    Lv.{playerStats.level}
+                  <span className="font-mono text-xs font-bold text-amber-900 bg-[#ebeae4] px-2 py-0.5 border border-[#18181c] tabular-nums">
+                    Lv.{Math.max(1, Number(playerStats.level) || 1)}
                   </span>
                 </div>
 
@@ -597,13 +605,13 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
                 </div>
 
                 <div className="border-t border-[#18181c]/15 pt-3 flex items-center justify-between font-mono text-xs">
-                  <span className="flex items-center gap-1 text-amber-800 font-bold">
+                  <span className="flex items-center gap-1 text-amber-800 font-bold tabular-nums">
                     <Flame className="w-3.5 h-3.5" strokeWidth={2} />
                     {playerStats.streakDays}d Streak
                   </span>
-                  <span className="flex items-center gap-1 text-amber-900 font-bold">
+                  <span className="flex items-center gap-1 text-amber-900 font-bold tabular-nums">
                     <Award className="w-3.5 h-3.5" strokeWidth={2} />
-                    {playerStats.xp} XP Total
+                    {(playerStats.totalXpEarned || playerStats.xp).toLocaleString()} XP Total
                   </span>
                 </div>
               </div>
@@ -626,10 +634,11 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
                       {hero.isOnline ? '🟢 ACTIVE IN ROOM' : '⚪ OFFLINE'}
                     </span>
                     
-                    <span className="font-pixel text-xs font-bold text-amber-900 bg-[#ebeae4] px-2 py-0.5 border border-[#18181c]">
-                      Lv.{hero.level}
+                    <span className="font-mono text-xs font-bold text-amber-900 bg-[#ebeae4] px-2 py-0.5 border border-[#18181c] tabular-nums">
+                      Lv.{Math.max(1, Number(hero.level) || 1)}
                     </span>
                   </div>
+
 
                   {/* Hero Avatar & Details */}
                   <div className="flex items-start gap-4">
