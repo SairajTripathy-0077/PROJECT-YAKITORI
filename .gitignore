@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Secrets & build outputs
+.env
+.env.local
+serviceAccountKey.json
+dist/
+dist-ssr/

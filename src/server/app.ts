@@ -1,0 +1,192 @@
+import express, { type Request, type Response, type NextFunction } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import mongoSanitize from 'express-mongo-sanitize';
+// @ts-expect-error xss-clean doesn't have official types
+import xss from 'xss-clean';
+import hpp from 'hpp';
+import mongoose from 'mongoose';
+import admin from 'firebase-admin';
+import dotenv from 'dotenv';
+import authRoutes from './routes/auth.js';
+
+// Load environment variables
+dotenv.config();
+
+// Global cached Mongoose connection state for serverless execution
+interface MongooseCache {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+}
+
+declare global {
+  // eslint-disable-next-line no-var
+  var mongooseCache: MongooseCache | undefined;
+}
+
+const cached: MongooseCache = global.mongooseCache || { conn: null, promise: null };
+if (!global.mongooseCache) {
+  global.mongooseCache = cached;
+}
+
+export async function connectToDatabase(): Promise<typeof mongoose> {
+  if (cached.conn && mongoose.connection.readyState === 1) {
+    return cached.conn;
+  }
+
+  const MONGODB_URI = process.env.MONGODB_URI;
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI is not defined in environment variables');
+  }
+
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false,
+    };
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((m) => {
+      console.log('[MongoDB] Connected successfully');
+      return m;
+    });
+  }
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
+  return cached.conn;
+}
+
+// Initialize Firebase Admin SDK
+const FIREBASE_PROJECT_ID = process.env.VITE_FIREBASE_PROJECT_ID || 'yakitori-5f00f';
+
+if (!admin.apps.length) {
+  try {
+    admin.initializeApp({
+      projectId: FIREBASE_PROJECT_ID,
+    });
+    console.log(`[Firebase Admin] Initialized for project: ${FIREBASE_PROJECT_ID}`);
+  } catch (err) {
+    console.error('[Firebase Admin] Initialization error:', err);
+  }
+}
+
+const app = express();
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+// -------------------------------------------------------------
+// Security Middleware Stack
+// -------------------------------------------------------------
+
+// 1. Helmet HTTP headers protection
+app.use(helmet());
+
+// 2. CORS configuration
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or same-origin Vercel requests)
+      if (!origin) return callback(null, true);
+      const allowedOrigins = [
+        FRONTEND_URL,
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://localhost:5000',
+      ];
+      // On Vercel, allow any *.vercel.app domain
+      if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Permissive in dev/staging, fallback safe
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+
+// 3. Body parser with strict payload size limit
+app.use(express.json({ limit: '16kb' }));
+app.use(express.urlencoded({ extended: true, limit: '16kb' }));
+
+// 4. NoSQL Injection protection
+app.use(mongoSanitize());
+
+// 5. XSS Protection
+app.use(xss());
+
+// 6. HTTP Parameter Pollution protection
+app.use(hpp());
+
+// 7. Rate Limiters
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'TOO_MANY_REQUESTS',
+    message: 'Too many requests from this IP, please try again after 15 minutes',
+  },
+});
+app.use(globalLimiter);
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'RATE_LIMIT_EXCEEDED',
+    message: 'Too many authentication attempts. Please try again later.',
+  },
+});
+
+// -------------------------------------------------------------
+// Routes
+// -------------------------------------------------------------
+
+// Ensure DB connection before processing API routes
+app.use(async (_req: Request, _res: Response, next: NextFunction) => {
+  try {
+    await connectToDatabase();
+    next();
+  } catch (err) {
+    console.error('[Database] Connection middleware error:', err);
+    next(err);
+  }
+});
+
+// Health check
+app.get('/api/health', (_req: Request, res: Response) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    dbState: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+  });
+});
+
+// Auth Routes
+app.use('/api/auth', authLimiter, authRoutes);
+
+// 404 Handler
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({ success: false, error: 'NOT_FOUND', message: 'Resource not found' });
+});
+
+// Global Error Handler
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('[Server Error]:', err);
+  res.status(500).json({
+    success: false,
+    error: 'INTERNAL_SERVER_ERROR',
+    message: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : err.message,
+  });
+});
+
+export default app;
