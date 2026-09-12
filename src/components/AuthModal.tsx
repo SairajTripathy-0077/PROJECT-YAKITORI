@@ -1,5 +1,5 @@
 import { useState, useEffect, type FC, type FormEvent } from 'react';
-import { X, LogIn, UserPlus, Shield, Sparkles, AlertCircle, Globe } from 'lucide-react';
+import { X, LogIn, UserPlus, Shield, AlertCircle, Globe } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { playSound } from '../utils/sound';
 
@@ -14,7 +14,6 @@ export const AuthModal: FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) =>
     loginWithGoogle, 
     loginWithEmail, 
     signupWithEmail, 
-    loginAnonymously, 
     error, 
     clearError 
   } = useAuth();
@@ -60,19 +59,6 @@ export const AuthModal: FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) =>
     setIsSubmitting(true);
     try {
       await loginWithGoogle();
-      onSuccess?.();
-      onClose();
-    } catch {
-      // Error handled in AuthContext
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleGuestSignIn = async () => {
-    setIsSubmitting(true);
-    try {
-      await loginAnonymously();
       onSuccess?.();
       onClose();
     } catch {
@@ -208,8 +194,8 @@ export const AuthModal: FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) =>
             </span>
           </div>
 
-          {/* Quick OAuth & Anonymous Sign In */}
-          <div className="space-y-3">
+          {/* Quick OAuth Sign In */}
+          <div>
             <button
               type="button"
               onClick={handleGoogleSignIn}
@@ -219,16 +205,6 @@ export const AuthModal: FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) =>
               <Globe className="w-4 h-4 text-emerald-700" />
               <span>Continue with Google</span>
             </button>
-
-            <button
-              type="button"
-              onClick={handleGuestSignIn}
-              disabled={isSubmitting}
-              className="w-full py-2 bg-transparent text-[#4a4943] font-mono text-xs underline hover:text-black transition-colors flex items-center justify-center gap-1"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Play as Guest Hero (No Password)</span>
-            </button>
           </div>
 
         </div>
@@ -236,3 +212,4 @@ export const AuthModal: FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) =>
     </div>
   );
 };
+

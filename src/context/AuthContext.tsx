@@ -4,7 +4,6 @@ import {
   signInWithPopup, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
-  signInAnonymously, 
   signOut, 
   onAuthStateChanged 
 } from 'firebase/auth';
@@ -36,7 +35,6 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   signupWithEmail: (email: string, pass: string) => Promise<void>;
-  loginAnonymously: () => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
   refreshProfile: () => Promise<void>;
@@ -156,19 +154,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const loginAnonymously = async () => {
-    try {
-      setError(null);
-      await signInAnonymously(auth);
-      playSound('purchase');
-    } catch (err: unknown) {
-      playSound('error');
-      const msg = err instanceof Error ? err.message : 'Guest sign in failed';
-      setError(msg);
-      throw err;
-    }
-  };
-
   const logout = async () => {
     try {
       setError(null);
@@ -199,7 +184,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loginWithGoogle,
         loginWithEmail,
         signupWithEmail,
-        loginAnonymously,
         logout,
         clearError,
         refreshProfile
@@ -209,6 +193,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     </AuthContext.Provider>
   );
 };
+
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);

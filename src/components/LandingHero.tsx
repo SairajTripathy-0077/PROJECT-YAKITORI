@@ -1,5 +1,5 @@
 import { useState, type FC } from 'react';
-import { LogIn, Sparkles, ArrowRight } from 'lucide-react';
+import { LogIn, ArrowRight } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 import { useAuth } from '../context/AuthContext';
 import { playSound } from '../utils/sound';
@@ -44,29 +44,16 @@ export const LandingHero: FC<LandingHeroProps> = ({ onEnterApp }) => {
               <ArrowRight className="w-5 h-5" />
             </button>
           ) : (
-            <>
-              <button
-                onClick={() => {
-                  playSound('click');
-                  setIsAuthModalOpen(true);
-                }}
-                className="w-full sm:w-auto px-8 py-4 bg-[#18181c] text-[#f5f4ef] font-pixel text-base uppercase font-bold border-2 border-black hover:bg-black transition-transform hover:-translate-y-0.5 shadow-pixel flex items-center justify-center gap-3"
-              >
-                <LogIn className="w-5 h-5 text-amber-400" />
-                <span>SIGN IN / REGISTER</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  playSound('click');
-                  onEnterApp?.();
-                }}
-                className="w-full sm:w-auto px-6 py-4 bg-[#f5f4ef]/95 text-[#111113] font-pixel text-sm uppercase font-bold border-2 border-[#18181c] hover:bg-white transition-transform hover:-translate-y-0.5 shadow-pixel flex items-center justify-center gap-2"
-              >
-                <Sparkles className="w-4 h-4 text-emerald-700" />
-                <span>GUEST QUEST</span>
-              </button>
-            </>
+            <button
+              onClick={() => {
+                playSound('click');
+                setIsAuthModalOpen(true);
+              }}
+              className="w-full sm:w-auto px-8 py-4 bg-[#18181c] text-[#f5f4ef] font-pixel text-base uppercase font-bold border-2 border-black hover:bg-black transition-transform hover:-translate-y-0.5 shadow-pixel flex items-center justify-center gap-3"
+            >
+              <LogIn className="w-5 h-5 text-amber-400" />
+              <span>SIGN IN / REGISTER</span>
+            </button>
           )}
         </div>
 
@@ -80,3 +67,4 @@ export const LandingHero: FC<LandingHeroProps> = ({ onEnterApp }) => {
     </div>
   );
 };
+

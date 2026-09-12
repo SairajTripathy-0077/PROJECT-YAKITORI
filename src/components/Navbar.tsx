@@ -15,21 +15,24 @@ import {
   ArrowRight,
   UserCheck,
   LogOut,
-  LogIn
+  LogIn,
+  BookOpen
 } from 'lucide-react';
 
 interface NavbarProps {
   onOpenShop: () => void;
   onOpenShortcuts: () => void;
   onOpenNewQuest: () => void;
-  viewMode: 'landing' | 'app';
-  onToggleViewMode: () => void;
+  onOpenStudyRoom: () => void;
+  viewMode: 'landing' | 'app' | 'study';
+  onToggleViewMode: (mode?: 'landing' | 'app' | 'study') => void;
 }
 
 export const Navbar: FC<NavbarProps> = ({ 
   onOpenShop, 
   onOpenShortcuts,
   onOpenNewQuest,
+  onOpenStudyRoom,
   viewMode,
   onToggleViewMode
 }) => {
@@ -160,6 +163,19 @@ export const Navbar: FC<NavbarProps> = ({
               >
                 <Plus className="w-4 h-4 text-amber-400" />
                 <span className="hidden md:inline">NEW QUEST</span>
+              </button>
+
+              {/* Study Room */}
+              <button
+                onClick={onOpenStudyRoom}
+                className={`p-2 pixel-btn flex items-center gap-1 text-xs font-mono transition-all ${
+                  viewMode === 'study' ? 'bg-[#18181c] text-[#f5f4ef] shadow-pixel-sm' : ''
+                }`}
+                title="Hero Study Room & Pomodoro Timer"
+                aria-label="Open Study Room"
+              >
+                <BookOpen className={`w-4 h-4 ${viewMode === 'study' ? 'text-amber-400' : 'text-emerald-700'}`} />
+                <span className="hidden xl:inline text-[11px] font-pixel font-bold uppercase">STUDY ROOM</span>
               </button>
 
               {/* Shop */}

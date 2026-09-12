@@ -10,21 +10,20 @@ import { LevelUpOverlay } from './components/LevelUpOverlay';
 import { QuestModal } from './components/QuestModal';
 import { ShopModal } from './components/ShopModal';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
-import { RotateCcw, Sparkles } from 'lucide-react';
-
-const PINTEREST_GIF_URL = "https://i.pinimg.com/originals/d8/4f/0e/d84f0e0e2ec7fe05a43b8e0e1fcdc74a.gif";
+import { StudyRoomModal } from './components/StudyRoomModal';
+import { StudyRoomPage } from './components/StudyRoomPage';
 
 const MainAppContent: FC = () => {
   const { 
     scanlineEnabled, 
-    toggleSound, 
-    resetAllProgress 
+    toggleSound
   } = useGame();
 
-  const [viewMode, setViewMode] = useState<'landing' | 'app'>('landing');
+  const [viewMode, setViewMode] = useState<'landing' | 'app' | 'study'>('landing');
   const [isQuestModalOpen, setIsQuestModalOpen] = useState(false);
   const [isShopModalOpen, setIsShopModalOpen] = useState(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
+  const [isStudyRoomOpen, setIsStudyRoomOpen] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -67,8 +66,15 @@ const MainAppContent: FC = () => {
           setViewMode('app');
           setIsQuestModalOpen(true);
         }}
+        onOpenStudyRoom={() => setViewMode('study')}
         viewMode={viewMode}
-        onToggleViewMode={() => setViewMode(prev => prev === 'landing' ? 'app' : 'landing')}
+        onToggleViewMode={(mode) => {
+          if (mode) {
+            setViewMode(mode);
+          } else {
+            setViewMode(prev => prev === 'landing' ? 'app' : 'landing');
+          }
+        }}
       />
 
       {/* Main Content Container */}
@@ -77,6 +83,9 @@ const MainAppContent: FC = () => {
         {viewMode === 'landing' ? (
           /* Landing Hero View - Full Edge-to-Edge Image */
           <LandingHero onEnterApp={() => setViewMode('app')} />
+        ) : viewMode === 'study' ? (
+          /* Hero Guild Study Room Page - All Heroes, Levels, XP, Avatars */
+          <StudyRoomPage onBackToDashboard={() => setViewMode('app')} />
         ) : (
           /* App Dashboard View - Full RPG Controls & Stats */
           <div className="space-y-6 animate-fade-in">
@@ -105,44 +114,6 @@ const MainAppContent: FC = () => {
 
       </main>
 
-      {/* Footer */}
-      <footer className={`border-t-2 border-[#18181c] py-6 px-4 text-center font-mono text-xs text-[#4a4943] ${viewMode === 'landing' ? 'mt-0 bg-[#ebeae4]/90 backdrop-blur-sm' : 'mt-12 bg-[#ebeae4]'}`}>
-        <div className="max-w-[1700px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span className="font-bold text-[#111113]">YAKITORI // E-Ink Monochrome RPG Quest Engine</span>
-          </div>
-
-          <p className="font-serif italic text-zinc-600 text-xs">
-            Kindle Bookerly Typography • Off-White Paper Hardware Architecture
-          </p>
-
-          <div className="flex items-center gap-4">
-            {viewMode === 'app' && (
-              <button
-                onClick={() => setViewMode('landing')}
-                className="text-[11px] underline font-pixel font-bold hover:text-black"
-              >
-                ← Landing Page
-              </button>
-            )}
-
-            <button
-              onClick={() => {
-                if (window.confirm('Reset all RPG quest progress to default state?')) {
-                  resetAllProgress();
-                }
-              }}
-              className="flex items-center gap-1 text-[11px] text-zinc-600 hover:text-red-600 transition-colors"
-              title="Reset progress to default"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>Reset Demo</span>
-            </button>
-          </div>
-        </div>
-      </footer>
-
       <LevelUpOverlay />
 
       {/* Modals */}
@@ -159,6 +130,11 @@ const MainAppContent: FC = () => {
       <KeyboardShortcutsModal
         isOpen={isShortcutsModalOpen}
         onClose={() => setIsShortcutsModalOpen(false)}
+      />
+
+      <StudyRoomModal
+        isOpen={isStudyRoomOpen}
+        onClose={() => setIsStudyRoomOpen(false)}
       />
 
     </div>

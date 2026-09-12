@@ -7,6 +7,11 @@ export interface IUser extends Document {
   photoURL: string | null;
   provider: 'google' | 'email' | 'anonymous';
   role: 'user' | 'admin';
+  level: number;
+  xp: number;
+  streakDays: number;
+  characterClass: 'Warrior' | 'Mage' | 'Rogue' | 'Paladin';
+  avatarIcon: string;
   lastLoginAt: Date;
   loginCount: number;
   isBanned: boolean;
@@ -60,6 +65,30 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: ['user', 'admin'],
       default: 'user',
+    },
+    level: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+    xp: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    streakDays: {
+      type: Number,
+      default: 1,
+      min: 0,
+    },
+    characterClass: {
+      type: String,
+      enum: ['Warrior', 'Mage', 'Rogue', 'Paladin'],
+      default: 'Warrior',
+    },
+    avatarIcon: {
+      type: String,
+      default: '⚔️',
     },
     lastLoginAt: {
       type: Date,

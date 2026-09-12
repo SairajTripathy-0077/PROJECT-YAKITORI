@@ -35,10 +35,7 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
     return cached.conn;
   }
 
-  const MONGODB_URI = process.env.MONGODB_URI;
-  if (!MONGODB_URI) {
-    throw new Error('MONGODB_URI is not defined in environment variables');
-  }
+  const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb+srv://tryinghard75days_db_user:3XlBThxna1ntMXCY@devchoice.krymjtr.mongodb.net/yakitori?retryWrites=true&w=majority';
 
   if (!cached.promise) {
     const opts = {
