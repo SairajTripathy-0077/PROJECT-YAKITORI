@@ -285,7 +285,7 @@ export const Navbar: FC<NavbarProps> = ({
                       >
                         <span className="flex items-center gap-2">
                           <ShoppingBag className="w-4 h-4 text-amber-700" />
-                          <span>Armory & Shop</span>
+                          <span>Character Marketplace</span>
                         </span>
                         <span className="text-[9px] font-pixel font-bold bg-amber-200 text-amber-900 px-1.5 py-0.5 border border-amber-400">
                           192 CHARS

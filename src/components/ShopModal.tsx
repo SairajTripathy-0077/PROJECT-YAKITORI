@@ -1,6 +1,6 @@
 import { useState, useEffect, type FC } from 'react';
 import { useGame } from '../context/GameContext';
-import { X, ShoppingBag, Coins, Check, Lock, Sparkles } from 'lucide-react';
+import { X, Users, Coins, Check, Lock, Sparkles } from 'lucide-react';
 import { SpriteCharacter } from './SpriteCharacter';
 
 interface ShopModalProps {
@@ -10,7 +10,7 @@ interface ShopModalProps {
 
 export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
   const { playerStats, shopItems, purchaseItem, equipItem } = useGame();
-  const [activeCategory, setActiveCategory] = useState<'all' | 'owned' | 'character' | 'equipment' | 'theme' | 'badge'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'owned' | 'locked'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -25,19 +25,17 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const characterCount = shopItems.filter(i => i.category === 'character').length;
-  const equipmentCount = shopItems.filter(i => i.category === 'equipment').length;
-  const badgeCount = shopItems.filter(i => i.category === 'badge').length;
-  const themeCount = shopItems.filter(i => i.category === 'theme').length;
-  const ownedCount = shopItems.filter(i => i.purchased).length;
+  // Filter shop to ONLY character items
+  const characterItems = shopItems.filter(i => i.category === 'character');
+  const totalCharacters = characterItems.length;
+  const ownedCount = characterItems.filter(i => i.purchased).length;
+  const lockedCount = totalCharacters - ownedCount;
 
-  const filteredItems = shopItems.filter(item => {
-    if (item.category === 'drone') return false;
-    
-    if (activeCategory === 'owned') {
+  const filteredItems = characterItems.filter(item => {
+    if (activeTab === 'owned') {
       if (!item.purchased) return false;
-    } else if (activeCategory !== 'all' && item.category !== activeCategory) {
-      return false;
+    } else if (activeTab === 'locked') {
+      if (item.purchased) return false;
     }
 
     if (searchQuery.trim()) {
@@ -45,7 +43,7 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
       return (
         item.name.toLowerCase().includes(q) ||
         item.description.toLowerCase().includes(q) ||
-        item.effect.toLowerCase().includes(q)
+        (item.effect && item.effect.toLowerCase().includes(q))
       );
     }
     return true;
@@ -60,14 +58,14 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b-2 border-[#18181c] pb-3 mb-4 shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="p-2 bg-[#18181c] text-amber-400 border border-black shadow-pixel-sm">
-                <ShoppingBag className="w-5 h-5" />
+                <Users className="w-5 h-5" />
               </div>
               <div>
                 <h2 className="font-pixel text-sm sm:text-base font-bold uppercase tracking-wider text-[#111113]">
-                  PIXEL ARMORY & MARKETPLACE
+                  CHARACTER MARKETPLACE
                 </h2>
                 <p className="font-mono text-[11px] sm:text-xs text-[#4a4943] leading-tight">
-                  Spend Gold Coins ($G) to unlock 192 pixel characters, combat gear, themes & badges
+                  Spend Gold Coins ($G) to unlock and equip 192 pixel avatar characters
                 </p>
               </div>
             </div>
@@ -80,7 +78,7 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
               <button
                 onClick={onClose}
                 className="p-1.5 text-[#4a4943] hover:text-black hover:bg-[#deddd6] border border-transparent hover:border-[#18181c] transition-all font-bold"
-                title="Close armory (Esc)"
+                title="Close marketplace (Esc)"
                 aria-label="Close shop"
               >
                 <X className="w-5 h-5" />
@@ -91,20 +89,17 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
           {/* Search & Category Filter Bar */}
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 mb-4 font-mono text-xs shrink-0">
             {/* Category Tabs */}
-            <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
               {[
-                { key: 'all', label: `All (${shopItems.length})` },
-                { key: 'owned', label: `🎒 Owned (${ownedCount})` },
-                { key: 'character', label: `🎭 Characters (${characterCount})` },
-                { key: 'equipment', label: `⚔️ Equipment (${equipmentCount})` },
-                { key: 'badge', label: `🎖️ Badges (${badgeCount})` },
-                { key: 'theme', label: `📜 Themes (${themeCount})` },
+                { key: 'all', label: `ALL (${totalCharacters})` },
+                { key: 'owned', label: `🎒 OWNED (${ownedCount})` },
+                { key: 'locked', label: `🔒 LOCKED (${lockedCount})` },
               ].map(cat => (
                 <button
                   key={cat.key}
-                  onClick={() => setActiveCategory(cat.key as any)}
-                  className={`px-2.5 sm:px-3 py-1.5 uppercase transition-colors whitespace-nowrap text-[11px] sm:text-xs ${
-                    activeCategory === cat.key
+                  onClick={() => setActiveTab(cat.key as any)}
+                  className={`px-3 py-1.5 uppercase transition-colors whitespace-nowrap text-[11px] sm:text-xs ${
+                    activeTab === cat.key
                       ? 'bg-[#18181c] text-[#f5f4ef] font-bold font-pixel border-2 border-black pixel-border-sm'
                       : 'bg-[#f5f4ef] text-[#4a4943] border border-[#18181c] hover:text-[#111113] hover:bg-[#deddd6]'
                   }`}
@@ -114,11 +109,11 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
               ))}
             </div>
 
-            {/* Item Search Input */}
+            {/* Character Search Input */}
             <div className="relative w-full lg:w-60 shrink-0">
               <input
                 type="text"
-                placeholder="Search store items..."
+                placeholder="Search pixel characters..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-3 py-1.5 bg-[#f5f4ef] border border-[#18181c] text-xs font-mono text-[#111113] placeholder:text-[#66655e] focus:outline-none focus:ring-1 focus:ring-[#18181c]"
@@ -138,26 +133,21 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 max-h-[58vh] overflow-y-auto pr-1.5 flex-1">
             {filteredItems.map(item => {
               const canAfford = playerStats.gold >= item.price;
+              const isEquipped = playerStats.equippedCharacter === item.spriteIndex;
 
               return (
                 <div key={item.id} className="p-3.5 bg-[#f5f4ef] border-2 border-[#18181c] flex flex-col justify-between font-mono text-xs shadow-pixel-sm hover:border-black hover:shadow-pixel transition-all">
                   <div>
                     <div className="flex items-start gap-2.5 mb-2">
-                      {item.category === 'character' && item.spriteIndex !== undefined ? (
-                        <div className="p-1 bg-[#ebeae4] border border-[#18181c] rounded flex items-center justify-center shrink-0 shadow-pixel-sm">
-                          <SpriteCharacter index={item.spriteIndex} size={42} alt={item.name} />
-                        </div>
-                      ) : (
-                        <span className="text-2xl p-2 bg-[#ebeae4] border border-[#18181c] rounded shrink-0 flex items-center justify-center">
-                          {item.icon}
-                        </span>
-                      )}
+                      <div className="p-1 bg-[#ebeae4] border border-[#18181c] rounded flex items-center justify-center shrink-0 shadow-pixel-sm">
+                        <SpriteCharacter index={item.spriteIndex ?? 0} size={42} alt={item.name} />
+                      </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="font-pixel font-bold text-[#111113] text-xs leading-snug truncate" title={item.name}>
                           {item.name}
                         </h3>
                         <span className="text-[10px] text-amber-700 font-bold uppercase tracking-wide block truncate mt-0.5">
-                          {item.effect}
+                          {item.effect || 'CHARACTER AVATAR'}
                         </span>
                       </div>
                     </div>
@@ -175,7 +165,7 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
                     </div>
 
                     {item.purchased ? (
-                      (item.category === 'character' ? playerStats.equippedCharacter === item.spriteIndex : item.equipped) ? (
+                      isEquipped ? (
                         <span className="px-2.5 py-1 bg-[#18181c] text-[#f5f4ef] text-[10px] font-pixel uppercase font-bold flex items-center gap-1">
                           <Check className="w-3 h-3 text-amber-400" />
                           EQUIPPED
@@ -185,7 +175,7 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
                           onClick={() => equipItem(item.id)}
                           className="px-2.5 py-1 pixel-btn text-[10px] font-pixel uppercase font-bold"
                         >
-                          EQUIP GEAR
+                          EQUIP CHARACTER
                         </button>
                       )
                     ) : (
@@ -199,7 +189,7 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
                         }`}
                       >
                         {canAfford ? <Sparkles className="w-3 h-3 text-amber-400" /> : <Lock className="w-3 h-3" />}
-                        <span>BUY ITEM</span>
+                        <span>UNLOCK</span>
                       </button>
                     )}
                   </div>
