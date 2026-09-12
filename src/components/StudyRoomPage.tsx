@@ -35,6 +35,7 @@ export interface StudyHero {
   isOnline: boolean;
   currentTask?: string;
   isStudying?: boolean;
+  equippedCharacter?: number;
 }
 
 type TimerMode = 'work' | 'shortBreak' | 'longBreak';
@@ -80,6 +81,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
             streakDays: playerStats.streakDays,
             characterClass: playerStats.characterClass,
             avatarIcon: currentHeroAvatar,
+            equippedCharacter: playerStats.equippedCharacter,
           }).catch(() => {});
         }
 
@@ -94,6 +96,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
           streakDays?: number;
           characterClass?: string;
           avatarIcon?: string;
+          equippedCharacter?: number;
         }> }>('/api/auth/members');
 
         if (res.data && Array.isArray(res.data)) {
@@ -116,6 +119,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
               isOnline: true,
               isStudying: idx === 0,
               currentTask: isCurrentUser ? 'Active Study Session' : 'Studying in Guild',
+              equippedCharacter: isCurrentUser ? playerStats.equippedCharacter : u.equippedCharacter,
             };
           });
 
@@ -314,8 +318,12 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-[#f5f4ef] border-2 border-[#18181c] flex items-center justify-center text-3xl shadow-pixel-sm shrink-0 transition-transform duration-150 hover:scale-105">
-                  {currentHeroAvatar}
+                <div className="w-14 h-14 bg-[#f5f4ef] border-2 border-[#18181c] flex items-center justify-center text-3xl shadow-pixel-sm shrink-0 transition-transform duration-150 hover:scale-105 overflow-hidden">
+                  {playerStats.equippedCharacter !== undefined ? (
+                    <SpriteCharacter index={playerStats.equippedCharacter} size={44} alt="Equipped Hero Sprite" />
+                  ) : (
+                    currentHeroAvatar
+                  )}
                 </div>
                 <div className="space-y-1 min-w-0 flex-1">
                   <h3 className="font-pixel text-sm font-bold text-[#111113] truncate">
@@ -642,8 +650,12 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
 
                   {/* Hero Avatar & Details */}
                   <div className="flex items-start gap-4">
-                    <div className="w-14 h-14 bg-[#ebeae4] border-2 border-[#18181c] flex items-center justify-center text-3xl shadow-pixel-sm shrink-0 transition-transform duration-150 hover:scale-105" aria-hidden="true">
-                      {hero.avatarIcon}
+                    <div className="w-14 h-14 bg-[#ebeae4] border-2 border-[#18181c] flex items-center justify-center text-3xl shadow-pixel-sm shrink-0 transition-transform duration-150 hover:scale-105 overflow-hidden" aria-hidden="true">
+                      {hero.equippedCharacter !== undefined ? (
+                        <SpriteCharacter index={hero.equippedCharacter} size={44} alt={`${hero.displayName}'s Avatar`} />
+                      ) : (
+                        hero.avatarIcon
+                      )}
                     </div>
 
                     <div className="space-y-1 min-w-0 flex-1">

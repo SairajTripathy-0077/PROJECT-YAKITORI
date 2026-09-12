@@ -12,6 +12,8 @@ export interface IUser extends Document {
   streakDays: number;
   characterClass: 'Warrior' | 'Mage' | 'Rogue' | 'Paladin';
   avatarIcon: string;
+  equippedCharacter: number;
+  inventory: string[];
   lastLoginAt: Date;
   loginCount: number;
   isBanned: boolean;
@@ -88,6 +90,14 @@ const userSchema = new Schema<IUser>(
     avatarIcon: {
       type: String,
       default: '⚔️',
+    },
+    equippedCharacter: {
+      type: Number,
+      default: 0,
+    },
+    inventory: {
+      type: [String],
+      default: [],
     },
     lastLoginAt: {
       type: Date,

@@ -19,6 +19,8 @@ export interface DbUserProfile {
   photoURL: string | null;
   provider: 'google' | 'email' | 'anonymous';
   role: 'user' | 'admin';
+  equippedCharacter?: number;
+  inventory?: string[];
   lastLoginAt: string;
   loginCount: number;
   isBanned: boolean;

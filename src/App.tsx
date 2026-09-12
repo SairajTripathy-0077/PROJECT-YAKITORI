@@ -72,7 +72,6 @@ const MainAppContent: FC = () => {
         }}
         onOpenStudyRoom={() => setViewMode('study')}
         onOpenAnalytics={() => setViewMode('analytics')}
-        onOpenCharacterCreation={() => setIsCharacterCreationOpen(true)}
         viewMode={viewMode}
         onToggleViewMode={(mode) => {
           if (mode) {
@@ -90,7 +89,10 @@ const MainAppContent: FC = () => {
           /* Landing Hero View - Full Edge-to-Edge Image */
           <LandingHero onEnterApp={() => {
             setViewMode('app');
-            setIsCharacterCreationOpen(true);
+            // Only open character creation for brand new default characters
+            if (playerStats.name === 'Adventurer') {
+              setIsCharacterCreationOpen(true);
+            }
           }} />
         ) : viewMode === 'study' ? (
           /* Hero Guild Study Room Page - All Heroes, Levels, XP, Avatars */
@@ -99,7 +101,6 @@ const MainAppContent: FC = () => {
           /* Quest Progress & Recharts Analytics Dashboard */
           <QuestProgressDashboard 
             onBackToQuests={() => setViewMode('app')}
-            onOpenCharacterCreation={() => setIsCharacterCreationOpen(true)}
           />
         ) : (
           /* App Dashboard View - Full RPG Controls & Stats */
@@ -129,7 +130,7 @@ const MainAppContent: FC = () => {
                 title="View animated charts and attribute radar"
               >
                 <BarChart3 className="w-3.5 h-3.5 text-indigo-700" />
-                <span>PROGRESS CHARTS</span>
+                <span>DASHBOARD</span>
               </button>
             </div>
 
