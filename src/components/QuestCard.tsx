@@ -14,7 +14,11 @@ import {
   ChevronUp, 
   Plus, 
   Sparkles, 
-  Coins 
+  Coins,
+  Calendar,
+  AlertCircle,
+  Repeat,
+  Clock
 } from 'lucide-react';
 
 export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
@@ -37,8 +41,57 @@ export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
     }
   };
 
+  const getDeadlineInfo = (dueDateStr?: string) => {
+    if (!dueDateStr) return null;
+    try {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const today = new Date(todayStr);
+      const due = new Date(dueDateStr);
+      
+      const diffTime = due.getTime() - today.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+      const [year, month, day] = dueDateStr.split('-');
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const formatted = `${monthNames[parseInt(month, 10) - 1]} ${parseInt(day, 10)}`;
+
+      if (diffDays < 0) {
+        return {
+          text: `Overdue: ${formatted} (${Math.abs(diffDays)}d ago)`,
+          color: 'bg-red-100 text-red-900 border-red-700 font-bold',
+          icon: AlertCircle,
+          urgent: true,
+        };
+      } else if (diffDays === 0) {
+        return {
+          text: 'Due Today',
+          color: 'bg-amber-200 text-amber-950 border-amber-800 font-bold animate-pulse',
+          icon: Clock,
+          urgent: true,
+        };
+      } else if (diffDays === 1) {
+        return {
+          text: `Due Tomorrow (${formatted})`,
+          color: 'bg-amber-50 text-amber-900 border-amber-700 font-bold',
+          icon: Clock,
+          urgent: false,
+        };
+      } else {
+        return {
+          text: `Due: ${formatted} (in ${diffDays}d)`,
+          color: 'bg-[#f5f4ef] text-[#111113] border-[#18181c]',
+          icon: Calendar,
+          urgent: false,
+        };
+      }
+    } catch {
+      return { text: `Due: ${dueDateStr}`, color: 'bg-[#f5f4ef] text-[#111113] border-[#18181c]', icon: Calendar, urgent: false };
+    }
+  };
+
   const attrBadge = getAttributeBadge(quest.attribute);
   const AttrIcon = attrBadge.icon;
+  const deadlineInfo = getDeadlineInfo(quest.dueDate);
 
   const completedSubtasksCount = quest.subtasks.filter(s => s.completed).length;
   const subtaskPercent = quest.subtasks.length > 0 
@@ -60,11 +113,11 @@ export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
         {/* Top Header Row */}
         <div className="flex items-start justify-between gap-3 mb-2">
           
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
             {/* Completion Checkbox */}
             <button
               onClick={() => toggleQuest(quest.id)}
-              className="mt-0.5 p-1 text-[#18181c] hover:text-black focus:outline-none transition-colors"
+              className="mt-0.5 p-1 text-[#18181c] hover:text-black focus:outline-none transition-colors shrink-0"
               title={quest.completed ? 'Mark as incomplete' : 'Complete quest & earn rewards!'}
               aria-label={`Toggle completion for ${quest.title}`}
             >
@@ -75,27 +128,42 @@ export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
               )}
             </button>
 
-            <div>
-              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5">
                 {/* Attribute Tag */}
                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 border text-[10px] font-mono font-bold uppercase tracking-wider ${attrBadge.color}`}>
                   <AttrIcon className="w-3 h-3" />
                   {attrBadge.label}
                 </span>
 
-                {/* Quest Type Tag */}
-                <span className="px-2 py-0.5 bg-[#18181c] text-[#f5f4ef] text-[10px] font-pixel uppercase">
-                  {quest.questType}
-                </span>
+                {/* Quest Type Tag / Daily Tag */}
+                {quest.questType === 'daily' ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-950 text-emerald-100 text-[10px] font-pixel uppercase shadow-pixel-sm" title="Refreshes automatically every morning">
+                    <Repeat className="w-3 h-3 text-emerald-400" />
+                    DAILY HABIT (REFRESHES DAILY)
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 bg-[#18181c] text-[#f5f4ef] text-[10px] font-pixel uppercase">
+                    {quest.questType}
+                  </span>
+                )}
 
                 {/* Difficulty Tag */}
                 <span className="px-2 py-0.5 bg-[#f5f4ef] text-[#111113] border border-[#18181c] text-[10px] font-mono uppercase font-bold">
                   {quest.difficulty}
                 </span>
+
+                {/* Deadline Badge */}
+                {deadlineInfo && !quest.completed && (
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 border text-[10px] font-mono shadow-pixel-sm ${deadlineInfo.color}`}>
+                    <deadlineInfo.icon className="w-3 h-3" />
+                    <span>{deadlineInfo.text}</span>
+                  </span>
+                )}
               </div>
 
               {/* Title */}
-              <h3 className={`font-serif text-base sm:text-lg font-bold leading-snug ${quest.completed ? 'line-through text-[#4a4943]' : 'text-[#111113]'}`}>
+              <h3 className={`font-serif text-base sm:text-lg font-bold leading-snug break-words ${quest.completed ? 'line-through text-[#4a4943]' : 'text-[#111113]'}`}>
                 {quest.title}
               </h3>
 

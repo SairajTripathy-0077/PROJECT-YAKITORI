@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { 
   Quest, 
   PlayerStats, 
@@ -7,7 +7,7 @@ import type {
   DroneState, 
   AttributeType,
   QuestDifficulty,
-  QuestType,
+  LevelUpModalData,
   DroneExpression
 } from '../types/game';
 import { 
@@ -19,11 +19,18 @@ import {
   DRONE_QUOTES
 } from '../utils/defaults';
 import { 
+  applyQuestCompletion, 
+  revertQuestCompletion, 
+  calculateBaseRewards,
+  processDailyStreak
+} from '../utils/rpgEngine';
+import { 
   playQuestComplete, 
   playLevelUp, 
   playShopBuy, 
   playDroneBeep, 
   playClick,
+  playSubtask,
   playDeleteSound,
   setSoundEnabled as setAudioEnabled
 } from '../utils/sound';
@@ -37,9 +44,9 @@ interface GameContextType {
   soundEnabled: boolean;
   scanlineEnabled: boolean;
   theme: 'noir' | 'eink';
-  levelUpModalData: { show: boolean; newLevel: number; rewardGold: number } | null;
+  levelUpModalData: LevelUpModalData | null;
   closeLevelUpModal: () => void;
-  addQuest: (questData: Omit<Quest, 'id' | 'createdAt' | 'completed' | 'xpReward' | 'goldReward'>) => void;
+  addQuest: (questData: Omit<Quest, 'id' | 'createdAt' | 'completed' | 'xpReward' | 'goldReward'> & { xpReward?: number; goldReward?: number }) => void;
   toggleQuest: (id: string) => void;
   deleteQuest: (id: string) => void;
   toggleSubtask: (questId: string, subtaskId: string) => void;
@@ -54,7 +61,7 @@ interface GameContextType {
   setDroneMessage: (msg: string, expression?: DroneExpression) => void;
 }
 
-const STORAGE_KEY = 'yakitori_rpg_game_state_v2';
+const STORAGE_KEY = 'yakitori_rpg_game_state_v3';
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
@@ -64,7 +71,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        return parsed.quests || DEFAULT_QUESTS;
+        if (Array.isArray(parsed.quests) && parsed.quests.length > 0) {
+          return parsed.quests;
+        }
       } catch (e) {
         console.error('Failed to parse saved quests', e);
       }
@@ -77,7 +86,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        return { ...DEFAULT_PLAYER_STATS, ...(parsed.playerStats || {}) };
+        if (parsed.playerStats) {
+          return { ...DEFAULT_PLAYER_STATS, ...parsed.playerStats };
+        }
       } catch (e) {
         console.error('Failed to parse player stats', e);
       }
@@ -90,7 +101,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        return { ...DEFAULT_ATTRIBUTES, ...(parsed.attributes || {}) };
+        if (parsed.attributes) {
+          return { ...DEFAULT_ATTRIBUTES, ...parsed.attributes };
+        }
       } catch (e) {
         console.error('Failed to parse attributes', e);
       }
@@ -103,7 +116,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        return parsed.shopItems || INITIAL_SHOP_ITEMS;
+        if (Array.isArray(parsed.shopItems) && parsed.shopItems.length > 0) {
+          return parsed.shopItems;
+        }
       } catch (e) {
         console.error('Failed to parse shop items', e);
       }
@@ -115,59 +130,62 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [soundEnabled, setSoundEnabledState] = useState<boolean>(true);
   const [scanlineEnabled, setScanlineEnabled] = useState<boolean>(false);
   const [theme, setTheme] = useState<'noir' | 'eink'>('noir');
-  const [levelUpModalData, setLevelUpModalData] = useState<{ show: boolean; newLevel: number; rewardGold: number } | null>(null);
+  const [levelUpModalData, setLevelUpModalData] = useState<LevelUpModalData | null>(null);
 
   // Sync state to LocalStorage
   useEffect(() => {
-    const stateToSave = {
-      quests,
-      playerStats,
-      attributes,
-      shopItems,
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+    try {
+      const stateToSave = {
+        quests,
+        playerStats,
+        attributes,
+        shopItems,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+    } catch (e) {
+      console.error('Failed to persist RPG game state', e);
+    }
   }, [quests, playerStats, attributes, shopItems]);
 
-  // Check Daily Streak on mount
+  // Check and update Daily Streak & Auto-refresh Daily Habits on session mount
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    const lastActive = playerStats.lastActiveDate;
-    
-    if (lastActive !== today) {
-      const lastDate = new Date(lastActive);
-      const currentDate = new Date(today);
-      const diffTime = Math.abs(currentDate.getTime() - lastDate.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      let newStreak = playerStats.streakDays;
-      if (diffDays === 1) {
-        newStreak += 1;
-      } else if (diffDays > 1) {
-        newStreak = 1; // Streak reset
-      }
+    const streakResult = processDailyStreak(
+      playerStats.lastActiveDate,
+      playerStats.streakDays,
+      playerStats.activityHistory || []
+    );
 
-      const multiplier = Math.min(2.5, 1.0 + (newStreak * 0.1));
-
+    if (streakResult.isNewDay) {
       setPlayerStats(prev => ({
         ...prev,
-        lastActiveDate: today,
-        streakDays: newStreak,
-        activeMultiplier: parseFloat(multiplier.toFixed(1)),
+        lastActiveDate: streakResult.newLastActiveDate,
+        streakDays: streakResult.newStreak,
+        activeMultiplier: streakResult.newMultiplier,
+        activityHistory: streakResult.updatedHistory,
       }));
     }
+
+    // Auto-refresh daily habits completed on past days to new active state
+    setQuests(prev => prev.map(q => {
+      if (q.questType === 'daily' && q.completed) {
+        const completedOnPastDay = q.lastCompletedDate && q.lastCompletedDate !== today;
+        const fallbackPastDay = !q.lastCompletedDate && q.completedAt && (new Date(q.completedAt).toISOString().split('T')[0] !== today);
+        if (completedOnPastDay || fallbackPastDay) {
+          return {
+            ...q,
+            completed: false,
+            completedAt: undefined,
+            subtasks: q.subtasks.map(s => ({ ...s, completed: false }))
+          };
+        }
+      }
+      return q;
+    }));
   }, []);
 
-  // Calculate XP & Gold rewards by difficulty
-  const calculateRewards = (difficulty: QuestDifficulty) => {
-    switch (difficulty) {
-      case 'easy': return { xp: 20, gold: 15 };
-      case 'medium': return { xp: 45, gold: 30 };
-      case 'hard': return { xp: 90, gold: 65 };
-      case 'boss': return { xp: 180, gold: 120 };
-    }
-  };
-
-  const setDroneMessage = (msg: string, expression: DroneExpression = 'HAPPY') => {
+  const setDroneMessage = useCallback((msg: string, expression: DroneExpression = 'HAPPY') => {
     setDroneState({
       name: 'Byte',
       expression,
@@ -175,23 +193,24 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isSpeaking: true,
     });
     playDroneBeep();
-  };
+  }, []);
 
-  const addQuest = (questData: Omit<Quest, 'id' | 'createdAt' | 'completed' | 'xpReward' | 'goldReward'>) => {
-    const rewards = calculateRewards(questData.difficulty);
+  const addQuest = (questData: Omit<Quest, 'id' | 'createdAt' | 'completed' | 'xpReward' | 'goldReward'> & { xpReward?: number; goldReward?: number }) => {
+    const baseReward = calculateBaseRewards(questData.difficulty);
     const newQuest: Quest = {
       ...questData,
-      id: `quest-${Date.now()}`,
+      id: `quest-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       createdAt: Date.now(),
       completed: false,
-      xpReward: rewards.xp,
-      goldReward: rewards.gold,
+      xpReward: questData.xpReward || baseReward.xp,
+      goldReward: questData.goldReward || baseReward.gold,
       subtasks: questData.subtasks || [],
     };
 
     setQuests(prev => [newQuest, ...prev]);
     playClick();
-    setDroneMessage(`New Quest added: "${newQuest.title}"! Finish it to gain +${newQuest.xpReward} XP!`, 'MOTIVATED');
+    const habitNote = newQuest.questType === 'daily' ? ' (Repeats daily automatically)' : '';
+    setDroneMessage(`Quest logged: "${newQuest.title}"${habitNote}! Complete it to gain +${newQuest.xpReward} XP for your ${newQuest.attribute.toUpperCase()} stat!`, 'MOTIVATED');
   };
 
   const toggleQuest = (id: string) => {
@@ -199,13 +218,16 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!targetQuest) return;
 
     const willBeCompleted = !targetQuest.completed;
+    const today = new Date().toISOString().split('T')[0];
 
+    // Update quest list state
     setQuests(prev => prev.map(q => {
       if (q.id === id) {
         return {
           ...q,
           completed: willBeCompleted,
           completedAt: willBeCompleted ? Date.now() : undefined,
+          lastCompletedDate: willBeCompleted ? today : undefined,
           subtasks: q.subtasks.map(s => ({ ...s, completed: willBeCompleted }))
         };
       }
@@ -213,73 +235,39 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }));
 
     if (willBeCompleted) {
+      // Execute RPG Progression Engine
+      const result = applyQuestCompletion(targetQuest, playerStats, attributes, shopItems);
+
+      setPlayerStats(result.updatedPlayerStats);
+      setAttributes(result.updatedAttributes);
+
       playQuestComplete();
-      
-      // Calculate XP with active streak multiplier
-      const finalXp = Math.round(targetQuest.xpReward * playerStats.activeMultiplier);
-      const finalGold = targetQuest.goldReward;
 
-      // Update Player Level & XP
-      let newPlayerXp = playerStats.xp + finalXp;
-      let newPlayerLevel = playerStats.level;
-      let xpToNext = playerStats.xpToNextLevel;
-      let leveledUp = false;
-
-      while (newPlayerXp >= xpToNext) {
-        newPlayerXp -= xpToNext;
-        newPlayerLevel += 1;
-        xpToNext = Math.round(xpToNext * 1.5);
-        leveledUp = true;
-      }
-
-      setPlayerStats(prev => ({
-        ...prev,
-        level: newPlayerLevel,
-        xp: newPlayerXp,
-        xpToNextLevel: xpToNext,
-        gold: prev.gold + finalGold,
-        totalCompletedQuests: prev.totalCompletedQuests + 1,
-      }));
-
-      // Update Attribute Level & XP
-      const attrKey = targetQuest.attribute;
-      setAttributes(prev => {
-        const currentAttr = prev[attrKey];
-        let newAttrXp = currentAttr.xp + finalXp;
-        let newAttrLevel = currentAttr.level;
-        let attrXpNext = currentAttr.xpToNextLevel;
-
-        while (newAttrXp >= attrXpNext) {
-          newAttrXp -= attrXpNext;
-          newAttrLevel += 1;
-          attrXpNext = Math.round(attrXpNext * 1.4);
-        }
-
-        return {
-          ...prev,
-          [attrKey]: {
-            level: newAttrLevel,
-            xp: newAttrXp,
-            xpToNextLevel: attrXpNext,
-          }
-        };
-      });
-
-      if (leveledUp) {
+      if (result.leveledUpPlayer) {
         playLevelUp();
         setLevelUpModalData({
           show: true,
-          newLevel: newPlayerLevel,
-          rewardGold: 100,
+          newLevel: result.updatedPlayerStats.level,
+          rewardGold: result.updatedPlayerStats.level * 50,
+          unlockedTitle: result.newTitle,
+          attributeLevelUps: result.attributeLevelUps,
         });
-        setDroneMessage(`VICTORY! You leveled up to Level ${newPlayerLevel}! Phenomenal work, Adventurer!`, 'VICTORY');
+        setDroneMessage(`VICTORY! You ascended to Level ${result.updatedPlayerStats.level} (${result.newTitle})! Phenomenal performance!`, 'VICTORY');
+      } else if (result.attributeLevelUps.length > 0) {
+        const topAttr = result.attributeLevelUps[0];
+        setDroneMessage(`STAT BOOST! Your ${topAttr.attribute.toUpperCase()} reached Level ${topAttr.newLevel}! (+${result.earnedXp} XP, +${result.earnedGold}g)`, 'MOTIVATED');
       } else {
         const quotes = DRONE_QUOTES.QUEST_COMPLETED;
         const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-        setDroneMessage(`${randomQuote} (+${finalXp} XP, +${finalGold} Gold)`, 'HAPPY');
+        setDroneMessage(`${randomQuote} (+${result.earnedXp} XP, +${result.earnedGold}g)`, 'HAPPY');
       }
     } else {
+      // Revert completion
+      const reverted = revertQuestCompletion(targetQuest, playerStats, attributes);
+      setPlayerStats(reverted.updatedPlayerStats);
+      setAttributes(reverted.updatedAttributes);
       playClick();
+      setDroneMessage(`Quest "${targetQuest.title}" marked active.`, 'CHILL');
     }
   };
 
@@ -289,21 +277,33 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const toggleSubtask = (questId: string, subtaskId: string) => {
+    let completedQuest = false;
+
     setQuests(prev => prev.map(q => {
       if (q.id === questId) {
         const updatedSubtasks = q.subtasks.map(s => 
           s.id === subtaskId ? { ...s, completed: !s.completed } : s
         );
         const allDone = updatedSubtasks.length > 0 && updatedSubtasks.every(s => s.completed);
+        
+        if (allDone && !q.completed) {
+          completedQuest = true;
+        }
+
         return {
           ...q,
           subtasks: updatedSubtasks,
-          completed: allDone ? true : q.completed,
         };
       }
       return q;
     }));
-    playClick();
+
+    if (completedQuest) {
+      // Auto complete the whole quest if all subtasks are finished!
+      toggleQuest(questId);
+    } else {
+      playSubtask();
+    }
   };
 
   const addSubtask = (questId: string, title: string) => {
@@ -314,7 +314,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ...q,
           subtasks: [
             ...q.subtasks,
-            { id: `sub-${Date.now()}`, title: title.trim(), completed: false }
+            { id: `sub-${Date.now()}-${Math.floor(Math.random() * 1000)}`, title: title.trim(), completed: false }
           ]
         };
       }
@@ -327,15 +327,18 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const item = shopItems.find(i => i.id === itemId);
     if (!item || item.purchased || playerStats.gold < item.price) return;
 
+    const newGold = playerStats.gold - item.price;
+    const newInventory = [...playerStats.inventory, item.id];
+
     setPlayerStats(prev => ({
       ...prev,
-      gold: prev.gold - item.price,
-      inventory: [...prev.inventory, item.id],
+      gold: newGold,
+      inventory: newInventory,
     }));
 
     setShopItems(prev => prev.map(i => i.id === itemId ? { ...i, purchased: true } : i));
     playShopBuy();
-    setDroneMessage(`Purchased "${item.name}"! Added to your inventory.`, 'HAPPY');
+    setDroneMessage(`Purchased "${item.name}"! Effect active: ${item.effect}`, 'HAPPY');
   };
 
   const equipItem = (itemId: string) => {
@@ -356,7 +359,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     playClick();
-    setDroneMessage(`Equipped ${item.name}!`, 'CHILL');
+    setDroneMessage(`Equipped ${item.name}! [${item.effect}] is now boosting your stats.`, 'CHILL');
   };
 
   const toggleSound = () => {
@@ -394,7 +397,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPlayerStats(DEFAULT_PLAYER_STATS);
     setAttributes(DEFAULT_ATTRIBUTES);
     setShopItems(INITIAL_SHOP_ITEMS);
-    setDroneMessage('Progress reset to default state!', 'CHILL');
+    setDroneMessage('RPG progress successfully reset to initial default state!', 'CHILL');
   };
 
   return (

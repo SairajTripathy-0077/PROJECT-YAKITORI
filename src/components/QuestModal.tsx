@@ -1,7 +1,20 @@
 import { useState, useEffect, type FC } from 'react';
 import { useGame } from '../context/GameContext';
 import type { AttributeType, QuestDifficulty, QuestType } from '../types/game';
-import { X, Plus, Trash2, Sparkles, Brain, Dumbbell, Palette, Zap, Shield } from 'lucide-react';
+import { 
+  X, 
+  Plus, 
+  Trash2, 
+  Sparkles, 
+  Brain, 
+  Dumbbell, 
+  Palette, 
+  Zap, 
+  Shield, 
+  Calendar, 
+  Repeat, 
+  Clock 
+} from 'lucide-react';
 
 interface QuestModalProps {
   isOpen: boolean;
@@ -16,6 +29,7 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
   const [attribute, setAttribute] = useState<AttributeType>('intellect');
   const [difficulty, setDifficulty] = useState<QuestDifficulty>('medium');
   const [questType, setQuestType] = useState<QuestType>('main');
+  const [dueDate, setDueDate] = useState<string>('');
   const [subtasks, setSubtasks] = useState<{ id: string; title: string; completed: boolean }[]>([]);
   const [newSubtaskInput, setNewSubtaskInput] = useState('');
 
@@ -42,6 +56,12 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
     setSubtasks(prev => prev.filter(s => s.id !== id));
   };
 
+  const handleSetQuickDate = (offsetDays: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    setDueDate(d.toISOString().split('T')[0]);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -52,6 +72,7 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
       attribute,
       difficulty,
       questType,
+      dueDate: questType === 'daily' ? undefined : (dueDate || undefined),
       subtasks,
     });
 
@@ -61,6 +82,7 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
     setAttribute('intellect');
     setDifficulty('medium');
     setQuestType('main');
+    setDueDate('');
     setSubtasks([]);
     onClose();
   };
@@ -68,7 +90,7 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
       <div className="double-bezel max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="double-bezel-inner bg-[#ebeae4] text-[#111113] p-5 border border-[#18181c] relative">
+        <div className="double-bezel-inner bg-[#ebeae4] text-[#111113] p-5 border border-[#18181c] relative shadow-pixel">
           
           {/* Header */}
           <div className="flex items-center justify-between border-b-2 border-[#18181c] pb-3 mb-4">
@@ -101,7 +123,7 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="e.g. Master GSAP Animations & Lenis Scroll..."
-                className="w-full px-3 py-2 bg-[#f5f4ef] border border-[#18181c] text-[#111113] text-sm focus:outline-none font-serif font-bold"
+                className="w-full px-3 py-2 bg-[#f5f4ef] border border-[#18181c] text-[#111113] text-sm focus:outline-none font-serif font-bold shadow-pixel-sm"
                 autoFocus
               />
             </div>
@@ -119,6 +141,105 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
                 className="w-full px-3 py-2 bg-[#f5f4ef] border border-[#18181c] text-[#111113] text-xs focus:outline-none font-serif"
               />
             </div>
+
+            {/* Quest Type (Main, Side, Daily Habit) */}
+            <div>
+              <label className="block text-[11px] font-pixel text-[#111113] font-bold uppercase mb-1">
+                Quest Type
+              </label>
+              <div className="flex gap-2">
+                {[
+                  { key: 'main', label: 'Main Quest', icon: Sparkles },
+                  { key: 'side', label: 'Side Quest', icon: Clock },
+                  { key: 'daily', label: 'Daily Habit', icon: Repeat },
+                ].map(type => {
+                  const Icon = type.icon;
+                  const isSelected = questType === type.key;
+                  return (
+                    <button
+                      key={type.key}
+                      type="button"
+                      onClick={() => setQuestType(type.key as QuestType)}
+                      className={`flex-1 py-2 px-2 border text-xs font-pixel uppercase text-center flex items-center justify-center gap-1.5 transition-all ${isSelected ? 'bg-[#18181c] text-[#f5f4ef] font-bold shadow-pixel-sm border-black' : 'bg-[#f5f4ef] text-[#111113] border-[#18181c]'}`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{type.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {questType === 'daily' && (
+                <div className="mt-2 p-2 bg-[#f5f4ef] border border-dashed border-[#18181c] text-[11px] font-serif text-[#4a4943] flex items-center gap-2">
+                  <Repeat className="w-4 h-4 text-emerald-700 shrink-0 animate-spin" style={{ animationDuration: '6s' }} />
+                  <span>
+                    <strong>Daily Habit Active:</strong> Resets automatically as fresh each morning, so you never have to re-enter it!
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Due Date / Deadline (Only for non-daily quests) */}
+            {questType !== 'daily' && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-pixel text-[#111113] font-bold uppercase flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Target Deadline (Optional)</span>
+                  </label>
+                  {dueDate && (
+                    <button
+                      type="button"
+                      onClick={() => setDueDate('')}
+                      className="text-[10px] text-zinc-500 hover:text-red-700 underline"
+                    >
+                      Clear Deadline
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={e => setDueDate(e.target.value)}
+                    className="px-3 py-1.5 bg-[#f5f4ef] border border-[#18181c] text-xs text-[#111113] font-mono focus:outline-none shadow-pixel-sm"
+                  />
+                  
+                  {/* Quick Pick Pills */}
+                  <div className="flex items-center gap-1 flex-wrap text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => handleSetQuickDate(0)}
+                      className="px-2 py-1 bg-[#f5f4ef] border border-[#18181c] hover:bg-[#18181c] hover:text-[#f5f4ef] transition-colors"
+                    >
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetQuickDate(1)}
+                      className="px-2 py-1 bg-[#f5f4ef] border border-[#18181c] hover:bg-[#18181c] hover:text-[#f5f4ef] transition-colors"
+                    >
+                      Tomorrow
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetQuickDate(3)}
+                      className="px-2 py-1 bg-[#f5f4ef] border border-[#18181c] hover:bg-[#18181c] hover:text-[#f5f4ef] transition-colors"
+                    >
+                      +3 Days
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetQuickDate(7)}
+                      className="px-2 py-1 bg-[#f5f4ef] border border-[#18181c] hover:bg-[#18181c] hover:text-[#f5f4ef] transition-colors"
+                    >
+                      +1 Week
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Attribute Tagger */}
             <div>
@@ -157,10 +278,10 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { key: 'easy', label: 'Easy', xp: '+20 XP', gold: '+15g' },
-                  { key: 'medium', label: 'Medium', xp: '+45 XP', gold: '+30g' },
-                  { key: 'hard', label: 'Hard', xp: '+90 XP', gold: '+65g' },
-                  { key: 'boss', label: 'Boss', xp: '+180 XP', gold: '+120g' },
+                  { key: 'easy', label: 'Easy', xp: '+25 XP', gold: '+15g' },
+                  { key: 'medium', label: 'Medium', xp: '+50 XP', gold: '+35g' },
+                  { key: 'hard', label: 'Hard', xp: '+100 XP', gold: '+75g' },
+                  { key: 'boss', label: 'Boss', xp: '+220 XP', gold: '+150g' },
                 ].map(item => {
                   const isSelected = difficulty === item.key;
                   return (
@@ -178,29 +299,6 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* Quest Type */}
-            <div>
-              <label className="block text-[11px] font-pixel text-[#111113] font-bold uppercase mb-1">
-                Quest Type
-              </label>
-              <div className="flex gap-2">
-                {[
-                  { key: 'main', label: 'Main Quest' },
-                  { key: 'side', label: 'Side Quest' },
-                  { key: 'daily', label: 'Daily Habit' },
-                ].map(type => (
-                  <button
-                    key={type.key}
-                    type="button"
-                    onClick={() => setQuestType(type.key as QuestType)}
-                    className={`flex-1 py-1.5 px-2 border text-xs font-pixel uppercase text-center ${questType === type.key ? 'bg-[#18181c] text-[#f5f4ef] font-bold' : 'bg-[#f5f4ef] text-[#111113] border-[#18181c]'}`}
-                  >
-                    {type.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Subtasks Builder */}
             <div>
               <label className="block text-[11px] font-pixel text-[#111113] font-bold uppercase mb-1">
@@ -212,7 +310,7 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
                   type="text"
                   value={newSubtaskInput}
                   onChange={e => setNewSubtaskInput(e.target.value)}
-                  placeholder="Add sub-task..."
+                  placeholder="Add sub-task objective..."
                   className="flex-1 px-3 py-1.5 bg-[#f5f4ef] border border-[#18181c] text-xs text-[#111113] focus:outline-none"
                   onKeyDown={e => {
                     if (e.key === 'Enter') {

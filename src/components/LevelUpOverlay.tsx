@@ -1,7 +1,7 @@
 import { useEffect, type FC } from 'react';
 import confetti from 'canvas-confetti';
 import { useGame } from '../context/GameContext';
-import { Trophy, Sparkles, Award } from 'lucide-react';
+import { Trophy, Sparkles, Award, Star } from 'lucide-react';
 
 export const LevelUpOverlay: FC = () => {
   const { levelUpModalData, closeLevelUpModal } = useGame();
@@ -14,18 +14,18 @@ export const LevelUpOverlay: FC = () => {
 
       const frame = () => {
         confetti({
-          particleCount: 5,
+          particleCount: 6,
           angle: 60,
           spread: 55,
           origin: { x: 0 },
-          colors: ['#18181c', '#f5f4ef', '#fbbf24', '#71717a']
+          colors: ['#18181c', '#f5f4ef', '#f59e0b', '#71717a', '#dc2626']
         });
         confetti({
-          particleCount: 5,
+          particleCount: 6,
           angle: 120,
           spread: 55,
           origin: { x: 1 },
-          colors: ['#18181c', '#f5f4ef', '#fbbf24', '#71717a']
+          colors: ['#18181c', '#f5f4ef', '#f59e0b', '#71717a', '#dc2626']
         });
 
         if (Date.now() < animationEnd) {
@@ -57,14 +57,23 @@ export const LevelUpOverlay: FC = () => {
             LEVEL UP!
           </h2>
 
-          <p className="text-xl font-serif text-[#4a4943] mb-6">
-            You reached <span className="font-pixel text-[#111113] text-2xl font-bold px-2 py-0.5 bg-[#f5f4ef] border border-[#18181c]">Level {levelUpModalData.newLevel}</span>
-          </p>
+          <div className="text-lg font-serif text-[#4a4943] mb-4">
+            You reached <span className="font-pixel text-[#111113] text-xl font-bold px-2.5 py-1 bg-[#f5f4ef] border border-[#18181c] shadow-pixel-sm inline-block my-1">Level {levelUpModalData.newLevel}</span>
+          </div>
 
-          <div className="p-3 bg-[#f5f4ef] border border-[#18181c] mb-6 flex items-center justify-around font-mono text-sm">
-            <div className="flex items-center gap-2 font-bold">
+          {/* Title unlocked badge */}
+          {levelUpModalData.unlockedTitle && (
+            <div className="mb-4 p-2 bg-[#18181c] text-[#f5f4ef] font-mono text-xs flex items-center justify-center gap-2 border border-black">
+              <Star className="w-4 h-4 text-amber-400" />
+              <span>New Title Earned: <strong className="font-pixel text-amber-300">{levelUpModalData.unlockedTitle}</strong></span>
+            </div>
+          )}
+
+          {/* Gold Reward */}
+          <div className="p-3 bg-[#f5f4ef] border border-[#18181c] mb-6 flex items-center justify-around font-mono text-sm shadow-pixel-sm">
+            <div className="flex items-center gap-2 font-bold text-[#111113]">
               <Award className="w-5 h-5 text-amber-600" />
-              <span>Reward: +{levelUpModalData.rewardGold} Gold</span>
+              <span>Level-up Bonus: +{levelUpModalData.rewardGold} Gold</span>
             </div>
           </div>
 
