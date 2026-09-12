@@ -174,12 +174,13 @@ export const StreakTracker: FC = () => {
                   return <div key={`empty-${idx}`} className="h-8" />;
                 }
 
-                const isSelected = selectedDayStr === day.dateStr;
+                const isSelected = selectedCalendarDate === day.dateStr;
 
                 return (
                   <button
                     key={day.dateStr || idx}
-                    onClick={() => setSelectedDayStr(day.dateStr)}
+                    onClick={() => setSelectedCalendarDate(day.dateStr === selectedCalendarDate ? null : day.dateStr)}
+
                     title={`${day.dateStr} ${day.isActive ? '(Completed)' : ''}${day.isToday ? ' - Today' : ''}`}
                     className={`h-8 flex flex-col items-center justify-center relative border-2 font-bold text-xs font-mono
                       transition-all duration-150 ease-out
