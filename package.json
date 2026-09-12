@@ -28,6 +28,7 @@
     "mongoose": "^8.10.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "recharts": "^3.10.1",
     "tailwind-merge": "^3.6.0",
     "validator": "^13.12.0",
     "xss-clean": "^0.1.4"
