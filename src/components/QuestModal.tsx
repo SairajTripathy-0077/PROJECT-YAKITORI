@@ -1,6 +1,6 @@
 import { useState, useEffect, type FC } from 'react';
 import { useGame } from '../context/GameContext';
-import type { AttributeType, QuestDifficulty, QuestType } from '../types/game';
+import type { Quest, AttributeType, QuestDifficulty, QuestType } from '../types/game';
 import { 
   X, 
   Plus, 

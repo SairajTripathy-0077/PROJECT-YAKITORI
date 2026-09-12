@@ -55,6 +55,7 @@ interface GameContextType {
   updatePlayerCharacter: (data: { name?: string; characterClass?: string; equippedCharacter?: number; avatar?: string }) => void;
   updateAttributes: (newAttrs: AttributeMap) => void;
   addQuest: (questData: Omit<Quest, 'id' | 'createdAt' | 'completed' | 'xpReward' | 'goldReward'> & { xpReward?: number; goldReward?: number }) => void;
+  updateQuest: (id: string, updatedData: Partial<Quest>) => void;
   toggleQuest: (id: string) => void;
   completeQuest: (id: string) => void;
   gainXP: (amount: number, attribute?: AttributeType) => void;
@@ -281,6 +282,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const habitNote = newQuest.questType === 'daily' ? ' (Repeats daily automatically)' : '';
     setDroneMessage(`Quest logged: "${newQuest.title}"${habitNote}! Complete it to gain +${newQuest.xpReward} XP for your ${newQuest.attribute.toUpperCase()} stat!`, 'MOTIVATED');
   };
+
+  const updateQuest = useCallback((id: string, updatedData: Partial<Quest>) => {
+    setQuests(prev => prev.map(q => {
+      if (q.id === id) {
+        const updated = { ...q, ...updatedData };
+        if (updatedData.difficulty && updatedData.difficulty !== q.difficulty) {
+          const baseReward = calculateBaseRewards(updatedData.difficulty);
+          updated.xpReward = baseReward.xp;
+          updated.goldReward = baseReward.gold;
+        }
+        return updated;
+      }
+      return q;
+    }));
+    playClick();
+  }, []);
 
   const toggleQuest = (id: string) => {
     const targetQuest = quests.find(q => q.id === id);
@@ -600,6 +617,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updatePlayerCharacter,
       updateAttributes,
       addQuest,
+      updateQuest,
       toggleQuest,
       completeQuest,
       gainXP,

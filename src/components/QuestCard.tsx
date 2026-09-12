@@ -27,7 +27,7 @@ interface QuestCardProps {
   onEditQuest?: (quest: Quest) => void;
 }
 
-export const QuestCard: FC<QuestCardProps> = ({ quest, onEditQuest }) => {
+export const QuestCard = ({ quest, onEditQuest }: QuestCardProps) => {
   const { toggleQuest, deleteQuest, toggleSubtask, addSubtask } = useGame();
   const [expanded, setExpanded] = useState(false);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');

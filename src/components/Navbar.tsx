@@ -357,7 +357,7 @@ export const Navbar: FC<NavbarProps> = ({
                       ) : (
                         <button
                           onClick={() => {
-                            onOpenAuth();
+                            onOpenAuth?.();
                             setIsMenuOpen(false);
                           }}
                           className="w-full text-left px-2.5 py-2.5 sm:py-2 font-mono text-amber-800 font-bold flex items-center gap-2 hover:bg-amber-100 transition-colors"

@@ -160,7 +160,6 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
   // 3. Quest Difficulty Breakdown Data
   const questDifficultyData = useMemo(() => {
     const diffs: Record<QuestDifficulty, { difficulty: string; completed: number; pending: number }> = {
-      trivial: { difficulty: 'Trivial', completed: 0, pending: 0 },
       easy: { difficulty: 'Easy', completed: 0, pending: 0 },
       medium: { difficulty: 'Medium', completed: 0, pending: 0 },
       hard: { difficulty: 'Hard', completed: 0, pending: 0 },
