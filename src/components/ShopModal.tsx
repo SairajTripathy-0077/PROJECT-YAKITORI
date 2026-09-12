@@ -62,10 +62,10 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
               </div>
               <div>
                 <h2 className="font-pixel text-sm sm:text-base font-bold uppercase tracking-wider text-[#111113]">
-                  CHARACTER MARKETPLACE
+                  HERO INVENTORY & MARKETPLACE
                 </h2>
                 <p className="font-mono text-[11px] sm:text-xs text-[#4a4943] leading-tight">
-                  Spend Gold Coins ($G) to unlock and equip 192 pixel avatar characters
+                  Equip your unlocked pixel avatars from your inventory or spend Gold ($G) to collect more
                 </p>
               </div>
             </div>
@@ -78,7 +78,7 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
               <button
                 onClick={onClose}
                 className="p-1.5 text-[#4a4943] hover:text-black hover:bg-[#deddd6] border border-transparent hover:border-[#18181c] transition-all font-bold"
-                title="Close marketplace (Esc)"
+                title="Close inventory & marketplace (Esc)"
                 aria-label="Close shop"
               >
                 <X className="w-5 h-5" />
@@ -91,8 +91,8 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
             {/* Category Tabs */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
               {[
-                { key: 'all', label: `ALL (${totalCharacters})` },
-                { key: 'owned', label: `🎒 OWNED (${ownedCount})` },
+                { key: 'all', label: `🛒 ALL STORE (${totalCharacters})` },
+                { key: 'owned', label: `🎒 INVENTORY (${ownedCount})` },
                 { key: 'locked', label: `🔒 LOCKED (${lockedCount})` },
               ].map(cat => (
                 <button

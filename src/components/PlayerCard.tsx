@@ -1,6 +1,6 @@
 import type { FC } from 'react';
 import { useGame } from '../context/GameContext';
-import { Brain, Dumbbell, Palette, Zap, Shield, Sparkles, Award, Coins, User } from 'lucide-react';
+import { Brain, Dumbbell, Palette, Zap, Shield, Sparkles, Award, Coins, User, ShoppingBag } from 'lucide-react';
 import type { AttributeType } from '../types/game';
 import { SpriteCharacter } from './SpriteCharacter';
 
@@ -37,9 +37,11 @@ const ATTRIBUTE_DESCRIPTIONS: Record<AttributeType, { name: string; desc: string
   },
 };
 
-interface PlayerCardProps {}
+interface PlayerCardProps {
+  onOpenShop?: () => void;
+}
 
-export const PlayerCard: FC<PlayerCardProps> = () => {
+export const PlayerCard: FC<PlayerCardProps> = ({ onOpenShop }) => {
   const { playerStats, attributes } = useGame();
 
   const xpPercent = Math.min(100, Math.round((playerStats.xp / playerStats.xpToNextLevel) * 100));
@@ -72,12 +74,22 @@ export const PlayerCard: FC<PlayerCardProps> = () => {
               </div>
             </div>
 
-            {/* Quick Currency Counter */}
+            {/* Quick Currency Counter & Inventory Button */}
             <div className="flex items-center gap-2 self-start sm:self-auto font-mono text-xs">
               <span className="flex items-center gap-1 bg-[#f5f4ef] border border-[#18181c] px-2.5 py-1 text-[#111113] font-bold shadow-pixel-sm">
                 <Coins className="w-3.5 h-3.5 text-[#111113]" />
                 <span className="text-[#111113]">{playerStats.gold} Gold</span>
               </span>
+              {onOpenShop && (
+                <button
+                  onClick={onOpenShop}
+                  className="flex items-center gap-1.5 bg-[#18181c] text-[#f5f4ef] hover:bg-[#2c2c33] border-2 border-black px-3 py-1 font-pixel text-xs font-bold uppercase shadow-pixel-sm transition-all cursor-pointer"
+                  title="Open Character Inventory & Marketplace"
+                >
+                  <ShoppingBag className="w-3.5 h-3.5 text-amber-400" />
+                  <span>INVENTORY</span>
+                </button>
+              )}
             </div>
           </div>
 

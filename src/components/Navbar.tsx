@@ -163,10 +163,14 @@ export const Navbar: FC<NavbarProps> = ({
               <div className="h-3 sm:h-4 w-px bg-[#18181c]/30"></div>
 
               {/* Gold */}
-              <div className="flex items-center gap-0.5 sm:gap-1 text-amber-700 font-bold" title="Gold Currency">
+              <button
+                onClick={onOpenShop}
+                className="flex items-center gap-0.5 sm:gap-1 text-amber-700 font-bold hover:text-amber-900 transition-colors cursor-pointer"
+                title="Gold Currency — Click to open Inventory & Marketplace"
+              >
                 <Coins className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>{playerStats.gold}g</span>
-              </div>
+              </button>
 
               <div className="h-3 sm:h-4 w-px bg-[#18181c]/30"></div>
 
@@ -180,6 +184,16 @@ export const Navbar: FC<NavbarProps> = ({
             {/* Right: Primary Action + Dropdown Menu */}
             <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               
+              {/* Inventory Button */}
+              <button
+                onClick={onOpenShop}
+                className="flex items-center gap-1 sm:gap-1.5 px-2 xs:px-2.5 sm:px-3 py-1.5 pixel-btn font-pixel text-[10px] xs:text-[11px] sm:text-xs font-bold min-h-[34px] sm:min-h-[38px] text-[#111113] hover:bg-[#ebeae4]"
+                title="Open Character Inventory & Marketplace"
+              >
+                <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600" />
+                <span className="hidden xs:inline">INVENTORY</span>
+              </button>
+
               {/* New Quest Button */}
               <button
                 onClick={onOpenNewQuest}
@@ -285,7 +299,7 @@ export const Navbar: FC<NavbarProps> = ({
                       >
                         <span className="flex items-center gap-2">
                           <ShoppingBag className="w-4 h-4 text-amber-700" />
-                          <span>Character Marketplace</span>
+                          <span>Hero Inventory & Shop</span>
                         </span>
                         <span className="text-[9px] font-pixel font-bold bg-amber-200 text-amber-900 px-1.5 py-0.5 border border-amber-400">
                           192 CHARS
