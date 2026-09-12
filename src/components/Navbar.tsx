@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, type FC } from 'react';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
 import { AuthModal } from './AuthModal';
+import yakitoriImg from '../assets/yakitori.jpg';
 import { SpriteCharacter } from './SpriteCharacter';
 import { 
   Volume2, 
@@ -93,9 +94,11 @@ export const Navbar: FC<NavbarProps> = ({
             className="flex items-center gap-2 sm:gap-3 focus:outline-none group text-left"
             title="YAKITORI Pixel RPG"
           >
-            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#18181c] text-[#f5f4ef] font-pixel font-bold flex items-center justify-center pixel-border text-xs sm:text-sm group-hover:bg-black shrink-0">
-              焼き
-            </div>
+            <img 
+              src={yakitoriImg} 
+              alt="YAKITORI Logo" 
+              className="w-8 h-8 sm:w-9 sm:h-9 object-cover border-2 border-[#18181c] shadow-pixel-sm shrink-0 rounded-sm" 
+            />
             <div>
               <h1 className="font-pixel text-sm sm:text-base md:text-lg font-bold tracking-wider text-[#111113] leading-none">
                 YAKITORI

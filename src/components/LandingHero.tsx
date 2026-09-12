@@ -4,6 +4,7 @@ import { AuthModal } from './AuthModal';
 import { useAuth } from '../context/AuthContext';
 import { playSound } from '../utils/sound';
 import lofiBgGif from '../assets/lofi-bg-gif.gif';
+import yakitoriImg from '../assets/yakitori.jpg';
 
 interface LandingHeroProps {
   onEnterApp?: () => void;
@@ -21,7 +22,19 @@ export const LandingHero: FC<LandingHeroProps> = ({ onEnterApp }) => {
       }}
     >
       {/* Centered Hero Content */}
-      <div className="relative z-10 space-y-8 max-w-3xl mx-auto my-auto">
+      <div className="relative z-10 space-y-6 max-w-3xl mx-auto my-auto flex flex-col items-center">
+        
+        {/* Brand Icon Badge */}
+        <div className="flex items-center gap-3 bg-[#18181c]/90 text-[#f5f4ef] px-4 py-2 border-2 border-black shadow-pixel">
+          <img 
+            src={yakitoriImg} 
+            alt="Yakitori Icon" 
+            className="w-7 h-7 object-cover border border-[#f5f4ef]/50 rounded-sm"
+          />
+          <span className="font-pixel text-xs sm:text-sm font-bold uppercase tracking-widest text-amber-400">
+            YAKITORI RPG ENGINE
+          </span>
+        </div>
         
         <h1 className="font-pixel text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-[#f5f4ef] uppercase leading-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] inline-block">
           TURN TASKS INTO <br />
