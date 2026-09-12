@@ -2,6 +2,7 @@ import { useState, type FC } from 'react';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
 import { AuthModal } from './AuthModal';
+import { SpriteCharacter } from './SpriteCharacter';
 import { 
   Volume2, 
   VolumeX, 
@@ -103,9 +104,13 @@ export const Navbar: FC<NavbarProps> = ({
           <>
             {/* Center: Player Mini Stats */}
             <div className="flex items-center gap-2 sm:gap-4 bg-[#ebeae4] px-3 py-1.5 border border-[#18181c] font-mono text-xs shadow-pixel-sm">
-              {/* Level */}
+              {/* Level & Character Avatar */}
               <div className="flex items-center gap-1.5" title="Character Level">
-                <Award className="w-4 h-4 text-amber-600" />
+                {playerStats.equippedCharacter !== undefined ? (
+                  <SpriteCharacter index={playerStats.equippedCharacter} size={22} alt="Player Avatar" />
+                ) : (
+                  <Award className="w-4 h-4 text-amber-600" />
+                )}
                 <span className="font-pixel font-bold text-[#111113]">
                   Lv.{playerStats.level}
                 </span>

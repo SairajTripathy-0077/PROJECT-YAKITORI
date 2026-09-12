@@ -1,6 +1,7 @@
 import { useState, useEffect, type FC } from 'react';
 import { useGame } from '../context/GameContext';
 import { X, ShoppingBag, Coins, Check, Lock, Sparkles } from 'lucide-react';
+import { SpriteCharacter } from './SpriteCharacter';
 
 interface ShopModalProps {
   isOpen: boolean;
@@ -9,7 +10,7 @@ interface ShopModalProps {
 
 export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
   const { playerStats, shopItems, purchaseItem, equipItem } = useGame();
-  const [activeCategory, setActiveCategory] = useState<'all' | 'equipment' | 'theme' | 'badge'>('all');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'character' | 'equipment' | 'theme' | 'badge'>('character');
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -29,7 +30,7 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="double-bezel max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="double-bezel max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         <div className="double-bezel-inner bg-[#ebeae4] text-[#111113] p-5 border border-[#18181c] relative">
           
           {/* Header */}
@@ -38,10 +39,10 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
               <ShoppingBag className="w-5 h-5 text-amber-600" />
               <div>
                 <h2 className="font-pixel text-base font-bold uppercase tracking-wider text-[#111113]">
-                  PIXEL ARMORY & MARKETPLACE
+                  PIXEL ARMORY & CHARACTER MARKETPLACE
                 </h2>
                 <p className="font-mono text-xs text-[#4a4943]">
-                  Spend Gold Coins ($G) to unlock equipment, themes, and badges
+                  Spend Gold Coins ($G) to unlock 192 pixel sprite characters, gear, themes & badges
                 </p>
               </div>
             </div>
@@ -66,6 +67,7 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
           <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-4 font-mono text-xs">
             {[
               { key: 'all', label: 'All Items' },
+              { key: 'character', label: '🎭 Characters (192)' },
               { key: 'equipment', label: '⚔️ Equipment' },
               { key: 'badge', label: '🎖️ Badges' },
             ].map(cat => (
@@ -80,23 +82,29 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Items Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[55vh] overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[55vh] overflow-y-auto pr-1">
             {filteredItems.map(item => {
               const canAfford = playerStats.gold >= item.price;
 
               return (
-                <div key={item.id} className="p-3.5 bg-[#f5f4ef] border border-[#18181c] flex flex-col justify-between font-mono text-xs shadow-pixel-sm">
+                <div key={item.id} className="p-3.5 bg-[#f5f4ef] border border-[#18181c] flex flex-col justify-between font-mono text-xs shadow-pixel-sm hover:border-black transition-all">
                   <div>
                     <div className="flex items-start justify-between gap-2 mb-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl p-1.5 bg-[#ebeae4] border border-[#18181c] rounded">
-                          {item.icon}
-                        </span>
-                        <div>
-                          <h3 className="font-pixel font-bold text-[#111113] text-sm">
+                        {item.category === 'character' && item.spriteIndex !== undefined ? (
+                          <div className="p-1 bg-[#ebeae4] border border-[#18181c] rounded flex items-center justify-center shrink-0">
+                            <SpriteCharacter index={item.spriteIndex} size={40} alt={item.name} />
+                          </div>
+                        ) : (
+                          <span className="text-2xl p-1.5 bg-[#ebeae4] border border-[#18181c] rounded shrink-0">
+                            {item.icon}
+                          </span>
+                        )}
+                        <div className="min-w-0">
+                          <h3 className="font-pixel font-bold text-[#111113] text-xs truncate">
                             {item.name}
                           </h3>
-                          <span className="text-[10px] text-amber-700 font-bold uppercase tracking-wide">
+                          <span className="text-[10px] text-amber-700 font-bold uppercase tracking-wide block truncate">
                             {item.effect}
                           </span>
                         </div>
