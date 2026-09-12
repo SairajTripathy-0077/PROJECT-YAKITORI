@@ -60,6 +60,11 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
   const [isActive, setIsActive] = useState(false);
   const [completedSessions, setCompletedSessions] = useState(0);
 
+  // Roster state - exclusively real MongoDB users
+  const [roster, setRoster] = useState<StudyHero[]>([]);
+  const [filterMode, setFilterMode] = useState<'all' | 'online' | 'top'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Fetch backend members roster & sync current player stats to MongoDB
   useEffect(() => {
     const syncAndFetchMembers = async () => {

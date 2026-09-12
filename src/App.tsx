@@ -20,6 +20,7 @@ import { TrendingUp, BarChart3 } from 'lucide-react';
 
 const MainAppContent: FC = () => {
   const { 
+    playerStats,
     scanlineEnabled, 
     toggleSound
   } = useGame();
