@@ -75,7 +75,7 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, dbProfile } = useAuth();
   const storageKey = user ? `yakitori_rpg_state_${user.uid}` : 'yakitori_rpg_game_state_v3';
 
   const [quests, setQuests] = useState<Quest[]>(DEFAULT_QUESTS);
@@ -89,6 +89,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [scanlineEnabled, setScanlineEnabled] = useState<boolean>(false);
   const [theme, setTheme] = useState<'noir' | 'eink'>('noir');
   const [levelUpModalData, setLevelUpModalData] = useState<LevelUpModalData | null>(null);
+
+  // Sync dbProfile fields (displayName, equippedCharacter) from MongoDB into playerStats
+  useEffect(() => {
+    if (dbProfile) {
+      setPlayerStats(prev => {
+        const dbName = dbProfile.displayName;
+        const dbChar = dbProfile.equippedCharacter;
+        const nameChanged = Boolean(dbName && prev.name !== dbName);
+        const charChanged = Boolean(dbChar !== undefined && prev.equippedCharacter !== dbChar);
+
+        if (nameChanged || charChanged) {
+          return {
+            ...prev,
+            name: dbName || prev.name,
+            equippedCharacter: dbChar !== undefined ? dbChar : prev.equippedCharacter,
+          };
+        }
+        return prev;
+      });
+    }
+  }, [dbProfile]);
 
   // Load user data whenever storageKey changes
   useEffect(() => {

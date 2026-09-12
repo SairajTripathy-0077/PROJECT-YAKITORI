@@ -27,7 +27,7 @@ const MainAppContent: FC = () => {
     playerStats
   } = useGame();
 
-  const { user } = useAuth();
+  const { user, dbProfile } = useAuth();
   const { triggerGreeting } = useCompanion();
   // NOTE: triggerGreeting intentionally NOT called on refresh.
   // Character only greets on: actual sign-in, entering dashboard from landing (after customization), task completion, level-up.
@@ -249,7 +249,7 @@ const MainAppContent: FC = () => {
           pendingGreetingEventRef.current = null;
           if (event) {
             // Only greet when opened from an auth flow, not manual edits
-            const name = user?.displayName || playerStats.name || 'Hero';
+            const name = dbProfile?.displayName || playerStats.name || user?.displayName || 'Hero';
             setTimeout(() => {
               triggerGreeting(event, { playerName: name });
             }, 400);
