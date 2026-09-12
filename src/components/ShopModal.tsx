@@ -10,7 +10,8 @@ interface ShopModalProps {
 
 export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
   const { playerStats, shopItems, purchaseItem, equipItem } = useGame();
-  const [activeCategory, setActiveCategory] = useState<'all' | 'character' | 'equipment' | 'theme' | 'badge'>('character');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'character' | 'equipment' | 'theme' | 'badge'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -24,9 +25,24 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const filteredItems = shopItems.filter(item => 
-    item.category === 'drone' ? false : (activeCategory === 'all' ? true : item.category === activeCategory)
-  );
+  const characterCount = shopItems.filter(i => i.category === 'character').length;
+  const equipmentCount = shopItems.filter(i => i.category === 'equipment').length;
+  const badgeCount = shopItems.filter(i => i.category === 'badge').length;
+  const themeCount = shopItems.filter(i => i.category === 'theme').length;
+
+  const filteredItems = shopItems.filter(item => {
+    if (item.category === 'drone') return false;
+    if (activeCategory !== 'all' && item.category !== activeCategory) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      return (
+        item.name.toLowerCase().includes(q) ||
+        item.description.toLowerCase().includes(q) ||
+        item.effect.toLowerCase().includes(q)
+      );
+    }
+    return true;
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
@@ -39,10 +55,10 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
               <ShoppingBag className="w-5 h-5 text-amber-600" />
               <div>
                 <h2 className="font-pixel text-base font-bold uppercase tracking-wider text-[#111113]">
-                  PIXEL ARMORY & CHARACTER MARKETPLACE
+                  PIXEL ARMORY & MARKETPLACE
                 </h2>
                 <p className="font-mono text-xs text-[#4a4943]">
-                  Spend Gold Coins ($G) to unlock 192 pixel sprite characters, gear, themes & badges
+                  Spend Gold Coins ($G) to unlock 192 pixel characters, combat gear, themes & badges
                 </p>
               </div>
             </div>
@@ -63,22 +79,35 @@ export const ShopModal: FC<ShopModalProps> = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Category Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-4 font-mono text-xs">
-            {[
-              { key: 'all', label: 'All Items' },
-              { key: 'character', label: '🎭 Characters (192)' },
-              { key: 'equipment', label: '⚔️ Equipment' },
-              { key: 'badge', label: '🎖️ Badges' },
-            ].map(cat => (
-              <button
-                key={cat.key}
-                onClick={() => setActiveCategory(cat.key as any)}
-                className={`px-3 py-1.5 uppercase transition-colors whitespace-nowrap ${activeCategory === cat.key ? 'bg-[#18181c] text-[#f5f4ef] font-bold font-pixel border-2 border-black pixel-border-sm' : 'bg-[#f5f4ef] text-[#4a4943] border border-[#18181c] hover:text-[#111113]'}`}
-              >
-                {cat.label}
-              </button>
-            ))}
+          {/* Search & Category Filter Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 font-mono text-xs">
+            {/* Category Tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+              {[
+                { key: 'all', label: `All (${shopItems.length})` },
+                { key: 'character', label: `🎭 Characters (${characterCount})` },
+                { key: 'equipment', label: `⚔️ Equipment (${equipmentCount})` },
+                { key: 'badge', label: `🎖️ Badges (${badgeCount})` },
+                { key: 'theme', label: `📜 Themes (${themeCount})` },
+              ].map(cat => (
+                <button
+                  key={cat.key}
+                  onClick={() => setActiveCategory(cat.key as any)}
+                  className={`px-3 py-1.5 uppercase transition-colors whitespace-nowrap ${activeCategory === cat.key ? 'bg-[#18181c] text-[#f5f4ef] font-bold font-pixel border-2 border-black pixel-border-sm' : 'bg-[#f5f4ef] text-[#4a4943] border border-[#18181c] hover:text-[#111113]'}`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Item Search Input */}
+            <input
+              type="text"
+              placeholder="Search store items..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="px-3 py-1 bg-[#f5f4ef] border border-[#18181c] text-xs font-mono text-[#111113] placeholder:text-[#66655e] focus:outline-none focus:ring-1 focus:ring-[#18181c] shrink-0 sm:w-48"
+            />
           </div>
 
           {/* Items Grid */}

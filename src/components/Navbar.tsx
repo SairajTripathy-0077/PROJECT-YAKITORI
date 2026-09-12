@@ -1,4 +1,4 @@
-import { useState, type FC } from 'react';
+import { useState, useRef, useEffect, type FC } from 'react';
 import { useGame } from '../context/GameContext';
 import { useAuth } from '../context/AuthContext';
 import { AuthModal } from './AuthModal';
@@ -18,7 +18,11 @@ import {
   LogOut,
   LogIn,
   BookOpen,
-  BarChart3
+  BarChart3,
+  Menu,
+  ChevronDown,
+  LayoutDashboard,
+  Sparkles
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -50,6 +54,29 @@ export const Navbar: FC<NavbarProps> = ({
 
   const { user, logout } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // Close dropdown menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 bg-[#f5f4ef]/95 backdrop-blur-md border-b-2 border-[#18181c] px-4 py-3">
@@ -103,7 +130,7 @@ export const Navbar: FC<NavbarProps> = ({
             )}
           </div>
         ) : (
-          /* APP DASHBOARD NAVBAR: Show full RPG player stats & controls */
+          /* APP DASHBOARD NAVBAR: Player Stats & Menu Dropdown */
           <>
             {/* Center: Player Mini Stats */}
             <div className="flex items-center gap-2 sm:gap-4 bg-[#ebeae4] px-3 py-1.5 border border-[#18181c] font-mono text-xs shadow-pixel-sm">
@@ -136,108 +163,199 @@ export const Navbar: FC<NavbarProps> = ({
               </div>
             </div>
 
-            {/* Right: Actions & Controls */}
+            {/* Right: Primary Action + Dropdown Menu */}
             <div className="flex items-center gap-2">
               
-              {/* User Identity / Logout Button */}
-              {user ? (
-                <button
-                  onClick={() => logout()}
-                  className="px-2.5 py-1.5 pixel-btn flex items-center gap-1 text-xs font-mono"
-                  title={`Logged in as ${user.email || 'Guest'}. Click to Logout.`}
-                >
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
-                  <span className="hidden lg:inline text-[11px] max-w-[100px] truncate">
-                    {user.isAnonymous ? 'Guest' : user.email?.split('@')[0]}
-                  </span>
-                  <LogOut className="w-3.5 h-3.5 text-red-600" />
-                </button>
-              ) : (
-                <button
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="px-2.5 py-1.5 pixel-btn flex items-center gap-1 text-xs font-mono"
-                  title="Sign In"
-                >
-                  <LogIn className="w-3.5 h-3.5 text-amber-600" />
-                  <span className="hidden lg:inline text-[11px]">Sign In</span>
-                </button>
-              )}
-
               {/* New Quest Button */}
               <button
                 onClick={onOpenNewQuest}
-                className="flex items-center gap-1.5 px-3 py-1.5 pixel-btn-primary font-pixel text-xs font-bold"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 pixel-btn-primary font-pixel text-xs font-bold"
                 title="Add New Quest (Hotkey: N)"
               >
                 <Plus className="w-4 h-4 text-amber-400" />
-                <span className="hidden md:inline">NEW QUEST</span>
+                <span>NEW QUEST</span>
               </button>
 
-              {/* Study Room */}
-              <button
-                onClick={onOpenStudyRoom}
-                className={`p-2 pixel-btn flex items-center gap-1 text-xs font-mono transition-all ${
-                  viewMode === 'study' ? 'bg-[#18181c] text-[#f5f4ef] shadow-pixel-sm' : ''
-                }`}
-                title="Hero Study Room & Pomodoro Timer"
-                aria-label="Open Study Room"
-              >
-                <BookOpen className={`w-4 h-4 ${viewMode === 'study' ? 'text-amber-400' : 'text-emerald-700'}`} />
-                <span className="hidden xl:inline text-[11px] font-pixel font-bold uppercase">STUDY ROOM</span>
-              </button>
+              {/* Dropdown Menu Toggle */}
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className={`px-3 py-1.5 pixel-btn flex items-center gap-1.5 font-pixel text-xs font-bold uppercase transition-all ${
+                    isMenuOpen ? 'bg-[#18181c] text-[#f5f4ef]' : ''
+                  }`}
+                  aria-expanded={isMenuOpen}
+                  aria-haspopup="true"
+                  title="Open Navigation & Settings Menu"
+                >
+                  <Menu className="w-4 h-4 text-amber-600" />
+                  <span className="hidden sm:inline">MENU</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-              {/* Progress & Analytics Dashboard */}
-              <button
-                onClick={onOpenAnalytics}
-                className={`p-2 pixel-btn flex items-center gap-1 text-xs font-mono transition-all ${
-                  viewMode === 'analytics' ? 'bg-[#18181c] text-[#f5f4ef] shadow-pixel-sm' : ''
-                }`}
-                title="Quest Progress & Recharts Analytics"
-                aria-label="Open Quest Progress Dashboard"
-              >
-                <BarChart3 className={`w-4 h-4 ${viewMode === 'analytics' ? 'text-amber-400' : 'text-indigo-700'}`} />
-                <span className="hidden xl:inline text-[11px] font-pixel font-bold uppercase">PROGRESS</span>
-              </button>
+                {/* Pixel-Art Dropdown Menu Card */}
+                {isMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-[#f5f4ef] border-2 border-[#18181c] shadow-pixel-md z-50 animate-fade-in font-mono text-xs text-[#111113] overflow-hidden">
+                    
+                    {/* User Profile Header in Dropdown */}
+                    <div className="p-3 bg-[#ebeae4] border-b border-[#18181c] space-y-1">
+                      <div className="flex items-center justify-between text-[11px] text-[#4a4943]">
+                        <span>CURRENT HERO</span>
+                        <span className="font-bold text-amber-700">Lv.{playerStats.level}</span>
+                      </div>
+                      <div className="font-bold text-[#111113] truncate">
+                        {user ? (user.isAnonymous ? 'Guest Hero' : user.email) : playerStats.name}
+                      </div>
+                    </div>
 
-              {/* Shop */}
-              <button
-                onClick={onOpenShop}
-                className="p-2 pixel-btn"
-                title="Armory & Shop"
-                aria-label="Open Shop"
-              >
-                <ShoppingBag className="w-4 h-4" />
-              </button>
+                    {/* Navigation Views Group */}
+                    <div className="p-1.5 border-b border-[#18181c]/20 space-y-0.5">
+                      <div className="px-2.5 py-1 text-[10px] font-pixel text-[#4a4943] uppercase tracking-wider font-bold">
+                        Navigation Views
+                      </div>
+                      
+                      <button
+                        onClick={() => {
+                          onToggleViewMode('app');
+                          setIsMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-2.5 py-2 font-mono flex items-center justify-between transition-colors ${
+                          viewMode === 'app' ? 'bg-[#18181c] text-[#f5f4ef] font-bold' : 'hover:bg-[#ebeae4]'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <LayoutDashboard className="w-4 h-4 text-amber-600" />
+                          <span>Quest Dashboard</span>
+                        </span>
+                        {viewMode === 'app' && <span className="text-[10px] font-pixel text-amber-400">ACTIVE</span>}
+                      </button>
 
-              {/* Sound Toggle */}
-              <button
-                onClick={toggleSound}
-                className="p-2 pixel-btn"
-                title={soundEnabled ? 'Mute SFX (Hotkey: M)' : 'Enable 8-Bit SFX (Hotkey: M)'}
-                aria-label="Toggle Sound Effects"
-              >
-                {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4 text-zinc-400" />}
-              </button>
+                      <button
+                        onClick={() => {
+                          onOpenStudyRoom();
+                          setIsMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-2.5 py-2 font-mono flex items-center justify-between transition-colors ${
+                          viewMode === 'study' ? 'bg-[#18181c] text-[#f5f4ef] font-bold' : 'hover:bg-[#ebeae4]'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <BookOpen className="w-4 h-4 text-emerald-700" />
+                          <span>Hero Study Room</span>
+                        </span>
+                        {viewMode === 'study' && <span className="text-[10px] font-pixel text-amber-400">ACTIVE</span>}
+                      </button>
 
-              {/* Scanline CRT Toggle */}
-              <button
-                onClick={toggleScanlines}
-                className={`p-2 pixel-btn ${scanlineEnabled ? 'bg-amber-400 text-black' : ''}`}
-                title="Toggle Scanline CRT Overlay"
-                aria-label="Toggle Scanlines"
-              >
-                <Tv className="w-4 h-4" />
-              </button>
+                      <button
+                        onClick={() => {
+                          onOpenAnalytics();
+                          setIsMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-2.5 py-2 font-mono flex items-center justify-between transition-colors ${
+                          viewMode === 'analytics' ? 'bg-[#18181c] text-[#f5f4ef] font-bold' : 'hover:bg-[#ebeae4]'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4 text-indigo-700" />
+                          <span>Progress Charts</span>
+                        </span>
+                        {viewMode === 'analytics' && <span className="text-[10px] font-pixel text-amber-400">ACTIVE</span>}
+                      </button>
 
-              {/* Shortcuts Guide */}
-              <button
-                onClick={onOpenShortcuts}
-                className="p-2 pixel-btn hidden sm:block"
-                title="Keyboard Shortcuts"
-                aria-label="Open Keyboard Shortcuts"
-              >
-                <Keyboard className="w-4 h-4" />
-              </button>
+                      <button
+                        onClick={() => {
+                          onOpenShop();
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full text-left px-2.5 py-2 font-mono flex items-center justify-between hover:bg-[#ebeae4] transition-colors"
+                      >
+                        <span className="flex items-center gap-2">
+                          <ShoppingBag className="w-4 h-4 text-amber-700" />
+                          <span>Armory & Shop</span>
+                        </span>
+                        <span className="text-[9px] font-pixel font-bold bg-amber-200 text-amber-900 px-1.5 py-0.5 border border-amber-400">
+                          192 CHARS
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Quick Settings & Controls Group */}
+                    <div className="p-1.5 border-b border-[#18181c]/20 space-y-0.5">
+                      <div className="px-2.5 py-1 text-[10px] font-pixel text-[#4a4943] uppercase tracking-wider font-bold">
+                        Settings & Audio
+                      </div>
+
+                      <button
+                        onClick={toggleSound}
+                        className="w-full text-left px-2.5 py-2 font-mono flex items-center justify-between hover:bg-[#ebeae4] transition-colors"
+                      >
+                        <span className="flex items-center gap-2">
+                          {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-700" /> : <VolumeX className="w-4 h-4 text-zinc-400" />}
+                          <span>8-Bit SFX Audio</span>
+                        </span>
+                        <span className={`text-[10px] font-bold ${soundEnabled ? 'text-emerald-700' : 'text-zinc-500'}`}>
+                          {soundEnabled ? 'ON' : 'OFF'}
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={toggleScanlines}
+                        className="w-full text-left px-2.5 py-2 font-mono flex items-center justify-between hover:bg-[#ebeae4] transition-colors"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Tv className={`w-4 h-4 ${scanlineEnabled ? 'text-amber-600' : ''}`} />
+                          <span>CRT Scanlines</span>
+                        </span>
+                        <span className={`text-[10px] font-bold ${scanlineEnabled ? 'text-amber-700' : 'text-zinc-500'}`}>
+                          {scanlineEnabled ? 'ON' : 'OFF'}
+                        </span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          onOpenShortcuts();
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full text-left px-2.5 py-2 font-mono flex items-center gap-2 hover:bg-[#ebeae4] transition-colors"
+                      >
+                        <Keyboard className="w-4 h-4 text-indigo-700" />
+                        <span>Hotkeys Guide (Esc)</span>
+                      </button>
+                    </div>
+
+                    {/* Account Actions */}
+                    <div className="p-1.5 bg-[#ebeae4]">
+                      {user ? (
+                        <button
+                          onClick={() => {
+                            logout();
+                            setIsMenuOpen(false);
+                          }}
+                          className="w-full text-left px-2.5 py-2 font-mono text-red-700 font-bold flex items-center justify-between hover:bg-red-50 transition-colors"
+                        >
+                          <span className="flex items-center gap-2">
+                            <LogOut className="w-4 h-4" />
+                            <span>Sign Out</span>
+                          </span>
+                          <UserCheck className="w-3.5 h-3.5 text-emerald-700" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setIsAuthModalOpen(true);
+                            setIsMenuOpen(false);
+                          }}
+                          className="w-full text-left px-2.5 py-2 font-mono text-amber-800 font-bold flex items-center gap-2 hover:bg-amber-100 transition-colors"
+                        >
+                          <LogIn className="w-4 h-4" />
+                          <span>Sign In / Register</span>
+                        </button>
+                      )}
+                    </div>
+
+                  </div>
+                )}
+              </div>
+
             </div>
           </>
         )}
