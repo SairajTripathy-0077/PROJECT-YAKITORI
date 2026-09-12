@@ -76,7 +76,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
             xp: playerStats.xp,
             streakDays: playerStats.streakDays,
             characterClass: playerStats.characterClass,
-            avatarIcon: currentHeroAvatar,
+            avatarIcon: String(playerStats.equippedCharacter ?? 0),
             equippedCharacter: playerStats.equippedCharacter,
           }).catch(() => {});
         }
@@ -127,7 +127,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
               xp: isCurrentUser ? playerStats.xp : (u.xp || 0),
               streakDays: isCurrentUser ? playerStats.streakDays : (u.streakDays || 1),
               characterClass: isCurrentUser ? playerStats.characterClass : (u.characterClass || 'Warrior'),
-              avatarIcon: u.avatarIcon || '⚔️',
+              avatarIcon: String(equippedCharIndex),
               isOnline: true,
               isStudying: idx === 0,
               currentTask: isCurrentUser ? 'Active Study Session' : 'Studying in Guild',
@@ -146,7 +146,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
     syncAndFetchMembers();
     const pollInterval = setInterval(syncAndFetchMembers, 5000);
     return () => clearInterval(pollInterval);
-  }, [user, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass, currentHeroAvatar, currentHeroName]);
+  }, [user, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass, playerStats.equippedCharacter, currentHeroAvatar, currentHeroName]);
 
   // Pomodoro countdown timer logic
   useEffect(() => {
