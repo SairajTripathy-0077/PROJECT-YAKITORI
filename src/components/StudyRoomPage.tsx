@@ -106,7 +106,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
               id: u._id || `user-${idx}`,
               displayName: u.displayName || u.email?.split('@')[0] || 'Hero',
               email: u.email,
-              photoURL: u.photoURL,
+              photoURL: isCurrentUser ? (dbProfile?.photoURL || user?.photoURL || u.photoURL) : u.photoURL,
               level: isCurrentUser ? playerStats.level : (u.level || 1),
               xp: isCurrentUser ? playerStats.xp : (u.xp || 0),
               streakDays: isCurrentUser ? playerStats.streakDays : (u.streakDays || 1),
@@ -115,11 +115,7 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
               isOnline: true,
               isStudying: idx === 0,
               currentTask: isCurrentUser ? 'Active Study Session' : 'Studying in Guild',
-              equippedCharacter: isCurrentUser 
-                ? playerStats.equippedCharacter 
-                : (u.equippedCharacter !== undefined 
-                    ? u.equippedCharacter 
-                    : (u._id ? parseInt(u._id.slice(-6), 16) % 192 : 0)),
+              equippedCharacter: isCurrentUser ? playerStats.equippedCharacter : u.equippedCharacter,
             };
           });
 
@@ -268,7 +264,9 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
 
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-[#f5f4ef] border-2 border-[#18181c] flex items-center justify-center text-3xl shadow-pixel-sm shrink-0 transition-transform duration-150 hover:scale-105 overflow-hidden">
-                  {playerStats.equippedCharacter !== undefined ? (
+                  {dbProfile?.photoURL || user?.photoURL ? (
+                    <img src={dbProfile?.photoURL || user?.photoURL!} alt={currentHeroName} className="w-full h-full object-cover" />
+                  ) : playerStats.equippedCharacter !== undefined ? (
                     <SpriteCharacter index={playerStats.equippedCharacter} size={44} alt="Equipped Hero Sprite" />
                   ) : (
                     currentHeroAvatar
@@ -490,8 +488,10 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 bg-[#f5f4ef] border-2 border-[#18181c] flex items-center justify-center text-3xl shadow-pixel-sm shrink-0 transition-transform duration-150 hover:scale-105" aria-hidden="true">
-                    {playerStats.equippedCharacter !== undefined ? (
+                  <div className="w-14 h-14 bg-[#f5f4ef] border-2 border-[#18181c] flex items-center justify-center text-3xl shadow-pixel-sm shrink-0 transition-transform duration-150 hover:scale-105 overflow-hidden" aria-hidden="true">
+                    {dbProfile?.photoURL || user?.photoURL ? (
+                      <img src={dbProfile?.photoURL || user?.photoURL!} alt={currentHeroName} className="w-full h-full object-cover" />
+                    ) : playerStats.equippedCharacter !== undefined ? (
                       <SpriteCharacter index={playerStats.equippedCharacter} size={44} alt="Equipped Hero Sprite" />
                     ) : (
                       currentHeroAvatar
@@ -552,10 +552,19 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
                   {/* Hero Avatar & Details */}
                   <div className="flex items-start gap-4">
                     <div className="w-14 h-14 bg-[#ebeae4] border-2 border-[#18181c] flex items-center justify-center text-3xl shadow-pixel-sm shrink-0 transition-transform duration-150 hover:scale-105 overflow-hidden" aria-hidden="true">
-                      {hero.equippedCharacter !== undefined ? (
+                      {hero.photoURL ? (
+                        <img 
+                          src={hero.photoURL} 
+                          alt={`${hero.displayName}'s Avatar`} 
+                          className="w-full h-full object-cover" 
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      ) : hero.equippedCharacter !== undefined ? (
                         <SpriteCharacter index={hero.equippedCharacter} size={44} alt={`${hero.displayName}'s Avatar`} />
                       ) : (
-                        hero.avatarIcon
+                        hero.avatarIcon || '⚔️'
                       )}
                     </div>
 
