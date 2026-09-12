@@ -228,24 +228,24 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
   return (
     <div className="space-y-6 animate-fade-in pb-12 text-[#111113]">
       {/* Top Header Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-[#18181c] pb-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b-2 border-[#18181c] pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3">
           {onBackToQuests && (
             <button
               onClick={onBackToQuests}
-              className="px-3 py-2 pixel-btn font-mono text-xs text-[#111113] flex items-center gap-1.5 active:scale-[0.96] transition-transform"
+              className="self-start px-3 py-1.5 sm:py-2 pixel-btn font-mono text-xs text-[#111113] inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap active:scale-[0.96] transition-transform"
               title="Return to Quest Log"
             >
-              <ArrowLeft className="w-4 h-4 text-[#111113]" />
-              <span className="font-bold text-[#111113]">QUEST LOG</span>
+              <ArrowLeft className="w-4 h-4 text-[#111113] shrink-0" />
+              <span className="font-bold text-[#111113] whitespace-nowrap">QUEST LOG</span>
             </button>
           )}
           <div>
-            <h2 className="font-pixel text-xl sm:text-2xl font-bold tracking-wider flex items-center gap-2 text-[#111113]">
-              <TrendingUp className="w-6 h-6 text-[#111113]" />
+            <h2 className="font-pixel text-base sm:text-xl md:text-2xl font-bold tracking-wider flex items-center gap-2 text-[#111113]">
+              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-[#111113] shrink-0" />
               <span>QUEST PROGRESS & ANALYTICS</span>
             </h2>
-            <p className="font-serif italic text-xs text-[#111113]">
+            <p className="font-serif italic text-xs text-[#111113] mt-0.5">
               Real-time RPG progression telemetry, velocity trends, and attribute stats.
             </p>
           </div>
