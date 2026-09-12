@@ -159,6 +159,11 @@ const MainAppContent: FC = () => {
           /* Quest Progress & Recharts Analytics Dashboard */
           <QuestProgressDashboard 
             onBackToQuests={() => setViewMode('app')}
+            onOpenShop={() => setIsShopModalOpen(true)}
+            onOpenCharacterCreation={() => {
+              pendingGreetingEventRef.current = null;
+              setIsCharacterCreationOpen(true);
+            }}
           />
         ) : (
           /* App Dashboard View - Full RPG Controls & Stats */

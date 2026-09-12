@@ -35,13 +35,15 @@ import {
   ArrowLeft,
   Layers,
   Award,
-  Dice5
+  Dice5,
+  ShoppingBag
 } from 'lucide-react';
 import type { AttributeType, QuestDifficulty, QuestType } from '../types/game';
 
 interface QuestProgressDashboardProps {
   onBackToQuests?: () => void;
   onOpenCharacterCreation?: () => void;
+  onOpenShop?: () => void;
 }
 
 // Custom Pixel styled Tooltip for Recharts (All text black)
@@ -81,7 +83,7 @@ const CustomPixelTooltip: FC<CustomTooltipProps> = ({ active, payload, label, un
   return null;
 };
 
-export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBackToQuests, onOpenCharacterCreation }) => {
+export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBackToQuests, onOpenCharacterCreation, onOpenShop }) => {
   const { quests, playerStats, attributes } = useGame();
 
   const [timeRange, setTimeRange] = useState<'7days' | '14days' | 'all'>('7days');
@@ -322,15 +324,28 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
             </div>
           </div>
 
-          {onOpenCharacterCreation && (
-            <button
-              onClick={onOpenCharacterCreation}
-              className="px-4 py-2.5 pixel-btn font-pixel text-xs font-bold text-[#111113] uppercase tracking-wider flex items-center gap-2 shadow-pixel-sm active:scale-[0.96] transition-transform"
-            >
-              <Dice5 className="w-4 h-4 text-[#111113]" />
-              <span>CUSTOMIZE / REROLL SPRITE</span>
-            </button>
-          )}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {onOpenShop && (
+              <button
+                onClick={onOpenShop}
+                className="px-4 py-2.5 bg-[#18181c] text-[#f5f4ef] hover:bg-[#2c2c33] border-2 border-black font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-pixel-sm active:scale-[0.96] transition-transform cursor-pointer"
+                title="Open Character Inventory & Marketplace"
+              >
+                <ShoppingBag className="w-4 h-4 text-amber-400" />
+                <span>🎒 INVENTORY</span>
+              </button>
+            )}
+
+            {onOpenCharacterCreation && (
+              <button
+                onClick={onOpenCharacterCreation}
+                className="px-4 py-2.5 pixel-btn font-pixel text-xs font-bold text-[#111113] uppercase tracking-wider flex items-center gap-2 shadow-pixel-sm active:scale-[0.96] transition-transform"
+              >
+                <Dice5 className="w-4 h-4 text-[#111113]" />
+                <span>CUSTOMIZE / REROLL</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
