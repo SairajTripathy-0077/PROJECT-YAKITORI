@@ -17,12 +17,17 @@ import {
   Sparkles, 
   Coins,
   Calendar,
-  AlertCircle,
-  Repeat,
-  Clock
+  Repeat, 
+  Clock,
+  Edit2
 } from 'lucide-react';
 
-export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
+interface QuestCardProps {
+  quest: Quest;
+  onEditQuest?: (quest: Quest) => void;
+}
+
+export const QuestCard: FC<QuestCardProps> = ({ quest, onEditQuest }) => {
   const { toggleQuest, deleteQuest, toggleSubtask, addSubtask } = useGame();
   const [expanded, setExpanded] = useState(false);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
@@ -220,6 +225,17 @@ export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
                 >
                   <span className="text-[11px] font-bold">{completedSubtasksCount}/{quest.subtasks.length}</span>
                   {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              )}
+
+              {onEditQuest && (
+                <button
+                  onClick={() => onEditQuest(quest)}
+                  className="p-1 text-[#4a4943] hover:text-amber-800 transition-colors"
+                  title="Edit quest"
+                  aria-label={`Edit quest ${quest.title}`}
+                >
+                  <Edit2 className="w-4 h-4" />
                 </button>
               )}
 
