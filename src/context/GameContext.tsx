@@ -23,6 +23,7 @@ import {
   revertQuestCompletion, 
   calculateBaseRewards,
   processDailyStreak,
+  checkStreakBreak,
   calculateCharacterXpThreshold,
   calculateAttributeXpThreshold,
   getCharacterTitle
@@ -100,7 +101,22 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setQuests(DEFAULT_QUESTS);
         }
-        setPlayerStats({ ...DEFAULT_PLAYER_STATS, ...(parsed.playerStats || {}) });
+        const loadedStats: PlayerStats = { ...DEFAULT_PLAYER_STATS, ...(parsed.playerStats || {}) };
+        // Purge dummy streak / mock stats: if total completed quests is 0 or legacy 3-day dummy streak
+        if (!loadedStats.totalCompletedQuests || loadedStats.totalCompletedQuests <= 0) {
+          loadedStats.streakDays = 0;
+          loadedStats.activeMultiplier = 1.0;
+          loadedStats.activityHistory = [];
+        } else if (
+          loadedStats.streakDays === 3 &&
+          loadedStats.activeMultiplier === 1.3 &&
+          (loadedStats.name === 'Pixel Questmaster' || loadedStats.totalCompletedQuests <= 2)
+        ) {
+          loadedStats.streakDays = 0;
+          loadedStats.activeMultiplier = 1.0;
+          loadedStats.activityHistory = [];
+        }
+        setPlayerStats(loadedStats);
         setAttributes({ ...DEFAULT_ATTRIBUTES, ...(parsed.attributes || {}) });
         if (Array.isArray(parsed.shopItems) && parsed.shopItems.length > 0) {
           setShopItems(parsed.shopItems);
@@ -148,22 +164,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass]);
 
-  // Check and update Daily Streak & Auto-refresh Daily Habits on session mount
+  // Check Daily Streak break & Auto-refresh Daily Habits on session mount
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    const streakResult = processDailyStreak(
+    const { streakDays, activeMultiplier } = checkStreakBreak(
       playerStats.lastActiveDate,
-      playerStats.streakDays,
-      playerStats.activityHistory || []
+      playerStats.streakDays
     );
 
-    if (streakResult.isNewDay) {
+    if (streakDays !== playerStats.streakDays || activeMultiplier !== playerStats.activeMultiplier) {
       setPlayerStats(prev => ({
         ...prev,
-        lastActiveDate: streakResult.newLastActiveDate,
-        streakDays: streakResult.newStreak,
-        activeMultiplier: streakResult.newMultiplier,
-        activityHistory: streakResult.updatedHistory,
+        streakDays,
+        activeMultiplier,
       }));
     }
 

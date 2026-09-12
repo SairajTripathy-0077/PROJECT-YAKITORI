@@ -181,8 +181,8 @@ export const DRONE_QUOTES: Record<string, string[]> = {
     'WOOHOO! New level reached! Check the shop for new equipment.'
   ],
   STREAK_BONUS: [
-    'STREAK MULTIPLIER ACTIVE! 1.3x XP bonus unlocked!',
-    '3 days in a row! You\'re an unstoppable task wizard.'
+    'STREAK MULTIPLIER ACTIVE! Extra bonus XP unlocked!',
+    'Great daily consistency! You\'re an unstoppable task wizard.'
   ],
   IDLE_TIPS: [
     'Tip: Press "N" anytime to quickly add a new quest!',

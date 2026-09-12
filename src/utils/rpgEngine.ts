@@ -86,7 +86,33 @@ export const calculateStreakMultiplier = (streakDays: number): number => {
 };
 
 /**
- * Check and process daily streak.
+ * Check if an existing streak was broken by missing days.
+ * Safe for mount checks without artificially creating streaks.
+ */
+export const checkStreakBreak = (
+  lastActiveDate: string | undefined,
+  currentStreak: number
+): { streakDays: number; activeMultiplier: number } => {
+  if (!lastActiveDate || currentStreak <= 0) {
+    return { streakDays: 0, activeMultiplier: 1.0 };
+  }
+  const today = new Date().toISOString().split('T')[0];
+  if (lastActiveDate === today) {
+    return { streakDays: currentStreak, activeMultiplier: calculateStreakMultiplier(currentStreak) };
+  }
+  const last = new Date(lastActiveDate);
+  const now = new Date(today);
+  const diffDays = Math.round((now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays === 1) {
+    // Yesterday was active, streak is still alive waiting for today's activity
+    return { streakDays: currentStreak, activeMultiplier: calculateStreakMultiplier(currentStreak) };
+  }
+  // Missed yesterday or older -> streak broken
+  return { streakDays: 0, activeMultiplier: 1.0 };
+};
+
+/**
+ * Check and process daily streak upon quest completion.
  */
 export const processDailyStreak = (
   lastActiveDate: string | undefined,
@@ -114,9 +140,10 @@ export const processDailyStreak = (
 
   if (lastActiveDate === today) {
     // Already active today
+    const safeStreak = Math.max(1, currentStreak);
     return {
-      newStreak: Math.max(1, currentStreak),
-      newMultiplier: calculateStreakMultiplier(Math.max(1, currentStreak)),
+      newStreak: safeStreak,
+      newMultiplier: calculateStreakMultiplier(safeStreak),
       newLastActiveDate: today,
       updatedHistory,
       isNewDay: false,
@@ -128,12 +155,12 @@ export const processDailyStreak = (
   const diffTime = now.getTime() - last.getTime();
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-  let newStreak = currentStreak;
+  let newStreak = currentStreak > 0 ? currentStreak : 0;
   if (diffDays === 1) {
     // Consecutive day!
     newStreak += 1;
-  } else if (diffDays > 1) {
-    // Streak broken
+  } else {
+    // Streak broken or brand new
     newStreak = 1;
   }
 
