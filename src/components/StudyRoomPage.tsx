@@ -96,15 +96,24 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
         }> }>('/api/auth/members');
 
         if (res.data && Array.isArray(res.data)) {
+          const CLASS_DEFAULT_SPRITES: Record<string, number> = {
+            Warrior: 0,
+            Mage: 12,
+            Rogue: 24,
+            Paladin: 36,
+          };
+
           const apiHeroes: StudyHero[] = res.data.map((u, idx) => {
             const isCurrentUser = Boolean(
               (user?.email && u.email?.toLowerCase() === user.email.toLowerCase()) ||
               (currentHeroName && u.displayName?.toLowerCase() === currentHeroName.toLowerCase())
             );
 
+            const defaultSprite = CLASS_DEFAULT_SPRITES[u.characterClass || 'Warrior'] ?? 0;
+
             const equippedCharIndex = isCurrentUser
-              ? (playerStats.equippedCharacter !== undefined ? playerStats.equippedCharacter : (u.equippedCharacter !== undefined ? u.equippedCharacter : 0))
-              : (u.equippedCharacter !== undefined ? u.equippedCharacter : (u._id ? parseInt(u._id.slice(-6), 16) % 192 : idx % 192));
+              ? (playerStats.equippedCharacter !== undefined ? playerStats.equippedCharacter : (u.equippedCharacter !== undefined ? u.equippedCharacter : defaultSprite))
+              : (u.equippedCharacter !== undefined ? u.equippedCharacter : defaultSprite);
 
             return {
               id: u._id || `user-${idx}`,

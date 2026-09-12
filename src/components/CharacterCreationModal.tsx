@@ -136,6 +136,7 @@ export const CharacterCreationModal: FC<CharacterCreationModalProps> = ({
         displayName: cleanName,
         characterClass,
         avatarIcon,
+        equippedCharacter: spriteIndex,
         level: playerStats.level,
         xp: playerStats.xp,
         streakDays: playerStats.streakDays,
