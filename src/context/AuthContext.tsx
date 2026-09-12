@@ -66,14 +66,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         provider = 'google';
       }
 
-      const result = await api.post<{ user: DbUserProfile }>('/api/auth/sync', {
+      const result = await api.post<DbUserProfile>('/api/auth/sync', {
         displayName: firebaseUser.displayName || 'Adventurer',
         photoURL: firebaseUser.photoURL,
         provider,
       });
 
-      if (result.data?.user) {
-        setDbProfile(result.data.user);
+      if (result.data) {
+        setDbProfile(result.data);
       }
     } catch (err) {
       // Don't block login if backend sync fails — log and continue
@@ -89,9 +89,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const refreshProfile = useCallback(async () => {
     if (!user) return;
     try {
-      const result = await api.get<{ user: DbUserProfile }>('/api/auth/me');
-      if (result.data?.user) {
-        setDbProfile(result.data.user);
+      const result = await api.get<DbUserProfile>('/api/auth/me');
+      if (result.data) {
+        setDbProfile(result.data);
       }
     } catch (err) {
       console.warn('[AuthContext] Profile refresh failed:', err);
