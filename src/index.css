@@ -19,15 +19,28 @@ body {
 /* Double-Bezel Architecture (Crisp E-Ink Monochrome) */
 .double-bezel {
   background-color: var(--border-color);
-  padding: 4px;
+  padding: 3px;
   border-radius: 0px;
-  box-shadow: 4px 4px 0px 0px var(--shadow-color);
+  box-shadow: 3px 3px 0px 0px var(--shadow-color);
+}
+
+@media (min-width: 640px) {
+  .double-bezel {
+    padding: 4px;
+    box-shadow: 4px 4px 0px 0px var(--shadow-color);
+  }
 }
 
 .double-bezel-inner {
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  padding: 1.25rem;
+  padding: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .double-bezel-inner {
+    padding: 1.25rem;
+  }
 }
 
 /* Pixel Art Frame Utility */

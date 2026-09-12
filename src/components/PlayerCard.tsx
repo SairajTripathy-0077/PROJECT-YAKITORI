@@ -47,7 +47,7 @@ export const PlayerCard: FC<PlayerCardProps> = () => {
 
   return (
     <div className="double-bezel h-full">
-      <div className="double-bezel-inner bg-[#ebeae4] text-[#111113] p-5 border border-[#18181c] flex flex-col justify-between h-full space-y-4">
+      <div className="double-bezel-inner bg-[#ebeae4] text-[#111113] p-3.5 sm:p-5 border border-[#18181c] flex flex-col justify-between h-full space-y-4">
         
         <div>
           {/* Character Header */}
@@ -112,7 +112,7 @@ export const PlayerCard: FC<PlayerCardProps> = () => {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5">
               {(['intellect', 'strength', 'creativity', 'vitality', 'discipline'] as AttributeType[]).map(attrKey => {
                 const meta = ATTRIBUTE_DESCRIPTIONS[attrKey];
                 const Icon = meta.icon;

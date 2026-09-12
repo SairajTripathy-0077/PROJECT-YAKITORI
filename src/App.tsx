@@ -162,9 +162,9 @@ const MainAppContent: FC = () => {
           />
         ) : (
           /* App Dashboard View - Full RPG Controls & Stats */
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-4 sm:space-y-6 animate-fade-in">
             {/* Top Bento Grid: Player Profile & Streak Tracker */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               {/* Player Card (Span 2) */}
               <div className="lg:col-span-2">
                 <PlayerCard />
@@ -177,18 +177,18 @@ const MainAppContent: FC = () => {
             </div>
 
             {/* Quick Analytics & Quest Log Switcher */}
-            <div className="flex items-center justify-between bg-[#ebeae4] p-[#ebeae4] border-2 border-[#18181c] shadow-pixel-sm p-3">
-              <div className="flex items-center gap-2 font-mono text-xs text-[#33322d]">
-                <TrendingUp className="w-4 h-4 text-amber-700" />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#ebeae4] p-3 border-2 border-[#18181c] shadow-pixel-sm">
+              <div className="flex items-center gap-2 font-mono text-xs text-[#111113]">
+                <TrendingUp className="w-4 h-4 text-[#111113]" />
                 <span className="font-bold">QUEST LOG & METRICS</span>
               </div>
               <button
                 onClick={() => setViewMode('analytics')}
-                className="px-3 py-1.5 pixel-btn font-pixel text-xs font-bold text-[#111113] flex items-center gap-1.5 hover:bg-[#deddd6]"
+                className="px-3 py-1.5 pixel-btn font-pixel text-xs font-bold text-[#111113] flex items-center justify-center gap-1.5 hover:bg-[#deddd6] w-full sm:w-auto"
                 title="View animated charts and attribute radar"
               >
-                <BarChart3 className="w-3.5 h-3.5 text-indigo-700" />
-                <span>DASHBOARD</span>
+                <BarChart3 className="w-3.5 h-3.5 text-[#111113]" />
+                <span>DASHBOARD ANALYTICS</span>
               </button>
             </div>
 

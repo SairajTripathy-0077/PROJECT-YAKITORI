@@ -418,13 +418,13 @@ export const QuestList: FC<QuestListProps> = ({ onOpenNewQuest, onEditQuest, sea
             </div>
 
             {/* Dropdown Filters Grid */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="grid grid-cols-2 xs:flex xs:flex-wrap items-center gap-2">
               
               {/* Attribute Filter */}
               <select
                 value={selectedAttribute}
                 onChange={e => setSelectedAttribute(e.target.value as AttributeType | 'all')}
-                className="bg-[#f5f4ef] border border-[#18181c] text-xs text-[#111113] px-2.5 py-2 focus:outline-none font-mono font-bold cursor-pointer"
+                className="bg-[#f5f4ef] border border-[#18181c] text-xs text-[#111113] px-2.5 py-2 focus:outline-none font-mono font-bold cursor-pointer w-full xs:w-auto"
                 title="Filter by Attribute"
               >
                 <option value="all">All Attributes</option>
@@ -439,7 +439,7 @@ export const QuestList: FC<QuestListProps> = ({ onOpenNewQuest, onEditQuest, sea
               <select
                 value={selectedDifficulty}
                 onChange={e => setSelectedDifficulty(e.target.value as QuestDifficulty | 'all')}
-                className="bg-[#f5f4ef] border border-[#18181c] text-xs text-[#111113] px-2.5 py-2 focus:outline-none font-mono font-bold cursor-pointer"
+                className="bg-[#f5f4ef] border border-[#18181c] text-xs text-[#111113] px-2.5 py-2 focus:outline-none font-mono font-bold cursor-pointer w-full xs:w-auto"
                 title="Filter by Difficulty Tier"
               >
                 <option value="all">All Tiers</option>
@@ -450,12 +450,12 @@ export const QuestList: FC<QuestListProps> = ({ onOpenNewQuest, onEditQuest, sea
               </select>
 
               {/* Sort By Dropdown */}
-              <div className="flex items-center gap-1 bg-[#f5f4ef] border border-[#18181c] px-2 py-1.5">
-                <ArrowUpDown className="w-3.5 h-3.5 text-amber-700" />
+              <div className="flex items-center gap-1 bg-[#f5f4ef] border border-[#18181c] px-2 py-1.5 w-full xs:w-auto">
+                <ArrowUpDown className="w-3.5 h-3.5 text-amber-700 shrink-0" />
                 <select
                   value={sortBy}
                   onChange={e => setSortBy(e.target.value as SortOption)}
-                  className="bg-transparent text-xs text-[#111113] focus:outline-none font-mono font-bold cursor-pointer"
+                  className="bg-transparent text-xs text-[#111113] focus:outline-none font-mono font-bold cursor-pointer w-full"
                   title="Sort Order"
                 >
                   <option value="createdAt">Newest First</option>
@@ -467,12 +467,12 @@ export const QuestList: FC<QuestListProps> = ({ onOpenNewQuest, onEditQuest, sea
               </div>
 
               {/* Group By Dropdown */}
-              <div className="flex items-center gap-1 bg-[#f5f4ef] border border-[#18181c] px-2 py-1.5">
-                <Layers className="w-3.5 h-3.5 text-indigo-700" />
+              <div className="flex items-center gap-1 bg-[#f5f4ef] border border-[#18181c] px-2 py-1.5 w-full xs:w-auto">
+                <Layers className="w-3.5 h-3.5 text-indigo-700 shrink-0" />
                 <select
                   value={groupBy}
                   onChange={e => setGroupBy(e.target.value as GroupOption)}
-                  className="bg-transparent text-xs text-[#111113] focus:outline-none font-mono font-bold cursor-pointer"
+                  className="bg-transparent text-xs text-[#111113] focus:outline-none font-mono font-bold cursor-pointer w-full"
                   title="Group By"
                 >
                   <option value="none">Group: None</option>
@@ -487,7 +487,7 @@ export const QuestList: FC<QuestListProps> = ({ onOpenNewQuest, onEditQuest, sea
           </div>
 
           {/* Quick Inline Task Addition Input (Linear/Todoist Style) */}
-          <form onSubmit={handleQuickAdd} className="flex items-center gap-2 pt-1 border-t border-[#18181c]/20">
+          <form onSubmit={handleQuickAdd} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1 border-t border-[#18181c]/20">
             <div className="relative flex-1">
               <Plus className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-amber-600" />
               <input
@@ -499,25 +499,26 @@ export const QuestList: FC<QuestListProps> = ({ onOpenNewQuest, onEditQuest, sea
               />
             </div>
 
-            <select
-              value={quickAttribute}
-              onChange={e => setQuickAttribute(e.target.value as AttributeType)}
-              className="bg-[#f5f4ef] border border-[#18181c] text-[11px] text-[#111113] px-2 py-1.5 font-mono font-bold hidden sm:block cursor-pointer"
-            >
-              <option value="intellect">Intellect</option>
-              <option value="strength">Strength</option>
-              <option value="creativity">Creativity</option>
-              <option value="vitality">Vitality</option>
-              <option value="discipline">Discipline</option>
-            </select>
+            <div className="flex items-center gap-2">
+              <select
+                value={quickAttribute}
+                onChange={e => setQuickAttribute(e.target.value as AttributeType)}
+                className="flex-1 sm:flex-none bg-[#f5f4ef] border border-[#18181c] text-[11px] text-[#111113] px-2 py-1.5 font-mono font-bold cursor-pointer"
+              >
+                <option value="intellect">Intellect</option>
+                <option value="strength">Strength</option>
+                <option value="creativity">Creativity</option>
+                <option value="vitality">Vitality</option>
+                <option value="discipline">Discipline</option>
+              </select>
 
-            <select
-              value={quickDifficulty}
-              onChange={e => setQuickDifficulty(e.target.value as QuestDifficulty)}
-              className="bg-[#f5f4ef] border border-[#18181c] text-[11px] text-[#111113] px-2 py-1.5 font-mono font-bold cursor-pointer"
-            >
-              <option value="easy">Easy (+25 XP)</option>
-              <option value="medium">Medium (+50 XP)</option>
+              <select
+                value={quickDifficulty}
+                onChange={e => setQuickDifficulty(e.target.value as QuestDifficulty)}
+                className="flex-1 sm:flex-none bg-[#f5f4ef] border border-[#18181c] text-[11px] text-[#111113] px-2 py-1.5 font-mono font-bold cursor-pointer"
+              >
+                <option value="easy">Easy (+25 XP)</option>
+                <option value="medium">Medium (+50 XP)</option>
               <option value="hard">Hard (+100 XP)</option>
               <option value="boss">Boss (+220 XP)</option>
             </select>

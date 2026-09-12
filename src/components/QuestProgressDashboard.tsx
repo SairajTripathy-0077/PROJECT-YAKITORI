@@ -336,18 +336,18 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
       </div>
 
       {/* Top 4 Metric KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {/* Metric 1: Completion Rate */}
-        <div className="double-bezel">
-          <div className="double-bezel-inner p-4 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-1">
+        <div className="double-bezel h-full flex flex-col">
+          <div className="double-bezel-inner p-3 sm:p-4 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-1 h-full flex flex-col justify-between flex-1">
             <div className="flex items-center justify-between text-[#111113]">
-              <span className="font-mono text-xs uppercase font-bold tracking-wider text-[#111113]">Completion Rate</span>
-              <Target className="w-4 h-4 text-[#111113]" />
+              <span className="font-mono text-[11px] sm:text-xs uppercase font-bold tracking-wider text-[#111113]">Completion Rate</span>
+              <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#111113] shrink-0" />
             </div>
-            <div className="font-pixel text-2xl font-bold text-[#111113]">
+            <div className="font-pixel text-xl sm:text-2xl font-bold text-[#111113] my-1">
               {completionRate}%
             </div>
-            <div className="font-mono text-[11px] flex items-center justify-between text-[#111113]">
+            <div className="font-mono text-[10px] sm:text-[11px] flex items-center justify-between text-[#111113]">
               <span>{completedQuests} of {totalQuests} done</span>
               <span className="font-bold text-[#111113]">★ Active</span>
             </div>
@@ -355,49 +355,49 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
         </div>
 
         {/* Metric 2: Total Quests Completed */}
-        <div className="double-bezel">
-          <div className="double-bezel-inner p-4 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-1">
+        <div className="double-bezel h-full flex flex-col">
+          <div className="double-bezel-inner p-3 sm:p-4 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-1 h-full flex flex-col justify-between flex-1">
             <div className="flex items-center justify-between text-[#111113]">
-              <span className="font-mono text-xs uppercase font-bold tracking-wider text-[#111113]">Completed Quests</span>
-              <CheckCircle2 className="w-4 h-4 text-[#111113]" />
+              <span className="font-mono text-[11px] sm:text-xs uppercase font-bold tracking-wider text-[#111113]">Completed Quests</span>
+              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#111113] shrink-0" />
             </div>
-            <div className="font-pixel text-2xl font-bold text-[#111113]">
+            <div className="font-pixel text-xl sm:text-2xl font-bold text-[#111113] my-1">
               {playerStats.totalCompletedQuests || completedQuests}
             </div>
-            <div className="font-mono text-[11px] text-[#111113]">
+            <div className="font-mono text-[10px] sm:text-[11px] text-[#111113]">
               <span>{activeQuests} remaining in log</span>
             </div>
           </div>
         </div>
 
         {/* Metric 3: Active Streak Multiplier */}
-        <div className="double-bezel">
-          <div className="double-bezel-inner p-4 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-1">
+        <div className="double-bezel h-full flex flex-col">
+          <div className="double-bezel-inner p-3 sm:p-4 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-1 h-full flex flex-col justify-between flex-1">
             <div className="flex items-center justify-between text-[#111113]">
-              <span className="font-mono text-xs uppercase font-bold tracking-wider text-[#111113]">Daily Streak</span>
-              <Flame className="w-4 h-4 text-[#111113] animate-pulse" />
+              <span className="font-mono text-[11px] sm:text-xs uppercase font-bold tracking-wider text-[#111113]">Daily Streak</span>
+              <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#111113] animate-pulse shrink-0" />
             </div>
-            <div className="font-pixel text-2xl font-bold flex items-baseline gap-1.5 text-[#111113]">
+            <div className="font-pixel text-xl sm:text-2xl font-bold flex items-baseline gap-1.5 text-[#111113] my-1">
               <span>{playerStats.streakDays}</span>
               <span className="text-xs font-mono text-[#111113] font-bold">{playerStats.streakDays === 1 ? 'DAY' : 'DAYS'}</span>
             </div>
-            <div className="font-mono text-[11px] text-[#111113] font-bold">
+            <div className="font-mono text-[10px] sm:text-[11px] text-[#111113] font-bold">
               <span>{playerStats.activeMultiplier}x XP Multiplier</span>
             </div>
           </div>
         </div>
 
         {/* Metric 4: Total XP Earned */}
-        <div className="double-bezel">
-          <div className="double-bezel-inner p-4 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-1">
+        <div className="double-bezel h-full flex flex-col">
+          <div className="double-bezel-inner p-3 sm:p-4 border border-[#18181c] bg-[#f5f4ef] text-[#111113] space-y-1 h-full flex flex-col justify-between flex-1">
             <div className="flex items-center justify-between text-[#111113]">
-              <span className="font-mono text-xs uppercase font-bold tracking-wider text-[#111113]">Hero Total XP</span>
-              <Sparkles className="w-4 h-4 text-[#111113]" />
+              <span className="font-mono text-[11px] sm:text-xs uppercase font-bold tracking-wider text-[#111113]">Hero Total XP</span>
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#111113] shrink-0" />
             </div>
-            <div className="font-pixel text-2xl font-bold text-[#111113]">
+            <div className="font-pixel text-xl sm:text-2xl font-bold text-[#111113] my-1">
               {(playerStats.totalXpEarned || playerStats.xp).toLocaleString()}
             </div>
-            <div className="font-mono text-[11px] text-[#111113]">
+            <div className="font-mono text-[10px] sm:text-[11px] text-[#111113]">
               <span>Level {playerStats.level} ({playerStats.title})</span>
             </div>
           </div>
