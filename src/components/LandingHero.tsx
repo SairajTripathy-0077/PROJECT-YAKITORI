@@ -80,6 +80,3 @@ export const LandingHero: FC<LandingHeroProps> = ({ onEnterApp }) => {
     </div>
   );
 };
-
-
-
