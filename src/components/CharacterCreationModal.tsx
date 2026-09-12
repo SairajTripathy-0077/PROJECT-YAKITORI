@@ -16,7 +16,8 @@ import {
   User, 
   Award,
   Dice5,
-  Wand2
+  Wand2,
+  X
 } from 'lucide-react';
 import type { CharacterClass, AttributeType } from '../types/game';
 
@@ -58,7 +59,7 @@ export const CharacterCreationModal: FC<CharacterCreationModalProps> = ({
   onClose,
   onCompleted,
 }) => {
-  const { playerStats, attributes, setPlayerStats, setAttributes } = useGame();
+  const { playerStats, attributes, updatePlayerCharacter, updateAttributes } = useGame();
   const { user, dbProfile } = useAuth();
 
   // Generate initial random sprite index (0 - 191)
@@ -97,7 +98,7 @@ export const CharacterCreationModal: FC<CharacterCreationModalProps> = ({
   };
 
   // Submit and save updated character stats
-  const handleSaveCharacter = async () => {
+  const handleSaveCharacter = () => {
     playSound('levelUp');
     const cleanName = heroName.trim() || 'Hero';
     const avatarIcon = CLASS_DESCRIPTIONS[characterClass].icon;
@@ -119,19 +120,19 @@ export const CharacterCreationModal: FC<CharacterCreationModalProps> = ({
     }
 
     // Update global game state
-    setPlayerStats(prev => ({
-      ...prev,
+    updatePlayerCharacter({
       name: cleanName,
       characterClass,
       equippedCharacter: spriteIndex,
       avatar: avatarIcon,
-    }));
+    });
 
-    setAttributes(updatedAttrs);
+    updateAttributes(updatedAttrs);
 
-    // Sync to backend MongoDB database if authenticated
+
+    // Sync to backend MongoDB database asynchronously
     if (user) {
-      await api.post('/api/auth/sync', {
+      api.post('/api/auth/sync', {
         displayName: cleanName,
         characterClass,
         avatarIcon,
@@ -165,7 +166,19 @@ export const CharacterCreationModal: FC<CharacterCreationModalProps> = ({
                 </p>
               </div>
             </div>
+
+            <button
+              onClick={() => {
+                playSound('click');
+                onClose();
+              }}
+              className="p-1 border-2 border-[#18181c] bg-[#ebeae4] hover:bg-[#18181c] hover:text-[#f5f4ef] transition-colors shadow-pixel-sm"
+              title="Close (Esc)"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
+
 
           {/* Avatar Sprite Randomizer + Hero Name Input */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 items-center bg-[#f5f4ef] p-4 border-2 border-[#18181c]">
