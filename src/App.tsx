@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, type FC } from 'react';
+import { AuthProvider } from './context/AuthContext';
 import { GameProvider, useGame } from './context/GameContext';
 import { Navbar } from './components/Navbar';
 import { LandingHero } from './components/LandingHero';
@@ -10,6 +11,8 @@ import { QuestModal } from './components/QuestModal';
 import { ShopModal } from './components/ShopModal';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { RotateCcw, Sparkles } from 'lucide-react';
+
+const PINTEREST_GIF_URL = "https://i.pinimg.com/originals/d8/4f/0e/d84f0e0e2ec7fe05a43b8e0e1fcdc74a.gif";
 
 const MainAppContent: FC = () => {
   const { 
@@ -69,7 +72,7 @@ const MainAppContent: FC = () => {
       />
 
       {/* Main Content Container */}
-      <main className={viewMode === 'landing' ? 'flex-1 w-full' : 'flex-1 max-w-[1700px] w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8'}>
+      <main className={viewMode === 'landing' ? 'flex-1 w-full flex flex-col' : 'flex-1 max-w-[1700px] w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8'}>
         
         {viewMode === 'landing' ? (
           /* Landing Hero View - Full Edge-to-Edge Image */
@@ -103,7 +106,7 @@ const MainAppContent: FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t-2 border-[#18181c] bg-[#ebeae4] py-6 px-4 text-center font-mono text-xs text-[#4a4943] mt-12">
+      <footer className={`border-t-2 border-[#18181c] py-6 px-4 text-center font-mono text-xs text-[#4a4943] ${viewMode === 'landing' ? 'mt-0 bg-[#ebeae4]/90 backdrop-blur-sm' : 'mt-12 bg-[#ebeae4]'}`}>
         <div className="max-w-[1700px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-amber-600" />
@@ -164,9 +167,11 @@ const MainAppContent: FC = () => {
 
 export function App() {
   return (
-    <GameProvider>
-      <MainAppContent />
-    </GameProvider>
+    <AuthProvider>
+      <GameProvider>
+        <MainAppContent />
+      </GameProvider>
+    </AuthProvider>
   );
 }
 

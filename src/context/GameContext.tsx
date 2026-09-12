@@ -28,6 +28,8 @@ import {
   setSoundEnabled as setAudioEnabled
 } from '../utils/sound';
 
+import { useAuth } from './AuthContext';
+
 interface GameContextType {
   quests: Quest[];
   playerStats: PlayerStats;
@@ -54,62 +56,16 @@ interface GameContextType {
   setDroneMessage: (msg: string, expression?: DroneExpression) => void;
 }
 
-const STORAGE_KEY = 'yakitori_rpg_game_state_v2';
-
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [quests, setQuests] = useState<Quest[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return parsed.quests || DEFAULT_QUESTS;
-      } catch (e) {
-        console.error('Failed to parse saved quests', e);
-      }
-    }
-    return DEFAULT_QUESTS;
-  });
+  const { user } = useAuth();
+  const storageKey = user ? `yakitori_rpg_state_${user.uid}` : 'yakitori_rpg_game_state_v2';
 
-  const [playerStats, setPlayerStats] = useState<PlayerStats>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return { ...DEFAULT_PLAYER_STATS, ...(parsed.playerStats || {}) };
-      } catch (e) {
-        console.error('Failed to parse player stats', e);
-      }
-    }
-    return DEFAULT_PLAYER_STATS;
-  });
-
-  const [attributes, setAttributes] = useState<AttributeMap>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return { ...DEFAULT_ATTRIBUTES, ...(parsed.attributes || {}) };
-      } catch (e) {
-        console.error('Failed to parse attributes', e);
-      }
-    }
-    return DEFAULT_ATTRIBUTES;
-  });
-
-  const [shopItems, setShopItems] = useState<ShopItem[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return parsed.shopItems || INITIAL_SHOP_ITEMS;
-      } catch (e) {
-        console.error('Failed to parse shop items', e);
-      }
-    }
-    return INITIAL_SHOP_ITEMS;
-  });
+  const [quests, setQuests] = useState<Quest[]>(DEFAULT_QUESTS);
+  const [playerStats, setPlayerStats] = useState<PlayerStats>(DEFAULT_PLAYER_STATS);
+  const [attributes, setAttributes] = useState<AttributeMap>(DEFAULT_ATTRIBUTES);
+  const [shopItems, setShopItems] = useState<ShopItem[]>(INITIAL_SHOP_ITEMS);
 
   const [droneState, setDroneState] = useState<DroneState>(INITIAL_DRONE_STATE);
   const [soundEnabled, setSoundEnabledState] = useState<boolean>(true);
@@ -117,7 +73,28 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [theme, setTheme] = useState<'noir' | 'eink'>('noir');
   const [levelUpModalData, setLevelUpModalData] = useState<{ show: boolean; newLevel: number; rewardGold: number } | null>(null);
 
-  // Sync state to LocalStorage
+  // Load user data whenever storageKey changes
+  useEffect(() => {
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setQuests(parsed.quests || DEFAULT_QUESTS);
+        setPlayerStats({ ...DEFAULT_PLAYER_STATS, ...(parsed.playerStats || {}) });
+        setAttributes({ ...DEFAULT_ATTRIBUTES, ...(parsed.attributes || {}) });
+        setShopItems(parsed.shopItems || INITIAL_SHOP_ITEMS);
+      } catch (e) {
+        console.error('Failed to load user progress', e);
+      }
+    } else {
+      setQuests(DEFAULT_QUESTS);
+      setPlayerStats(DEFAULT_PLAYER_STATS);
+      setAttributes(DEFAULT_ATTRIBUTES);
+      setShopItems(INITIAL_SHOP_ITEMS);
+    }
+  }, [storageKey]);
+
+  // Sync state to LocalStorage for active user
   useEffect(() => {
     const stateToSave = {
       quests,
@@ -125,8 +102,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       attributes,
       shopItems,
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  }, [quests, playerStats, attributes, shopItems]);
+    localStorage.setItem(storageKey, JSON.stringify(stateToSave));
+  }, [quests, playerStats, attributes, shopItems, storageKey]);
 
   // Check Daily Streak on mount
   useEffect(() => {
