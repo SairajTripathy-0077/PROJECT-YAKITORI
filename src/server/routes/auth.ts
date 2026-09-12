@@ -34,8 +34,10 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response): P
     const xp = typeof body.xp === 'number' && body.xp >= 0 ? body.xp : undefined;
     const streakDays = typeof body.streakDays === 'number' && body.streakDays >= 0 ? body.streakDays : undefined;
     const characterClass = ['Warrior', 'Mage', 'Rogue', 'Paladin'].includes(body.characterClass) ? body.characterClass : undefined;
-    const avatarIcon = typeof body.avatarIcon === 'string' ? sanitizeString(body.avatarIcon, 10) : undefined;
     const equippedCharacter = typeof body.equippedCharacter === 'number' && body.equippedCharacter >= 0 ? body.equippedCharacter : undefined;
+    const avatarIcon = typeof body.avatarIcon === 'string' 
+      ? sanitizeString(body.avatarIcon, 50) 
+      : (equippedCharacter !== undefined ? String(equippedCharacter) : undefined);
     const inventory = Array.isArray(body.inventory) ? body.inventory.filter((id: any) => typeof id === 'string') : undefined;
 
     // Upsert user in MongoDB
@@ -50,13 +52,23 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response): P
       if (xp !== undefined) user.xp = xp;
       if (streakDays !== undefined) user.streakDays = streakDays;
       if (characterClass !== undefined) user.characterClass = characterClass;
-      if (avatarIcon !== undefined) user.avatarIcon = avatarIcon;
-      if (equippedCharacter !== undefined) user.equippedCharacter = equippedCharacter;
+      if (equippedCharacter !== undefined) {
+        user.equippedCharacter = equippedCharacter;
+        user.avatarIcon = String(equippedCharacter);
+      } else if (avatarIcon !== undefined) {
+        user.avatarIcon = avatarIcon;
+        if (!isNaN(parseInt(avatarIcon, 10))) {
+          user.equippedCharacter = parseInt(avatarIcon, 10);
+        }
+      }
       if (inventory !== undefined) user.inventory = inventory;
       user.lastLoginAt = new Date();
       user.loginCount = (user.loginCount || 0) + 1;
       await user.save();
     } else {
+      const finalEquipped = equippedCharacter !== undefined ? equippedCharacter : (avatarIcon && !isNaN(parseInt(avatarIcon, 10)) ? parseInt(avatarIcon, 10) : 0);
+      const finalAvatarIcon = avatarIcon || String(finalEquipped);
+
       // Create new user profile
       user = await User.create({
         firebaseUid: uid,
@@ -68,8 +80,8 @@ router.post('/sync', verifyFirebaseToken, async (req: Request, res: Response): P
         xp: xp || 0,
         streakDays: streakDays || 1,
         characterClass: characterClass || 'Warrior',
-        avatarIcon: avatarIcon || '⚔️',
-        equippedCharacter: equippedCharacter || 0,
+        avatarIcon: finalAvatarIcon,
+        equippedCharacter: finalEquipped,
         inventory: inventory || [],
         lastLoginAt: new Date(),
         loginCount: 1,

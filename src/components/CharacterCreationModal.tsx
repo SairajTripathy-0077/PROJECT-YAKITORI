@@ -135,7 +135,7 @@ export const CharacterCreationModal: FC<CharacterCreationModalProps> = ({
       api.post('/api/auth/sync', {
         displayName: cleanName,
         characterClass,
-        avatarIcon,
+        avatarIcon: String(spriteIndex),
         equippedCharacter: spriteIndex,
         level: playerStats.level,
         xp: playerStats.xp,

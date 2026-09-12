@@ -89,7 +89,7 @@ const userSchema = new Schema<IUser>(
     },
     avatarIcon: {
       type: String,
-      default: '⚔️',
+      default: '0',
     },
     equippedCharacter: {
       type: Number,

@@ -110,10 +110,13 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
             );
 
             const defaultSprite = CLASS_DEFAULT_SPRITES[u.characterClass || 'Warrior'] ?? 0;
+            const dbSpriteIdx = u.equippedCharacter !== undefined 
+              ? u.equippedCharacter 
+              : (u.avatarIcon && !isNaN(parseInt(u.avatarIcon, 10)) ? parseInt(u.avatarIcon, 10) : defaultSprite);
 
             const equippedCharIndex = isCurrentUser
-              ? (playerStats.equippedCharacter !== undefined ? playerStats.equippedCharacter : (u.equippedCharacter !== undefined ? u.equippedCharacter : defaultSprite))
-              : (u.equippedCharacter !== undefined ? u.equippedCharacter : defaultSprite);
+              ? (playerStats.equippedCharacter !== undefined ? playerStats.equippedCharacter : dbSpriteIdx)
+              : dbSpriteIdx;
 
             return {
               id: u._id || `user-${idx}`,

@@ -306,14 +306,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Auto-sync level, XP, and streak to MongoDB backend whenever stats update (only after full load)
   useEffect(() => {
     if (user && isLoaded) {
-      const avatarIcon = playerStats.characterClass === 'Mage' ? '🧙‍♂️' : playerStats.characterClass === 'Rogue' ? '🥷' : playerStats.characterClass === 'Paladin' ? '🛡️' : '⚔️';
+      const avatarIconStr = String(playerStats.equippedCharacter !== undefined ? playerStats.equippedCharacter : 0);
       api.post('/api/auth/sync', {
         level: playerStats.level,
         xp: playerStats.xp,
         streakDays: playerStats.streakDays,
         characterClass: playerStats.characterClass,
-        avatarIcon,
-        equippedCharacter: playerStats.equippedCharacter,
+        avatarIcon: avatarIconStr,
+        equippedCharacter: playerStats.equippedCharacter ?? 0,
         inventory: playerStats.inventory,
       }).catch(() => {});
     }
