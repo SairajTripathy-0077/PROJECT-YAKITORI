@@ -328,12 +328,12 @@ export const StudyRoomPage: FC<{ onBackToDashboard: () => void }> = ({ onBackToD
               <div className="space-y-1.5 font-mono text-xs">
                 <div className="flex justify-between text-[11px]">
                   <span className="text-[#4a4943] font-semibold">XP Progress:</span>
-                  <span className="font-bold text-[#111113]">{playerStats.xp} / {playerStats.nextLevelXp} XP</span>
+                  <span className="font-bold text-[#111113]">{playerStats.xp} / {playerStats.nextLevelXp || playerStats.xpToNextLevel || 150} XP</span>
                 </div>
                 <div className="w-full h-3 bg-[#d9d8d2] border border-[#18181c] overflow-hidden">
                   <div 
                     className="h-full bg-amber-600 transition-all duration-500"
-                    style={{ width: `${Math.min(100, Math.round((playerStats.xp / playerStats.nextLevelXp) * 100))}%` }}
+                    style={{ width: `${Math.min(100, Math.round((playerStats.xp / (playerStats.nextLevelXp || playerStats.xpToNextLevel || 150)) * 100))}%` }}
                   ></div>
                 </div>
               </div>

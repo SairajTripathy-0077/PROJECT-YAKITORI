@@ -14,6 +14,7 @@ export interface Quest {
   id: string;
   title: string;
   description?: string;
+  category?: string;
   attribute: AttributeType;
   difficulty: QuestDifficulty;
   questType: QuestType;
@@ -48,10 +49,12 @@ export interface PlayerStats {
   level: number;
   xp: number;
   xpToNextLevel: number;
+  nextLevelXp?: number;
   totalXpEarned?: number;
   gold: number;
   totalCompletedQuests: number;
   streakDays: number;
+  characterClass?: string;
   lastActiveDate: string; // YYYY-MM-DD
   activeMultiplier: number;
   activityHistory?: string[]; // Array of YYYY-MM-DD completion dates

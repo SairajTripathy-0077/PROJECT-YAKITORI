@@ -17,7 +17,8 @@ import {
   UserCheck,
   LogOut,
   LogIn,
-  BookOpen
+  BookOpen,
+  BarChart3
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -25,8 +26,9 @@ interface NavbarProps {
   onOpenShortcuts: () => void;
   onOpenNewQuest: () => void;
   onOpenStudyRoom: () => void;
-  viewMode: 'landing' | 'app' | 'study';
-  onToggleViewMode: (mode?: 'landing' | 'app' | 'study') => void;
+  onOpenAnalytics: () => void;
+  viewMode: 'landing' | 'app' | 'study' | 'analytics';
+  onToggleViewMode: (mode?: 'landing' | 'app' | 'study' | 'analytics') => void;
 }
 
 export const Navbar: FC<NavbarProps> = ({ 
@@ -34,6 +36,7 @@ export const Navbar: FC<NavbarProps> = ({
   onOpenShortcuts,
   onOpenNewQuest,
   onOpenStudyRoom,
+  onOpenAnalytics,
   viewMode,
   onToggleViewMode
 }) => {
@@ -181,6 +184,19 @@ export const Navbar: FC<NavbarProps> = ({
               >
                 <BookOpen className={`w-4 h-4 ${viewMode === 'study' ? 'text-amber-400' : 'text-emerald-700'}`} />
                 <span className="hidden xl:inline text-[11px] font-pixel font-bold uppercase">STUDY ROOM</span>
+              </button>
+
+              {/* Progress & Analytics Dashboard */}
+              <button
+                onClick={onOpenAnalytics}
+                className={`p-2 pixel-btn flex items-center gap-1 text-xs font-mono transition-all ${
+                  viewMode === 'analytics' ? 'bg-[#18181c] text-[#f5f4ef] shadow-pixel-sm' : ''
+                }`}
+                title="Quest Progress & Recharts Analytics"
+                aria-label="Open Quest Progress Dashboard"
+              >
+                <BarChart3 className={`w-4 h-4 ${viewMode === 'analytics' ? 'text-amber-400' : 'text-indigo-700'}`} />
+                <span className="hidden xl:inline text-[11px] font-pixel font-bold uppercase">PROGRESS</span>
               </button>
 
               {/* Shop */}

@@ -7,9 +7,12 @@ const expressPlugin = (): Plugin => ({
     server.middlewares.use(async (req, res, next) => {
       if (req.url && req.url.startsWith('/api')) {
         try {
-          const { default: app, connectToDatabase } = await import('./src/server/app.ts');
-          await connectToDatabase().catch((err) => console.error('[Database Error]:', err));
-          app(req, res, next);
+          const appPath = './src/server/app.ts';
+          const serverModule: any = await import(/* @vite-ignore */ appPath);
+          if (serverModule.connectToDatabase) {
+            await serverModule.connectToDatabase().catch((err: unknown) => console.error('[Database Error]:', err));
+          }
+          serverModule.default(req, res, next);
           return;
         } catch (err) {
           console.error('[Vite Express Plugin Error]:', err);

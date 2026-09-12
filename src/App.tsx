@@ -12,6 +12,8 @@ import { ShopModal } from './components/ShopModal';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { StudyRoomModal } from './components/StudyRoomModal';
 import { StudyRoomPage } from './components/StudyRoomPage';
+import { QuestProgressDashboard } from './components/QuestProgressDashboard';
+import { TrendingUp, BarChart3 } from 'lucide-react';
 
 const MainAppContent: FC = () => {
   const { 
@@ -19,7 +21,7 @@ const MainAppContent: FC = () => {
     toggleSound
   } = useGame();
 
-  const [viewMode, setViewMode] = useState<'landing' | 'app' | 'study'>('landing');
+  const [viewMode, setViewMode] = useState<'landing' | 'app' | 'study' | 'analytics'>('landing');
   const [isQuestModalOpen, setIsQuestModalOpen] = useState(false);
   const [isShopModalOpen, setIsShopModalOpen] = useState(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
@@ -67,6 +69,7 @@ const MainAppContent: FC = () => {
           setIsQuestModalOpen(true);
         }}
         onOpenStudyRoom={() => setViewMode('study')}
+        onOpenAnalytics={() => setViewMode('analytics')}
         viewMode={viewMode}
         onToggleViewMode={(mode) => {
           if (mode) {
@@ -86,6 +89,9 @@ const MainAppContent: FC = () => {
         ) : viewMode === 'study' ? (
           /* Hero Guild Study Room Page - All Heroes, Levels, XP, Avatars */
           <StudyRoomPage onBackToDashboard={() => setViewMode('app')} />
+        ) : viewMode === 'analytics' ? (
+          /* Quest Progress & Recharts Analytics Dashboard */
+          <QuestProgressDashboard onBackToQuests={() => setViewMode('app')} />
         ) : (
           /* App Dashboard View - Full RPG Controls & Stats */
           <div className="space-y-6 animate-fade-in">
@@ -100,6 +106,22 @@ const MainAppContent: FC = () => {
               <div className="lg:col-span-1">
                 <StreakTracker />
               </div>
+            </div>
+
+            {/* Quick Analytics & Quest Log Switcher */}
+            <div className="flex items-center justify-between bg-[#ebeae4] p-3 border-2 border-[#18181c] shadow-pixel-sm">
+              <div className="flex items-center gap-2 font-mono text-xs text-[#33322d]">
+                <TrendingUp className="w-4 h-4 text-amber-700" />
+                <span className="font-bold">QUEST LOG & METRICS</span>
+              </div>
+              <button
+                onClick={() => setViewMode('analytics')}
+                className="px-3 py-1.5 pixel-btn font-pixel text-xs font-bold text-[#111113] flex items-center gap-1.5 hover:bg-[#deddd6]"
+                title="View animated charts and attribute radar"
+              >
+                <BarChart3 className="w-3.5 h-3.5 text-indigo-700" />
+                <span>PROGRESS CHARTS</span>
+              </button>
             </div>
 
             {/* Main Quest Management Feed */}

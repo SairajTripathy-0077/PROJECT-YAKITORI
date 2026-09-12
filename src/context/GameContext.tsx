@@ -22,7 +22,11 @@ import {
   applyQuestCompletion, 
   revertQuestCompletion, 
   calculateBaseRewards,
-  processDailyStreak
+  processDailyStreak,
+  checkStreakBreak,
+  calculateCharacterXpThreshold,
+  calculateAttributeXpThreshold,
+  getCharacterTitle
 } from '../utils/rpgEngine';
 import { 
   playQuestComplete, 
@@ -50,6 +54,8 @@ interface GameContextType {
   closeLevelUpModal: () => void;
   addQuest: (questData: Omit<Quest, 'id' | 'createdAt' | 'completed' | 'xpReward' | 'goldReward'> & { xpReward?: number; goldReward?: number }) => void;
   toggleQuest: (id: string) => void;
+  completeQuest: (id: string) => void;
+  gainXP: (amount: number, attribute?: AttributeType) => void;
   deleteQuest: (id: string) => void;
   toggleSubtask: (questId: string, subtaskId: string) => void;
   addSubtask: (questId: string, title: string) => void;
@@ -86,12 +92,31 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.quests) && parsed.quests.length > 0) {
-          setQuests(parsed.quests);
+        if (Array.isArray(parsed.quests)) {
+          const legacyDummyIds = new Set(['quest-1', 'quest-2', 'quest-3', 'quest-4', 'quest-5']);
+          const cleanQuests = parsed.quests.filter(
+            (q: Quest) => !legacyDummyIds.has(q.id) && !q.title.toLowerCase().includes('gsap')
+          );
+          setQuests(cleanQuests);
         } else {
           setQuests(DEFAULT_QUESTS);
         }
-        setPlayerStats({ ...DEFAULT_PLAYER_STATS, ...(parsed.playerStats || {}) });
+        const loadedStats: PlayerStats = { ...DEFAULT_PLAYER_STATS, ...(parsed.playerStats || {}) };
+        // Purge dummy streak / mock stats: if total completed quests is 0 or legacy 3-day dummy streak
+        if (!loadedStats.totalCompletedQuests || loadedStats.totalCompletedQuests <= 0) {
+          loadedStats.streakDays = 0;
+          loadedStats.activeMultiplier = 1.0;
+          loadedStats.activityHistory = [];
+        } else if (
+          loadedStats.streakDays === 3 &&
+          loadedStats.activeMultiplier === 1.3 &&
+          (loadedStats.name === 'Pixel Questmaster' || loadedStats.totalCompletedQuests <= 2)
+        ) {
+          loadedStats.streakDays = 0;
+          loadedStats.activeMultiplier = 1.0;
+          loadedStats.activityHistory = [];
+        }
+        setPlayerStats(loadedStats);
         setAttributes({ ...DEFAULT_ATTRIBUTES, ...(parsed.attributes || {}) });
         if (Array.isArray(parsed.shopItems) && parsed.shopItems.length > 0) {
           const existingIds = new Set(parsed.shopItems.map((item: ShopItem) => item.id));
@@ -153,22 +178,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass]);
 
-  // Check and update Daily Streak & Auto-refresh Daily Habits on session mount
+  // Check Daily Streak break & Auto-refresh Daily Habits on session mount
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    const streakResult = processDailyStreak(
+    const { streakDays, activeMultiplier } = checkStreakBreak(
       playerStats.lastActiveDate,
-      playerStats.streakDays,
-      playerStats.activityHistory || []
+      playerStats.streakDays
     );
 
-    if (streakResult.isNewDay) {
+    if (streakDays !== playerStats.streakDays || activeMultiplier !== playerStats.activeMultiplier) {
       setPlayerStats(prev => ({
         ...prev,
-        lastActiveDate: streakResult.newLastActiveDate,
-        streakDays: streakResult.newStreak,
-        activeMultiplier: streakResult.newMultiplier,
-        activityHistory: streakResult.updatedHistory,
+        streakDays,
+        activeMultiplier,
       }));
     }
 
@@ -273,6 +295,76 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAttributes(reverted.updatedAttributes);
       playClick();
       setDroneMessage(`Quest "${targetQuest.title}" marked active.`, 'CHILL');
+    }
+  };
+
+  const completeQuest = (id: string) => {
+    const targetQuest = quests.find(q => q.id === id);
+    if (targetQuest && !targetQuest.completed) {
+      toggleQuest(id);
+    }
+  };
+
+  const gainXP = (amount: number, attribute: AttributeType = 'intellect') => {
+    if (amount <= 0) return;
+
+    let currentXp = playerStats.xp + amount;
+    let currentLevel = playerStats.level;
+    let xpThreshold = playerStats.xpToNextLevel || calculateCharacterXpThreshold(currentLevel);
+    let leveledUpPlayer = false;
+
+    while (currentXp >= xpThreshold) {
+      currentXp -= xpThreshold;
+      currentLevel += 1;
+      xpThreshold = calculateCharacterXpThreshold(currentLevel);
+      leveledUpPlayer = true;
+    }
+
+    const newTitle = getCharacterTitle(currentLevel);
+    const levelUpBonusGold = leveledUpPlayer ? (currentLevel * 50) : 0;
+
+    setPlayerStats(prev => ({
+      ...prev,
+      level: currentLevel,
+      title: newTitle,
+      xp: currentXp,
+      xpToNextLevel: xpThreshold,
+      nextLevelXp: xpThreshold,
+      totalXpEarned: (prev.totalXpEarned || 0) + amount,
+      gold: prev.gold + levelUpBonusGold,
+    }));
+
+    setAttributes(prev => {
+      const currentAttr = prev[attribute] || { level: 1, xp: 0, xpToNextLevel: calculateAttributeXpThreshold(1) };
+      let attrXp = currentAttr.xp + amount;
+      let attrLevel = currentAttr.level;
+      let attrThreshold = currentAttr.xpToNextLevel || calculateAttributeXpThreshold(attrLevel);
+
+      while (attrXp >= attrThreshold) {
+        attrXp -= attrThreshold;
+        attrLevel += 1;
+        attrThreshold = calculateAttributeXpThreshold(attrLevel);
+      }
+
+      return {
+        ...prev,
+        [attribute]: {
+          level: attrLevel,
+          xp: attrXp,
+          xpToNextLevel: attrThreshold,
+        },
+      };
+    });
+
+    if (leveledUpPlayer) {
+      playLevelUp();
+      setLevelUpModalData({
+        show: true,
+        newLevel: currentLevel,
+        rewardGold: currentLevel * 50,
+        unlockedTitle: newTitle,
+      });
+      setDroneMessage(`VICTORY! You reached Level ${currentLevel} (${newTitle})!`, 'VICTORY');
     }
   };
 
@@ -421,6 +513,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       closeLevelUpModal,
       addQuest,
       toggleQuest,
+      completeQuest,
+      gainXP,
       deleteQuest,
       toggleSubtask,
       addSubtask,
