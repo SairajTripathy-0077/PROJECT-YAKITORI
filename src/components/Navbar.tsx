@@ -32,6 +32,7 @@ interface NavbarProps {
   onOpenStudyRoom: () => void;
   onOpenAnalytics: () => void;
   onOpenCharacterCreation?: () => void;
+  onOpenAuth?: () => void;
   viewMode: 'landing' | 'app' | 'study' | 'analytics';
   onToggleViewMode: (mode?: 'landing' | 'app' | 'study' | 'analytics') => void;
 }
@@ -43,6 +44,7 @@ export const Navbar: FC<NavbarProps> = ({
   onOpenStudyRoom,
   onOpenAnalytics,
   onOpenCharacterCreation,
+  onOpenAuth,
   viewMode,
   onToggleViewMode
 }) => {
