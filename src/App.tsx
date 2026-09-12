@@ -14,6 +14,8 @@ import { StudyRoomModal } from './components/StudyRoomModal';
 import { StudyRoomPage } from './components/StudyRoomPage';
 import { QuestProgressDashboard } from './components/QuestProgressDashboard';
 import { CharacterCreationModal } from './components/CharacterCreationModal';
+import { AuthModal } from './components/AuthModal';
+import type { Quest } from './types/game';
 import { TrendingUp, BarChart3 } from 'lucide-react';
 
 const MainAppContent: FC = () => {
@@ -23,13 +25,22 @@ const MainAppContent: FC = () => {
   } = useGame();
 
   const [viewMode, setViewMode] = useState<'landing' | 'app' | 'study' | 'analytics'>('landing');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isQuestModalOpen, setIsQuestModalOpen] = useState(false);
   const [isShopModalOpen, setIsShopModalOpen] = useState(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [isStudyRoomOpen, setIsStudyRoomOpen] = useState(false);
   const [isCharacterCreationOpen, setIsCharacterCreationOpen] = useState(false);
+  const [editingQuest, setEditingQuest] = useState<Quest | null>(null);
+  const [defaultDueDate, setDefaultDueDate] = useState<string>('');
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleOpenNewQuest = (dueDate?: string) => {
+    setEditingQuest(null);
+    setDefaultDueDate(dueDate || '');
+    setIsQuestModalOpen(true);
+  };
 
   // Global Keyboard Shortcuts Listener
   useEffect(() => {
@@ -41,7 +52,7 @@ const MainAppContent: FC = () => {
       if (e.key === 'n' || e.key === 'N') {
         e.preventDefault();
         setViewMode('app');
-        setIsQuestModalOpen(true);
+        handleOpenNewQuest();
       } else if (e.key === '/') {
         e.preventDefault();
         setViewMode('app');
@@ -68,11 +79,12 @@ const MainAppContent: FC = () => {
         onOpenShortcuts={() => setIsShortcutsModalOpen(true)}
         onOpenNewQuest={() => {
           setViewMode('app');
-          setIsQuestModalOpen(true);
+          handleOpenNewQuest();
         }}
         onOpenStudyRoom={() => setViewMode('study')}
         onOpenAnalytics={() => setViewMode('analytics')}
         onOpenCharacterCreation={() => setIsCharacterCreationOpen(true)}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
         viewMode={viewMode}
         onToggleViewMode={(mode) => {
           if (mode) {
@@ -118,7 +130,7 @@ const MainAppContent: FC = () => {
             </div>
 
             {/* Quick Analytics & Quest Log Switcher */}
-            <div className="flex items-center justify-between bg-[#ebeae4] p-3 border-2 border-[#18181c] shadow-pixel-sm">
+            <div className="flex items-center justify-between bg-[#ebeae4] p-[#ebeae4] border-2 border-[#18181c] shadow-pixel-sm p-3">
               <div className="flex items-center gap-2 font-mono text-xs text-[#33322d]">
                 <TrendingUp className="w-4 h-4 text-amber-700" />
                 <span className="font-bold">QUEST LOG & METRICS</span>
@@ -136,7 +148,11 @@ const MainAppContent: FC = () => {
             {/* Main Quest Management Feed */}
             <div className="pt-2">
               <QuestList
-                onOpenNewQuest={() => setIsQuestModalOpen(true)}
+                onOpenNewQuest={(dueDate) => handleOpenNewQuest(dueDate)}
+                onEditQuest={(quest) => {
+                  setEditingQuest(quest);
+                  setIsQuestModalOpen(true);
+                }}
                 searchInputRef={searchInputRef}
               />
             </div>
@@ -150,7 +166,13 @@ const MainAppContent: FC = () => {
       {/* Modals */}
       <QuestModal
         isOpen={isQuestModalOpen}
-        onClose={() => setIsQuestModalOpen(false)}
+        questToEdit={editingQuest}
+        defaultDueDate={defaultDueDate}
+        onClose={() => {
+          setIsQuestModalOpen(false);
+          setEditingQuest(null);
+          setDefaultDueDate('');
+        }}
       />
 
       <ShopModal
@@ -171,6 +193,12 @@ const MainAppContent: FC = () => {
       <CharacterCreationModal
         isOpen={isCharacterCreationOpen}
         onClose={() => setIsCharacterCreationOpen(false)}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={() => setViewMode('app')}
       />
 
     </div>

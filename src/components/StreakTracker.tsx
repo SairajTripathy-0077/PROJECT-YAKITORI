@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, type FC } from 'react';
 import { useGame } from '../context/GameContext';
 import { Flame, ChevronLeft, ChevronRight, ShieldCheck, X, Zap, CheckCircle2, Calendar } from 'lucide-react';
-import { getMonthCalendarGrid, type MonthCalendarDay } from '../utils/rpgEngine';
+import { getMonthCalendarGrid, getLocalTodayStr, type MonthCalendarDay } from '../utils/rpgEngine';
 
 // XP multiplier tiers
 const XP_TIERS = [
@@ -78,7 +78,7 @@ export const StreakTracker: FC = () => {
   void currentDayOfMonth; // kept for future use
 
   const todayNum = now.getDate();
-  const todayDateStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayDateStr = useMemo(() => getLocalTodayStr(), []);
   const activeDate = selectedCalendarDate || todayDateStr;
   const currentMultiplier = getCurrentMultiplier(playerStats.streakDays);
   const streakDay = playerStats.streakDays > 0 ? playerStats.streakDays : 1;
@@ -141,7 +141,6 @@ export const StreakTracker: FC = () => {
                 <div className="font-mono text-[9px] font-bold tracking-wider uppercase mt-0.5 text-amber-700">
                   {monthLabel}
                 </div>
-                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full animate-ping" />
               </div>
 
               <button

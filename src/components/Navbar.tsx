@@ -32,6 +32,7 @@ interface NavbarProps {
   onOpenStudyRoom: () => void;
   onOpenAnalytics: () => void;
   onOpenCharacterCreation?: () => void;
+  onOpenAuth: () => void;
   viewMode: 'landing' | 'app' | 'study' | 'analytics';
   onToggleViewMode: (mode?: 'landing' | 'app' | 'study' | 'analytics') => void;
 }
@@ -43,6 +44,7 @@ export const Navbar: FC<NavbarProps> = ({
   onOpenStudyRoom,
   onOpenAnalytics,
   onOpenCharacterCreation,
+  onOpenAuth,
   viewMode,
   onToggleViewMode
 }) => {
@@ -56,7 +58,6 @@ export const Navbar: FC<NavbarProps> = ({
   } = useGame();
 
   const { user, logout } = useAuth();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -82,24 +83,24 @@ export const Navbar: FC<NavbarProps> = ({
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 bg-[#f5f4ef]/95 backdrop-blur-md border-b-2 border-[#18181c] px-4 py-3">
-      <div className="max-w-[1700px] mx-auto flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-30 bg-[#f5f4ef]/95 backdrop-blur-md border-b-2 border-[#18181c] px-2.5 sm:px-4 py-2 sm:py-3">
+      <div className="max-w-[1700px] mx-auto flex items-center justify-between gap-2 sm:gap-4">
         
         {/* Left: App Logo & Title */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             onClick={() => onToggleViewMode()}
-            className="flex items-center gap-3 focus:outline-none group text-left"
+            className="flex items-center gap-2 sm:gap-3 focus:outline-none group text-left"
             title="YAKITORI Pixel RPG"
           >
-            <div className="w-9 h-9 bg-[#18181c] text-[#f5f4ef] font-pixel font-bold flex items-center justify-center pixel-border text-sm group-hover:bg-black">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#18181c] text-[#f5f4ef] font-pixel font-bold flex items-center justify-center pixel-border text-xs sm:text-sm group-hover:bg-black shrink-0">
               焼き
             </div>
             <div>
-              <h1 className="font-pixel text-base sm:text-lg font-bold tracking-wider text-[#111113] leading-none">
+              <h1 className="font-pixel text-sm sm:text-base md:text-lg font-bold tracking-wider text-[#111113] leading-none">
                 YAKITORI
               </h1>
-              <p className="font-mono text-[10px] text-[#4a4943] uppercase tracking-widest hidden sm:block">
+              <p className="font-mono text-[9px] sm:text-[10px] text-[#4a4943] uppercase tracking-widest hidden md:block">
                 E-Ink Monochrome Edition
               </p>
             </div>
@@ -116,7 +117,7 @@ export const Navbar: FC<NavbarProps> = ({
                 </span>
                 <button
                   onClick={() => onToggleViewMode('app')}
-                  className="px-4 py-2 pixel-btn-primary font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-2"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 pixel-btn-primary font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 sm:gap-2"
                 >
                   <span>ENTER APP</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -124,8 +125,8 @@ export const Navbar: FC<NavbarProps> = ({
               </div>
             ) : (
               <button
-                onClick={() => setIsAuthModalOpen(true)}
-                className="px-4 py-2 pixel-btn-primary font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-2"
+                onClick={onOpenAuth}
+                className="px-3 sm:px-4 py-1.5 sm:py-2 pixel-btn-primary font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 sm:gap-2"
               >
                 <LogIn className="w-3.5 h-3.5 text-amber-400" />
                 <span>SIGN IN</span>
@@ -136,69 +137,69 @@ export const Navbar: FC<NavbarProps> = ({
           /* APP DASHBOARD NAVBAR: Player Stats & Menu Dropdown */
           <>
             {/* Center: Player Mini Stats */}
-            <div className="flex items-center gap-2 sm:gap-4 bg-[#ebeae4] px-3 py-1.5 border border-[#18181c] font-mono text-xs shadow-pixel-sm">
+            <div className="flex items-center gap-1.5 sm:gap-3 bg-[#ebeae4] px-2 sm:px-3 py-1 sm:py-1.5 border border-[#18181c] font-mono text-[11px] sm:text-xs shadow-pixel-sm shrink-0">
               {/* Level & Character Avatar */}
-              <div className="flex items-center gap-1.5" title="Character Level">
+              <div className="flex items-center gap-1 sm:gap-1.5" title="Character Level">
                 {playerStats.equippedCharacter !== undefined ? (
-                  <SpriteCharacter index={playerStats.equippedCharacter} size={22} alt="Player Avatar" />
+                  <SpriteCharacter index={playerStats.equippedCharacter} size={18} alt="Player Avatar" />
                 ) : (
-                  <Award className="w-4 h-4 text-amber-600" />
+                  <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600" />
                 )}
                 <span className="font-mono font-bold tabular-nums text-[#111113]">
                   Lv.{Math.max(1, Number(playerStats.level) || 1)}
                 </span>
               </div>
 
-
-              <div className="h-4 w-px bg-[#18181c]/30"></div>
+              <div className="h-3.5 sm:h-4 w-px bg-[#18181c]/30"></div>
 
               {/* Gold */}
               <div className="flex items-center gap-1 text-amber-700 font-bold" title="Gold Currency">
-                <Coins className="w-4 h-4" />
+                <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>{playerStats.gold}g</span>
               </div>
 
-              <div className="h-4 w-px bg-[#18181c]/30"></div>
+              <div className="h-3.5 sm:h-4 w-px bg-[#18181c]/30"></div>
 
               {/* Streak */}
               <div className="flex items-center gap-1 text-orange-600 font-bold" title={`Current Streak: ${playerStats.streakDays} Days (${playerStats.activeMultiplier}x XP)`}>
-                <Flame className="w-4 h-4 animate-pulse" />
+                <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" />
                 <span>{playerStats.streakDays}d</span>
               </div>
             </div>
 
             {/* Right: Primary Action + Dropdown Menu */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               
               {/* New Quest Button */}
               <button
                 onClick={onOpenNewQuest}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 pixel-btn-primary font-pixel text-xs font-bold"
+                className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 pixel-btn-primary font-pixel text-xs font-bold"
                 title="Add New Quest (Hotkey: N)"
               >
-                <Plus className="w-4 h-4 text-amber-400" />
-                <span>NEW QUEST</span>
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+                <span className="hidden xs:inline">NEW</span>
+                <span className="hidden sm:inline"> QUEST</span>
               </button>
 
               {/* Dropdown Menu Toggle */}
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className={`px-3 py-1.5 pixel-btn flex items-center gap-1.5 font-pixel text-xs font-bold uppercase transition-all ${
+                  className={`px-2.5 sm:px-3 py-1.5 pixel-btn flex items-center gap-1 sm:gap-1.5 font-pixel text-xs font-bold uppercase transition-all ${
                     isMenuOpen ? 'bg-[#18181c] text-[#f5f4ef]' : ''
                   }`}
                   aria-expanded={isMenuOpen}
                   aria-haspopup="true"
                   title="Open Navigation & Settings Menu"
                 >
-                  <Menu className="w-4 h-4 text-amber-600" />
+                  <Menu className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600" />
                   <span className="hidden sm:inline">MENU</span>
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {/* Pixel-Art Dropdown Menu Card */}
                 {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-[#f5f4ef] border-2 border-[#18181c] shadow-pixel-md z-50 animate-fade-in font-mono text-xs text-[#111113] overflow-hidden">
+                  <div className="absolute right-0 mt-2 w-64 sm:w-72 max-w-[calc(100vw-1.5rem)] bg-[#f5f4ef] border-2 border-[#18181c] shadow-pixel-md z-50 animate-fade-in font-mono text-xs text-[#111113] overflow-hidden">
                     
                     {/* User Profile Header in Dropdown */}
                     <div className="p-3 bg-[#ebeae4] border-b border-[#18181c] space-y-1">
@@ -364,7 +365,7 @@ export const Navbar: FC<NavbarProps> = ({
                       ) : (
                         <button
                           onClick={() => {
-                            setIsAuthModalOpen(true);
+                            onOpenAuth();
                             setIsMenuOpen(false);
                           }}
                           className="w-full text-left px-2.5 py-2 font-mono text-amber-800 font-bold flex items-center gap-2 hover:bg-amber-100 transition-colors"
@@ -384,12 +385,6 @@ export const Navbar: FC<NavbarProps> = ({
         )}
 
       </div>
-
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={() => onToggleViewMode()}
-      />
     </header>
   );
 };

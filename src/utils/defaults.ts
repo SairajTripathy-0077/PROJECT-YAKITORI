@@ -8,7 +8,11 @@ export const DEFAULT_ATTRIBUTES: AttributeMap = {
   discipline: { level: 1, xp: 0, xpToNextLevel: 80 },
 };
 
-const todayStr = new Date().toISOString().split('T')[0];
+const getLocalTodayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+const todayStr = getLocalTodayStr();
 
 export const DEFAULT_PLAYER_STATS: PlayerStats = {
   name: 'Adventurer',

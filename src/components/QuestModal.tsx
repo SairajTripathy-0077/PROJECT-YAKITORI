@@ -19,10 +19,12 @@ import {
 interface QuestModalProps {
   isOpen: boolean;
   onClose: () => void;
+  questToEdit?: Quest | null;
+  defaultDueDate?: string;
 }
 
-export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
-  const { addQuest } = useGame();
+export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose, questToEdit, defaultDueDate }) => {
+  const { addQuest, updateQuest } = useGame();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -32,6 +34,28 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
   const [dueDate, setDueDate] = useState<string>('');
   const [subtasks, setSubtasks] = useState<{ id: string; title: string; completed: boolean }[]>([]);
   const [newSubtaskInput, setNewSubtaskInput] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      if (questToEdit) {
+        setTitle(questToEdit.title);
+        setDescription(questToEdit.description || '');
+        setAttribute(questToEdit.attribute);
+        setDifficulty(questToEdit.difficulty);
+        setQuestType(questToEdit.questType);
+        setDueDate(questToEdit.dueDate || '');
+        setSubtasks(questToEdit.subtasks || []);
+      } else {
+        setTitle('');
+        setDescription('');
+        setAttribute('intellect');
+        setDifficulty('medium');
+        setQuestType('main');
+        setDueDate(defaultDueDate || '');
+        setSubtasks([]);
+      }
+    }
+  }, [isOpen, questToEdit, defaultDueDate]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -66,15 +90,27 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    addQuest({
-      title: title.trim(),
-      description: description.trim() || undefined,
-      attribute,
-      difficulty,
-      questType,
-      dueDate: questType === 'daily' ? undefined : (dueDate || undefined),
-      subtasks,
-    });
+    if (questToEdit) {
+      updateQuest(questToEdit.id, {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        attribute,
+        difficulty,
+        questType,
+        dueDate: questType === 'daily' ? undefined : (dueDate || undefined),
+        subtasks,
+      });
+    } else {
+      addQuest({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        attribute,
+        difficulty,
+        questType,
+        dueDate: questType === 'daily' ? undefined : (dueDate || undefined),
+        subtasks,
+      });
+    }
 
     // Reset Form
     setTitle('');
@@ -97,7 +133,7 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-amber-600" />
               <h2 className="font-pixel text-base font-bold uppercase tracking-wider text-[#111113]">
-                CREATE NEW QUEST
+                {questToEdit ? 'EDIT QUEST OBJECTIVE' : 'CREATE NEW QUEST'}
               </h2>
             </div>
             <button
@@ -360,7 +396,7 @@ export const QuestModal: FC<QuestModalProps> = ({ isOpen, onClose }) => {
                 type="submit"
                 className="px-5 py-2 pixel-btn-primary font-pixel text-xs uppercase tracking-wider font-bold"
               >
-                CONFIRM & START QUEST
+                {questToEdit ? 'SAVE QUEST CHANGES' : 'CONFIRM & START QUEST'}
               </button>
             </div>
 

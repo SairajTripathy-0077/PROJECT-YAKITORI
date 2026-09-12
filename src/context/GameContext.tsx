@@ -26,7 +26,8 @@ import {
   checkStreakBreak,
   calculateCharacterXpThreshold,
   calculateAttributeXpThreshold,
-  getCharacterTitle
+  getCharacterTitle,
+  getLocalTodayStr
 } from '../utils/rpgEngine';
 import { 
   playQuestComplete, 
@@ -55,6 +56,7 @@ interface GameContextType {
   updatePlayerCharacter: (data: { name?: string; characterClass?: string; equippedCharacter?: number; avatar?: string }) => void;
   updateAttributes: (newAttrs: AttributeMap) => void;
   addQuest: (questData: Omit<Quest, 'id' | 'createdAt' | 'completed' | 'xpReward' | 'goldReward'> & { xpReward?: number; goldReward?: number }) => void;
+  updateQuest: (id: string, updatedData: Partial<Omit<Quest, 'id' | 'createdAt'>>) => void;
   toggleQuest: (id: string) => void;
   completeQuest: (id: string) => void;
   gainXP: (amount: number, attribute?: AttributeType) => void;
@@ -76,62 +78,99 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, dbProfile } = useAuth();
   const storageKey = user ? `yakitori_rpg_state_${user.uid}` : 'yakitori_rpg_game_state_v3';
 
   const [quests, setQuests] = useState<Quest[]>(DEFAULT_QUESTS);
   const [playerStats, setPlayerStats] = useState<PlayerStats>(DEFAULT_PLAYER_STATS);
   const [attributes, setAttributes] = useState<AttributeMap>(DEFAULT_ATTRIBUTES);
   const [shopItems, setShopItems] = useState<ShopItem[]>(INITIAL_SHOP_ITEMS);
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(() => new Date().toISOString().split('T')[0]);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(() => getLocalTodayStr());
 
   const [droneState, setDroneState] = useState<DroneState>(INITIAL_DRONE_STATE);
   const [soundEnabled, setSoundEnabledState] = useState<boolean>(true);
   const [scanlineEnabled, setScanlineEnabled] = useState<boolean>(false);
   const [theme, setTheme] = useState<'noir' | 'eink'>('noir');
   const [levelUpModalData, setLevelUpModalData] = useState<LevelUpModalData | null>(null);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
-  // Load user data whenever storageKey changes
+  // Load user data & migrate guest progress whenever user or storageKey changes
   useEffect(() => {
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
+    let saved = localStorage.getItem(storageKey);
+    
+    // Fallback search across all legacy / guest localStorage keys if user key is empty or Level 1
+    const potentialKeys = [
+      'yakitori_rpg_game_state_v3',
+      'yakitori_rpg_game_state_v2',
+      'yakitori_rpg_game_state',
+    ];
+
+    // Search for highest level saved state across localStorage
+    let highestParsedState: any = null;
+    let highestLevel = 0;
+
+    const evalSavedStr = (str: string | null) => {
+      if (!str) return;
       try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed.quests)) {
+        const parsed = JSON.parse(str);
+        const lvl = Number(parsed?.playerStats?.level) || 1;
+        const totalXp = Number(parsed?.playerStats?.totalXpEarned) || 0;
+        const score = lvl * 10000 + totalXp;
+        if (score > highestLevel) {
+          highestLevel = score;
+          highestParsedState = parsed;
+        }
+      } catch {}
+    };
+
+    evalSavedStr(saved);
+    for (const key of potentialKeys) {
+      evalSavedStr(localStorage.getItem(key));
+    }
+    // Also scan any other user keys in localStorage as fallback
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('yakitori_rpg_')) {
+          evalSavedStr(localStorage.getItem(k));
+        }
+      }
+    } catch {}
+
+    const parsedToUse = highestParsedState || (saved ? JSON.parse(saved) : null);
+
+    if (parsedToUse) {
+      try {
+        if (Array.isArray(parsedToUse.quests)) {
           const legacyDummyIds = new Set(['quest-1', 'quest-2', 'quest-3', 'quest-4', 'quest-5']);
-          const cleanQuests = parsed.quests.filter(
+          const cleanQuests = parsedToUse.quests.filter(
             (q: Quest) => !legacyDummyIds.has(q.id) && !q.title.toLowerCase().includes('gsap')
           );
           setQuests(cleanQuests);
         } else {
           setQuests(DEFAULT_QUESTS);
         }
-        const loadedStats: PlayerStats = { ...DEFAULT_PLAYER_STATS, ...(parsed.playerStats || {}) };
-        // Purge dummy streak / mock stats: if total completed quests is 0 or legacy 3-day dummy streak
-        if (!loadedStats.totalCompletedQuests || loadedStats.totalCompletedQuests <= 0) {
-          loadedStats.streakDays = 0;
-          loadedStats.activeMultiplier = 1.0;
-          loadedStats.activityHistory = [];
-        } else if (
-          loadedStats.streakDays === 3 &&
-          loadedStats.activeMultiplier === 1.3 &&
-          (loadedStats.name === 'Pixel Questmaster' || loadedStats.totalCompletedQuests <= 2)
-        ) {
-          loadedStats.streakDays = 0;
-          loadedStats.activeMultiplier = 1.0;
-          loadedStats.activityHistory = [];
-        }
+
+        const loadedStats: PlayerStats = { ...DEFAULT_PLAYER_STATS, ...(parsedToUse.playerStats || {}) };
+        
+        // Ensure character title & XP thresholds are calculated correctly for restored level
+        loadedStats.level = Math.max(1, Number(loadedStats.level) || 1);
+        loadedStats.title = getCharacterTitle(loadedStats.level);
+        loadedStats.xpToNextLevel = calculateCharacterXpThreshold(loadedStats.level);
+        loadedStats.xp = Math.max(0, Number(loadedStats.xp) || 0);
+
         setPlayerStats(loadedStats);
-        setAttributes({ ...DEFAULT_ATTRIBUTES, ...(parsed.attributes || {}) });
-        if (Array.isArray(parsed.shopItems) && parsed.shopItems.length > 0) {
-          const savedMap = new Map<string, ShopItem>(parsed.shopItems.map((s: ShopItem) => [s.id, s]));
+        setAttributes({ ...DEFAULT_ATTRIBUTES, ...(parsedToUse.attributes || {}) });
+
+        if (Array.isArray(parsedToUse.shopItems) && parsedToUse.shopItems.length > 0) {
+          const savedMap = new Map<string, ShopItem>(parsedToUse.shopItems.map((s: ShopItem) => [s.id, s]));
           const mergedItems = INITIAL_SHOP_ITEMS.map(initial => {
-            const saved = savedMap.get(initial.id);
-            if (saved) {
+            const savedItem = savedMap.get(initial.id);
+            if (savedItem) {
               return {
                 ...initial,
-                purchased: saved.purchased ?? initial.purchased,
-                equipped: saved.equipped ?? initial.equipped,
+                purchased: savedItem.purchased ?? initial.purchased,
+                equipped: savedItem.equipped ?? initial.equipped,
               };
             }
             return initial;
@@ -141,7 +180,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setShopItems(INITIAL_SHOP_ITEMS);
         }
       } catch (e) {
-        console.error('Failed to load user progress', e);
+        console.error('Failed to parse RPG progress', e);
       }
     } else {
       setQuests(DEFAULT_QUESTS);
@@ -149,9 +188,33 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAttributes(DEFAULT_ATTRIBUTES);
       setShopItems(INITIAL_SHOP_ITEMS);
     }
+
+    setIsLoaded(true);
   }, [storageKey]);
 
-  // Ensure all initial shop items (including updated character metadata) are synced to state
+  // Sync DB profile levels from MongoDB if higher than client state
+  useEffect(() => {
+    if (dbProfile && (dbProfile as any).level) {
+      const dbLevel = Number((dbProfile as any).level) || 1;
+      const dbXp = Number((dbProfile as any).xp) || 0;
+
+      setPlayerStats(prev => {
+        if (dbLevel > prev.level || (dbLevel === prev.level && dbXp > prev.xp)) {
+          return {
+            ...prev,
+            level: dbLevel,
+            xp: dbXp,
+            title: getCharacterTitle(dbLevel),
+            xpToNextLevel: calculateCharacterXpThreshold(dbLevel),
+            characterClass: (dbProfile as any).characterClass || prev.characterClass,
+          };
+        }
+        return prev;
+      });
+    }
+  }, [dbProfile]);
+
+  // Ensure all initial shop items are synced to state
   useEffect(() => {
     setShopItems(prev => {
       const savedMap = new Map<string, ShopItem>(prev.map((i: ShopItem) => [i.id, i]));
@@ -171,6 +234,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Sync state to LocalStorage for active user
   useEffect(() => {
+    if (!isLoaded) return;
     try {
       const stateToSave = {
         quests,
@@ -183,11 +247,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (e) {
       console.error('Failed to persist RPG game state', e);
     }
-  }, [quests, playerStats, attributes, shopItems, storageKey]);
+  }, [quests, playerStats, attributes, shopItems, storageKey, isLoaded]);
 
-  // Auto-sync level, XP, and streak to MongoDB backend whenever stats update
+  // Auto-sync level, XP, and streak to MongoDB backend whenever stats update (only after full load)
   useEffect(() => {
-    if (user) {
+    if (user && isLoaded) {
       const avatarIcon = playerStats.characterClass === 'Mage' ? '🧙‍♂️' : playerStats.characterClass === 'Rogue' ? '🥷' : playerStats.characterClass === 'Paladin' ? '🛡️' : '⚔️';
       api.post('/api/auth/sync', {
         level: playerStats.level,
@@ -197,11 +261,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         avatarIcon,
       }).catch(() => {});
     }
-  }, [user, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass]);
+  }, [user, isLoaded, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass]);
 
   // Check Daily Streak break & Auto-refresh Daily Habits on session mount
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalTodayStr();
     const { streakDays, activeMultiplier } = checkStreakBreak(
       playerStats.lastActiveDate,
       playerStats.streakDays
@@ -219,7 +283,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setQuests(prev => prev.map(q => {
       if (q.questType === 'daily' && q.completed) {
         const completedOnPastDay = q.lastCompletedDate && q.lastCompletedDate !== today;
-        const fallbackPastDay = !q.lastCompletedDate && q.completedAt && (new Date(q.completedAt).toISOString().split('T')[0] !== today);
+        const fallbackPastDay = !q.lastCompletedDate && q.completedAt && (getLocalTodayStr(new Date(q.completedAt)) !== today);
         if (completedOnPastDay || fallbackPastDay) {
           return {
             ...q,
@@ -266,7 +330,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!targetQuest) return;
 
     const willBeCompleted = !targetQuest.completed;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalTodayStr();
 
     // Update quest list state
     setQuests(prev => prev.map(q => {
@@ -537,6 +601,23 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setDroneMessage('RPG progress successfully reset to initial default state!', 'CHILL');
   };
 
+  const updateQuest = (id: string, updatedData: Partial<Omit<Quest, 'id' | 'createdAt'>>) => {
+    setQuests(prev => prev.map(q => {
+      if (q.id === id) {
+        const difficulty = updatedData.difficulty || q.difficulty;
+        const baseReward = calculateBaseRewards(difficulty);
+        return {
+          ...q,
+          ...updatedData,
+          xpReward: updatedData.xpReward || baseReward.xp,
+          goldReward: updatedData.goldReward || baseReward.gold,
+        };
+      }
+      return q;
+    }));
+    playClick();
+  };
+
   return (
     <GameContext.Provider value={{
       quests,
@@ -552,6 +633,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       updatePlayerCharacter,
       updateAttributes,
       addQuest,
+      updateQuest,
       toggleQuest,
       completeQuest,
       gainXP,

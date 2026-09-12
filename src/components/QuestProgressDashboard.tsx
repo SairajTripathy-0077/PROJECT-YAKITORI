@@ -46,6 +46,8 @@ import {
 } from 'lucide-react';
 import type { AttributeType, QuestDifficulty, QuestType } from '../types/game';
 
+import { getLocalTodayStr } from '../utils/rpgEngine';
+
 interface QuestProgressDashboardProps {
   onBackToQuests?: () => void;
   onOpenCharacterCreation?: () => void;
@@ -116,12 +118,12 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
 
   // 1. Attribute Radar Data (Intellect, Strength, Creativity, Vitality, Discipline)
   const attributeRadarData = useMemo(() => {
-    const attrConfig: Record<AttributeType, { name: string; full: number; icon: string }> = {
-      intellect: { name: 'Intellect', full: 100, icon: '🧠' },
-      strength: { name: 'Strength', full: 100, icon: '⚔️' },
-      creativity: { name: 'Creativity', full: 100, icon: '🎨' },
-      vitality: { name: 'Vitality', full: 100, icon: '🍵' },
-      discipline: { name: 'Discipline', full: 100, icon: '⏱️' },
+    const attrConfig: Record<AttributeType, { name: string; full: number }> = {
+      intellect: { name: 'Intellect', full: 100 },
+      strength: { name: 'Strength', full: 100 },
+      creativity: { name: 'Creativity', full: 100 },
+      vitality: { name: 'Vitality', full: 100 },
+      discipline: { name: 'Discipline', full: 100 },
     };
 
     return (Object.keys(attrConfig) as AttributeType[]).map(key => {
@@ -145,7 +147,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
     for (let i = daysCount - 1; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(now.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = getLocalTodayStr(d);
       const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
       const dayMonth = `${d.getMonth() + 1}/${d.getDate()}`;
 
@@ -153,7 +155,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
         if (!q.completed) return false;
         if (q.lastCompletedDate) return q.lastCompletedDate === dateStr;
         if (q.completedAt) {
-          return new Date(q.completedAt).toISOString().split('T')[0] === dateStr;
+          return getLocalTodayStr(new Date(q.completedAt)) === dateStr;
         }
         return false;
       });

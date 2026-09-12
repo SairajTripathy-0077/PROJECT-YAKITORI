@@ -86,6 +86,16 @@ export const calculateStreakMultiplier = (streakDays: number): number => {
 };
 
 /**
+ * Calculates today's date string (YYYY-MM-DD) in local client time zone.
+ */
+export const getLocalTodayStr = (d = new Date()): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+/**
  * Check if an existing streak was broken by missing days.
  * Safe for mount checks without artificially creating streaks.
  */
@@ -96,7 +106,7 @@ export const checkStreakBreak = (
   if (!lastActiveDate || currentStreak <= 0) {
     return { streakDays: 0, activeMultiplier: 1.0 };
   }
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalTodayStr();
   if (lastActiveDate === today) {
     return { streakDays: currentStreak, activeMultiplier: calculateStreakMultiplier(currentStreak) };
   }
@@ -125,7 +135,7 @@ export const processDailyStreak = (
   updatedHistory: string[];
   isNewDay: boolean;
 } => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalTodayStr();
   const updatedHistory = Array.from(new Set([...history, today]));
 
   if (!lastActiveDate) {
@@ -369,14 +379,14 @@ export const getWeeklyActivityStatus = (activityHistory: string[] = []): { dayLa
   const monday = new Date(now);
   monday.setDate(now.getDate() - distanceToMonday);
 
-  const todayStr = now.toISOString().split('T')[0];
+  const todayStr = getLocalTodayStr(now);
   const historySet = new Set(activityHistory);
   const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   return dayLabels.map((dayLabel, idx) => {
     const currentDay = new Date(monday);
     currentDay.setDate(monday.getDate() + idx);
-    const dateStr = currentDay.toISOString().split('T')[0];
+    const dateStr = getLocalTodayStr(currentDay);
     const isActive = historySet.has(dateStr);
     const isToday = dateStr === todayStr;
 
@@ -410,7 +420,7 @@ export const getMonthCalendarGrid = (
   activeCount: number;
 } => {
   const historySet = new Set(activityHistory);
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalTodayStr();
 
   const firstDayOfMonth = new Date(year, month, 1);
   const lastDayOfMonth = new Date(year, month + 1, 0);

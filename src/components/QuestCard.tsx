@@ -1,10 +1,12 @@
 import { useState, type FC } from 'react';
 import type { Quest, AttributeType } from '../types/game';
 import { useGame } from '../context/GameContext';
+import { getLocalTodayStr } from '../utils/rpgEngine';
 import { 
   CheckSquare, 
   Square, 
   Trash2, 
+  Pencil,
   Brain, 
   Dumbbell, 
   Palette, 
@@ -18,11 +20,12 @@ import {
   Calendar,
   AlertCircle,
   Repeat,
-  Clock
+  Clock,
+  Lock
 } from 'lucide-react';
 
-export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
-  const { toggleQuest, deleteQuest, toggleSubtask, addSubtask } = useGame();
+export const QuestCard: FC<{ quest: Quest; onEditQuest?: (quest: Quest) => void }> = ({ quest, onEditQuest }) => {
+  const { toggleQuest, deleteQuest, toggleSubtask, addSubtask, selectedCalendarDate } = useGame();
   const [expanded, setExpanded] = useState(false);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
 
@@ -44,7 +47,7 @@ export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
   const getDeadlineInfo = (dueDateStr?: string) => {
     if (!dueDateStr) return null;
     try {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalTodayStr();
       const today = new Date(todayStr);
       const due = new Date(dueDateStr);
       
@@ -106,6 +109,15 @@ export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
     }
   };
 
+  const todayStr = getLocalTodayStr();
+  const isViewingFutureDate = Boolean(selectedCalendarDate && selectedCalendarDate > todayStr);
+  const isFutureQuest = !quest.completed && (
+    (Boolean(quest.dueDate) && quest.dueDate! > todayStr) || isViewingFutureDate
+  );
+  const futureLockDate = (quest.dueDate && quest.dueDate > todayStr)
+    ? quest.dueDate
+    : (selectedCalendarDate && selectedCalendarDate > todayStr ? selectedCalendarDate : todayStr);
+
   return (
     <div className={`double-bezel transition-all duration-200 ${quest.completed ? 'opacity-65' : ''}`}>
       <div className={`double-bezel-inner p-4 border-2 transition-colors ${quest.completed ? 'bg-[#e2e1d7] border-[#18181c]' : 'bg-[#ebeae4] border-[#18181c]'}`}>
@@ -114,19 +126,28 @@ export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
         <div className="flex items-start justify-between gap-3 mb-2">
           
           <div className="flex items-start gap-3 flex-1 min-w-0">
-            {/* Completion Checkbox */}
-            <button
-              onClick={() => toggleQuest(quest.id)}
-              className="mt-0.5 p-1 text-[#18181c] hover:text-black focus:outline-none transition-colors shrink-0"
-              title={quest.completed ? 'Mark as incomplete' : 'Complete quest & earn rewards!'}
-              aria-label={`Toggle completion for ${quest.title}`}
-            >
-              {quest.completed ? (
-                <CheckSquare className="w-6 h-6 text-[#18181c]" />
-              ) : (
-                <Square className="w-6 h-6 text-[#4a4943] hover:text-black" />
-              )}
-            </button>
+            {/* Completion Checkbox (Locked for future quests) */}
+            {isFutureQuest ? (
+              <div
+                className="mt-0.5 p-1 text-[#4a4943] shrink-0 cursor-not-allowed opacity-75"
+                title={`🔒 Scheduled for ${futureLockDate}. Can only be completed on that day!`}
+              >
+                <Lock className="w-5 h-5 text-amber-800" />
+              </div>
+            ) : (
+              <button
+                onClick={() => toggleQuest(quest.id)}
+                className="mt-0.5 p-1 text-[#18181c] hover:text-black focus:outline-none transition-colors shrink-0"
+                title={quest.completed ? 'Mark as incomplete' : 'Complete quest & earn rewards!'}
+                aria-label={`Toggle completion for ${quest.title}`}
+              >
+                {quest.completed ? (
+                  <CheckSquare className="w-6 h-6 text-[#18181c]" />
+                ) : (
+                  <Square className="w-6 h-6 text-[#4a4943] hover:text-black" />
+                )}
+              </button>
+            )}
 
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5">
@@ -153,8 +174,16 @@ export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
                   {quest.difficulty}
                 </span>
 
+                {/* Future Quest Locked Badge */}
+                {isFutureQuest && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-200 border border-amber-800 text-amber-950 text-[10px] font-mono font-bold shadow-pixel-sm" title={`Scheduled for ${futureLockDate}. Completion unlocked on that date!`}>
+                    <Lock className="w-3 h-3 text-amber-800" />
+                    <span>LOCKED UNTIL {futureLockDate}</span>
+                  </span>
+                )}
+
                 {/* Deadline Badge */}
-                {deadlineInfo && !quest.completed && (
+                {deadlineInfo && !quest.completed && !isFutureQuest && (
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 border text-[10px] font-mono shadow-pixel-sm ${deadlineInfo.color}`}>
                     <deadlineInfo.icon className="w-3 h-3" />
                     <span>{deadlineInfo.text}</span>
@@ -170,8 +199,12 @@ export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
                 )}
               </div>
 
-              {/* Title */}
-              <h3 className={`font-serif text-base sm:text-lg font-bold leading-snug break-words ${quest.completed ? 'line-through text-[#4a4943]' : 'text-[#111113]'}`}>
+              {/* Title (Clickable to Edit) */}
+              <h3 
+                onClick={() => onEditQuest?.(quest)}
+                className={`font-serif text-base sm:text-lg font-bold leading-snug break-words cursor-pointer hover:text-amber-800 transition-colors ${quest.completed ? 'line-through text-[#4a4943]' : 'text-[#111113]'}`}
+                title="Click to edit this quest"
+              >
                 {quest.title}
               </h3>
 
@@ -208,6 +241,15 @@ export const QuestCard: FC<{ quest: Quest }> = ({ quest }) => {
                   {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
               )}
+
+              <button
+                onClick={() => onEditQuest?.(quest)}
+                className="p-1 text-[#4a4943] hover:text-indigo-700 transition-colors"
+                title="Edit quest objective"
+                aria-label={`Edit quest ${quest.title}`}
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
 
               <button
                 onClick={() => deleteQuest(quest.id)}
