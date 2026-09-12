@@ -34,23 +34,242 @@ export const DEFAULT_PLAYER_STATS: PlayerStats = {
 
 export const DEFAULT_QUESTS: Quest[] = [];
 
-const ROW_TITLES = [
-  'Crimson Vanguard', 'Blaze Champions', 'Flame Sorcerers', 'Desert Wanderers',
-  'Sunblade Paladins', 'Forest Druids', 'Jade Hunters', 'Sea Tacticians',
-  'Ocean Guardians', 'Cobalt Shinobi', 'Shadow Stalkers', 'Dusk Marshals',
-  'Mystic Enchanters', 'Spectral Walkers', 'Cyber Ninjas', 'Silver Champions'
+const CHARACTER_DATA: Array<{ name: string; desc: string }> = [
+  // Row 0: Crimson Vanguard (0-11)
+  { name: 'Crimson Vanguard Ember', desc: 'A fiercely focused guardian who channels inner heat into productive study sprints.' },
+  { name: 'Crimson Vanguard Cinder', desc: 'A vigilant tactician who keeps the study room ablaze with relentless momentum.' },
+  { name: 'Crimson Vanguard Garnet', desc: 'A battle-tested scholar dressed in deep ruby armor, dedicated to mastering new skills.' },
+  { name: 'Crimson Vanguard Pyre', desc: 'A passionate striker who turns tough tasks into glowing victories.' },
+  { name: 'Crimson Vanguard Flare', desc: 'A radiant champion whose fiery spirit energizes allies across the leaderboard.' },
+  { name: 'Crimson Vanguard Carmine', desc: 'A disciplined strategist known for unwavering focus during intense work sessions.' },
+  { name: 'Crimson Vanguard Blaze', desc: 'An energetic pioneer who ignites task progress with unstoppable velocity.' },
+  { name: 'Crimson Vanguard Ignis', desc: 'A calm yet fiery researcher who turns complex problems into ashes.' },
+  { name: 'Crimson Vanguard Ruby', desc: 'A swift warrior of the red order, protecting study goals with sharp resolve.' },
+  { name: 'Crimson Vanguard Zenith', desc: 'A high-ranking sentinel who stands watch over daily habit streaks.' },
+  { name: 'Crimson Vanguard Scarlet', desc: 'A bold innovator whose vibrant presence inspires peak creativity.' },
+  { name: 'Crimson Vanguard Vermilion', desc: 'A master of momentum who transforms long study sessions into triumphal marches.' },
+
+  // Row 1: Blaze Champions (12-23)
+  { name: 'Blaze Champion Ash', desc: 'A resilient runner who rises from every challenge stronger and more focused.' },
+  { name: 'Blaze Champion Sol', desc: 'A bright strategist whose energetic warmth clears away study fatigue.' },
+  { name: 'Blaze Champion Phoenix', desc: 'An enduring scholar who reinvents study routines for maximum productivity.' },
+  { name: 'Blaze Champion Kindle', desc: 'A motivating presence that sparks quick task completions and momentum.' },
+  { name: 'Blaze Champion Spark', desc: 'A quick-witted thinker who solves complex problems in a flash.' },
+  { name: 'Blaze Champion Emberling', desc: 'A nimble helper dedicated to maintaining steady focus and daily gains.' },
+  { name: 'Blaze Champion Torch', desc: 'An inspiring guide who illuminates complex study pathways.' },
+  { name: 'Blaze Champion Emberwood', desc: 'A steady champion grounded in routine with a burning drive for success.' },
+  { name: 'Blaze Champion Inferno', desc: 'A high-powered overachiever who blitzes through massive task queues.' },
+  { name: 'Blaze Champion Scintilla', desc: 'A sharp analyst whose brilliant insights light up study sessions.' },
+  { name: 'Blaze Champion Vulcan', desc: 'An industrious artisan who forges rock-solid habits and workflows.' },
+  { name: 'Blaze Champion Solar', desc: 'A radiant competitor always aiming for the top spot on weekly leaderboards.' },
+
+  // Row 2: Flame Sorcerers (24-35)
+  { name: 'Flame Sorcerer Arcane', desc: 'A mysterious scholar weaving spellbinding focus routines and deep work.' },
+  { name: 'Flame Sorcerer Astral', desc: 'A visionary thinker mapping out grand project blueprints across cosmic realms.' },
+  { name: 'Flame Sorcerer Emberwing', desc: 'A swift aerial mystic who glides through task queues with elegance.' },
+  { name: 'Flame Sorcerer Rune', desc: 'A seeker of ancient knowledge who deciphers difficult formulas with ease.' },
+  { name: 'Flame Sorcerer Sigil', desc: 'A quiet researcher engraving structured habits into daily practice.' },
+  { name: 'Flame Sorcerer Vesper', desc: 'An evening scholar who achieves peak concentration under twilight skies.' },
+  { name: 'Flame Sorcerer Prism', desc: 'A brilliant analyst who splits complex problems into clear, actionable steps.' },
+  { name: 'Flame Sorcerer Aether', desc: 'A serene mystic who transforms mental chaos into pure clarity.' },
+  { name: 'Flame Sorcerer Nebula', desc: 'A creative mind that sparks out-of-this-world ideas and solutions.' },
+  { name: 'Flame Sorcerer Spellweaver', desc: 'A methodical organizer crafting flawless project workflows.' },
+  { name: 'Flame Sorcerer Eclipse', desc: 'A dark-hued sorcerer who shines brightest during quiet midnight study hours.' },
+  { name: 'Flame Sorcerer Zenith', desc: 'An elevated spellcaster reaching the highest tiers of academic discipline.' },
+
+  // Row 3: Desert Wanderers (36-47)
+  { name: 'Desert Wanderer Dune', desc: 'A patient traveller who navigates vast study modules with steady perseverance.' },
+  { name: 'Desert Wanderer Nomad', desc: 'A flexible scholar who thrives in any study environment or setup.' },
+  { name: 'Desert Wanderer Oasis', desc: 'A refreshing teammate bringing calm and balance to intense study sessions.' },
+  { name: 'Desert Wanderer Sahara', desc: 'An endurance master who maintains focus across long distance learning goals.' },
+  { name: 'Desert Wanderer Sirocco', desc: 'A swift wind-walker who breezes through reading lists and assignments.' },
+  { name: 'Desert Wanderer Dustral', desc: 'A rugged explorer uncovering hidden gems of knowledge in dusty archives.' },
+  { name: 'Desert Wanderer Mirage', desc: 'A clever tactician who visualizes success before taking decisive action.' },
+  { name: 'Desert Wanderer Golddust', desc: 'A prosperous seeker who turns every finished task into valuable experience.' },
+  { name: 'Desert Wanderer Scribe', desc: 'A dedicated archivist recording key insights and study milestones.' },
+  { name: 'Desert Wanderer Solstice', desc: 'A balanced tracker aligned with natural rhythms for optimal study stamina.' },
+  { name: 'Desert Wanderer Sunrider', desc: 'An optimistic journeyer who approaches every new quest with enthusiasm.' },
+  { name: 'Desert Wanderer Zephyr', desc: 'A light-footed adventurer who sails effortlessly over learning obstacles.' },
+
+  // Row 4: Sunblade Paladins (48-59)
+  { name: 'Sunblade Paladin Dawn', desc: 'A bright early riser who starts every day with clear priorities.' },
+  { name: 'Sunblade Paladin Ray', desc: 'An incisive thinker cutting straight through clutter to solve core problems.' },
+  { name: 'Sunblade Paladin Aurum', desc: 'A golden warrior upholding high standards of quality and integrity.' },
+  { name: 'Sunblade Paladin Aegis', desc: 'A steadfast protector of focus who shields study hours from distractions.' },
+  { name: 'Sunblade Paladin Valour', desc: 'A courageous scholar tackling the most daunting tasks head-on.' },
+  { name: 'Sunblade Paladin Meridian', desc: 'A peak performer who reaches high productivity during midday focus sprints.' },
+  { name: 'Sunblade Paladin Crest', desc: 'An honorable leader inspiring peers to achieve personal bests.' },
+  { name: 'Sunblade Paladin Daylight', desc: 'A clear-headed strategist who brings transparency to complex workflows.' },
+  { name: 'Sunblade Paladin Solis', desc: 'A radiant guardian whose positive energy fuels continuous progress.' },
+  { name: 'Sunblade Paladin Radiant', desc: 'A glowing exemplar of discipline, consistency, and academic excellence.' },
+  { name: 'Sunblade Paladin Shield', desc: 'A reliable teammate keeping study habits safe from procrastination.' },
+  { name: 'Sunblade Paladin Luminary', desc: 'A distinguished scholar whose insights guide others toward success.' },
+
+  // Row 5: Forest Druids (60-71)
+  { name: 'Forest Druid Sylvan', desc: 'A grounded naturalist who cultivates sustainable work habits and steady growth.' },
+  { name: 'Forest Druid Moss', desc: 'A quiet listener who absorbs vast information with patience and care.' },
+  { name: 'Forest Druid Willow', desc: 'A flexible thinker who adapts smoothly to changing deadlines and requirements.' },
+  { name: 'Forest Druid Fern', desc: 'A fresh learner constantly sprouting new skills and creative ideas.' },
+  { name: 'Forest Druid Birch', desc: 'An upright scholar maintaining clean organization and clear structure.' },
+  { name: 'Forest Druid Rowan', desc: 'A protective mentor guarding study environments for quiet concentration.' },
+  { name: 'Forest Druid Thorn', desc: 'A sharp problem solver who dismantles difficult challenges root and branch.' },
+  { name: 'Forest Druid Timber', desc: 'A strong-willed worker building durable knowledge foundations.' },
+  { name: 'Forest Druid Canopy', desc: 'A broad-minded strategist keeping an eye on the big picture.' },
+  { name: 'Forest Druid Flora', desc: 'An imaginative creator bringing color and vitality to every project.' },
+  { name: 'Forest Druid Cedar', desc: 'A fragrant soul whose presence creates a peaceful atmosphere for focus.' },
+  { name: 'Forest Druid Grove', desc: 'A community builder fostering collaborative study and shared achievements.' },
+
+  // Row 6: Jade Hunters (72-83)
+  { name: 'Jade Hunter Sage', desc: 'A wise tracker who locates the most efficient paths to completing goals.' },
+  { name: 'Jade Hunter Emerald', desc: 'A pristine analyst with an eye for detail and high accuracy.' },
+  { name: 'Jade Hunter Viridian', desc: 'A lively scout who discovers hidden resources and study tools.' },
+  { name: 'Jade Hunter Cypress', desc: 'An enduring tracker who stays on the trail until every task is done.' },
+  { name: 'Jade Hunter Malachite', desc: 'A structured organizer turning raw ideas into polished gems.' },
+  { name: 'Jade Hunter Clover', desc: 'A fortunate seeker who turns serendipitous discoveries into major breakthroughs.' },
+  { name: 'Jade Hunter Mosswood', desc: 'A quiet tracker navigating complex research topics with stealth and skill.' },
+  { name: 'Jade Hunter Basil', desc: 'A fresh perspective brought to traditional problem-solving methods.' },
+  { name: 'Jade Hunter Peridot', desc: 'A sharp-eyed observer who never misses an important task requirement.' },
+  { name: 'Jade Hunter Ivy', desc: 'An interconnected thinker linking diverse subjects into a cohesive whole.' },
+  { name: 'Jade Hunter Serpent', desc: 'An agile operator maneuvering around obstacles with precision.' },
+  { name: 'Jade Hunter Apex', desc: 'A top-tier hunter whose relentless pursuit of knowledge tops the boards.' },
+
+  // Row 7: Sea Tacticians (84-95)
+  { name: 'Sea Tactician Meridian', desc: 'A master navigator guiding complex projects through stormy deadlines.' },
+  { name: 'Sea Tactician Drift', desc: 'A relaxed yet perceptive mind flowing effortlessly with study tasks.' },
+  { name: 'Sea Tactician Current', desc: 'A dynamic operator who uses momentum to power through task lists.' },
+  { name: 'Sea Tactician Crest', desc: 'A high-achieving leader riding the wave of continuous progress.' },
+  { name: 'Sea Tactician Reef', desc: 'A sturdy foundation keeper building structured study modules.' },
+  { name: 'Sea Tactician Marina', desc: 'A methodical organizer keeping project workflows in pristine order.' },
+  { name: 'Sea Tactician Tide', desc: 'A rhythmic worker who uses timed pomodoro intervals for max efficiency.' },
+  { name: 'Sea Tactician Nautilus', desc: 'A deep diver into subject matter who uncovers profound insights.' },
+  { name: 'Sea Tactician Coral', desc: 'A vibrant contributor who adds rich detail to group study projects.' },
+  { name: 'Sea Tactician Breeze', desc: 'A calm strategist who reduces stress during high-stakes study crunch.' },
+  { name: 'Sea Tactician Cascade', desc: 'A fluid thinker whose ideas flow smoothly from concept to completion.' },
+  { name: 'Sea Tactician Voyager', desc: 'A lifelong explorer navigating uncharted academic domains.' },
+
+  // Row 8: Ocean Guardians (96-107)
+  { name: 'Ocean Guardian Abyss', desc: 'A deep thinker who tackles profound theoretical challenges without fear.' },
+  { name: 'Ocean Guardian Cobalt', desc: 'A sturdy defender of study time, unwavering against distractions.' },
+  { name: 'Ocean Guardian Pearl', desc: 'A refined scholar producing elegant, high-quality work.' },
+  { name: 'Ocean Guardian Trident', desc: 'A decisive operator who strikes down three main goals every single day.' },
+  { name: 'Ocean Guardian Azure', desc: 'A calm, clear-headed protector fostering serene study environments.' },
+  { name: 'Ocean Guardian Deepsea', desc: 'An adventurous diver exploring complex systems and codebase depths.' },
+  { name: 'Ocean Guardian Marine', desc: 'A versatile worker who feels at home in any subject area.' },
+  { name: 'Ocean Guardian Shell', desc: 'A self-contained scholar maintaining deep focus in busy environments.' },
+  { name: 'Ocean Guardian Aqua', desc: 'A fluid learner adapting quickly to new tools and methodologies.' },
+  { name: 'Ocean Guardian Triton', desc: 'A commanding strategist who coordinates study team workflows.' },
+  { name: 'Ocean Guardian Glacier', desc: 'A cool, collected individual who stays composed under tight deadlines.' },
+  { name: 'Ocean Guardian Wave', desc: 'An unstoppable force moving steadily toward long-term milestones.' },
+
+  // Row 9: Cobalt Shinobi (108-119)
+  { name: 'Cobalt Shinobi Void', desc: 'A silent operator who completes tasks rapidly without noise or fuss.' },
+  { name: 'Cobalt Shinobi Phantom', desc: 'An elusive worker who dispatches difficult items before anyone notices.' },
+  { name: 'Cobalt Shinobi Shade', desc: 'A quiet strategist operating efficiently in low-distraction spaces.' },
+  { name: 'Cobalt Shinobi Shadow', desc: 'A disciplined stealth scholar who stays laser-focused on targets.' },
+  { name: 'Cobalt Shinobi Mist', desc: 'A subtle problem solver who vaporizes complex blockers smoothly.' },
+  { name: 'Cobalt Shinobi Nightfall', desc: 'A nocturnal specialist achieving peak code and study velocity at dusk.' },
+  { name: 'Cobalt Shinobi Cipher', desc: 'An expert in decoding complex logic, algorithms, and cryptography.' },
+  { name: 'Cobalt Shinobi Spectre', desc: 'A swift agent who haunts the leaderboard with unmatched consistency.' },
+  { name: 'Cobalt Shinobi Blade', desc: 'A razor-sharp mind cutting straight to the essential facts.' },
+  { name: 'Cobalt Shinobi Echo', desc: 'A responsive learner who absorbs and mirrors complex concepts instantly.' },
+  { name: 'Cobalt Shinobi Dusk', desc: 'An evening operative finishing off remaining daily items with grace.' },
+  { name: 'Cobalt Shinobi Stealth', desc: 'A low-profile achiever delivering high output without fanfare.' },
+
+  // Row 10: Shadow Stalkers (120-131)
+  { name: 'Shadow Stalker Onyx', desc: 'A solid, dark-gemmed guardian who resists all forms of procrastination.' },
+  { name: 'Shadow Stalker Eclipse', desc: 'An intense thinker who overshadows difficult challenges with deep focus.' },
+  { name: 'Shadow Stalker Raven', desc: 'A wise bird of prey scanning study material for key takeaways.' },
+  { name: 'Shadow Stalker Umbra', desc: 'A serene twilight wanderer who finds peace in quiet study hours.' },
+  { name: 'Shadow Stalker Obsidian', desc: 'A sharp-edged scholar forging unbreakable study habits.' },
+  { name: 'Shadow Stalker Midnight', desc: 'A nocturnal master who owns the night-shift focus sessions.' },
+  { name: 'Shadow Stalker Gloom', desc: 'A quiet, serious researcher who dissects complex problems methodically.' },
+  { name: 'Shadow Stalker Abyss', desc: 'A fearless explorer into deep, mysterious technical documentation.' },
+  { name: 'Shadow Stalker Sable', desc: 'A sleek operator moving smoothly through multi-step assignments.' },
+  { name: 'Shadow Stalker Voidwalker', desc: 'A transcendent worker who enters flow states effortlessly.' },
+  { name: 'Shadow Stalker Twilight', desc: 'A balanced strategist bridging day tasks and night revisions.' },
+  { name: 'Shadow Stalker Spectre', desc: 'A swift solver who finishes tasks before deadlines can loom.' },
+
+  // Row 11: Dusk Marshals (132-143)
+  { name: 'Dusk Marshal Twilight', desc: 'An authoritative leader bringing order and structure to study group goals.' },
+  { name: 'Dusk Marshal Vesper', desc: 'A calm officer maintaining steady progress during late study hours.' },
+  { name: 'Dusk Marshal Sterling', desc: 'A silver-badged officer enforcing high standards of accuracy.' },
+  { name: 'Dusk Marshal Sentinel', desc: 'A watchful protector ensuring no study task falls through the cracks.' },
+  { name: 'Dusk Marshal Warden', desc: 'A dedicated custodian of quality learning and habit discipline.' },
+  { name: 'Dusk Marshal Horizon', desc: 'A forward-looking officer planning strategic long-term study roadmaps.' },
+  { name: 'Dusk Marshal Duskwing', desc: 'A swift patrol agent monitoring progress across multiple subjects.' },
+  { name: 'Dusk Marshal Orion', desc: 'A stellar navigator guiding study groups toward ambitious milestones.' },
+  { name: 'Dusk Marshal Eclipse', desc: 'A decisive officer who shuts down procrastination without hesitation.' },
+  { name: 'Dusk Marshal Valour', desc: 'A brave reformer taking on tough learning challenges.' },
+  { name: 'Dusk Marshal Merit', desc: 'A decorated achiever whose consistency earns top recognition.' },
+  { name: 'Dusk Marshal Zenith', desc: 'A top-ranking marshal setting high standards for academic excellence.' },
+
+  // Row 12: Mystic Enchanters (144-155)
+  { name: 'Mystic Enchanter Rune', desc: 'A wise spellcaster unlocking the secrets of complex subject matter.' },
+  { name: 'Mystic Enchanter Astra', desc: 'A cosmic thinker connecting distant concepts into grand unified ideas.' },
+  { name: 'Mystic Enchanter Prism', desc: 'A colorful visionary bringing creative energy to technical problems.' },
+  { name: 'Mystic Enchanter Arcane', desc: 'A deep scholar of fundamental principles and abstract reasoning.' },
+  { name: 'Mystic Enchanter Spellbound', desc: 'A captivating communicator who makes learning engaging and clear.' },
+  { name: 'Mystic Enchanter Ether', desc: 'A sublime thinker who elevates ordinary study into an art form.' },
+  { name: 'Mystic Enchanter Glypha', desc: 'A precise symbolist who creates intuitive study notes and diagrams.' },
+  { name: 'Mystic Enchanter Celestial', desc: 'A stellar scholar reaching for cosmic heights in personal achievement.' },
+  { name: 'Mystic Enchanter Alchemy', desc: 'A master transformer who turns raw effort into pure skill.' },
+  { name: 'Mystic Enchanter Mirage', desc: 'An inventive mind crafting vivid visual aids for complex topics.' },
+  { name: 'Mystic Enchanter Oracle', desc: 'An intuitive predictor who anticipates exam topics and project needs.' },
+  { name: 'Mystic Enchanter Horizon', desc: 'A visionary whose curious spirit pushes beyond current knowledge boundaries.' },
+
+  // Row 13: Spectral Walkers (156-167)
+  { name: 'Spectral Walker Phantom', desc: 'A ghost-like entity passing effortlessly through dense study material.' },
+  { name: 'Spectral Walker Wraith', desc: 'A swift reader who skims and extracts key knowledge in seconds.' },
+  { name: 'Spectral Walker Haunt', desc: 'A persistent presence that stays with a problem until it is solved.' },
+  { name: 'Spectral Walker Ghost', desc: 'An ethereal worker operating quietly behind the scenes.' },
+  { name: 'Spectral Walker Spirit', desc: 'An uplifting companion who infuses study sessions with positive energy.' },
+  { name: 'Spectral Walker Vision', desc: 'A clear-sighted thinker who visualizes solutions before building them.' },
+  { name: 'Spectral Walker Banshee', desc: 'An energetic herald announcing major quest milestones and level-ups.' },
+  { name: 'Spectral Walker Astral', desc: 'A traveler between theoretical concepts and practical applications.' },
+  { name: 'Spectral Walker Mist', desc: 'An elusive mind that dissolves confusing problems into simple steps.' },
+  { name: 'Spectral Walker Shade', desc: 'A cool, quiet worker thriving under low-pressure focus sessions.' },
+  { name: 'Spectral Walker Echo', desc: 'A resonant communicator sharing valuable study takeaways with peers.' },
+  { name: 'Spectral Walker Revenant', desc: 'A relentless achiever who returns to unfinished goals until victorious.' },
+
+  // Row 14: Cyber Ninjas (168-179)
+  { name: 'Cyber Ninja Matrix', desc: 'A digital mastermind decoding complex data structures and code logic.' },
+  { name: 'Cyber Ninja Pulse', desc: 'A high-speed operator working at the rhythm of 60fps efficiency.' },
+  { name: 'Cyber Ninja Neon', desc: 'A vibrant tech enthusiast whose bright code lights up the terminal.' },
+  { name: 'Cyber Ninja Vector', desc: 'A precise developer navigating geometric pathways and UI layouts.' },
+  { name: 'Cyber Ninja Cyberpunk', desc: 'A futuristic innovator breaking past outdated study paradigms.' },
+  { name: 'Cyber Ninja Circuit', desc: 'A logical thinker connecting all components into seamless workflows.' },
+  { name: 'Cyber Ninja Byte', desc: 'A micro-focused scholar executing tasks with bit-precise perfection.' },
+  { name: 'Cyber Ninja Glitch', desc: 'An unconventional solver who finds creative workarounds to complex bugs.' },
+  { name: 'Cyber Ninja Synth', desc: 'A harmonious integrator blending aesthetics and functionality.' },
+  { name: 'Cyber Ninja Pixel', desc: 'A detail-oriented artisan crafting crisp, pixel-perfect artifacts.' },
+  { name: 'Cyber Ninja Data', desc: 'An analytical mind transforming raw metrics into actionable insights.' },
+  { name: 'Cyber Ninja Binary', desc: 'A clear-cut decision maker who resolves dilemmas with absolute clarity.' },
+
+  // Row 15: Silver Champions (180-191)
+  { name: 'Silver Champion Apex', desc: 'The pinnacle of academic achievement and relentless consistency.' },
+  { name: 'Silver Champion Sterling', desc: 'A pristine competitor whose work shines with silver perfection.' },
+  { name: 'Silver Champion Platinum', desc: 'A top-tier scholar who sets the gold standard for silver heroes.' },
+  { name: 'Silver Champion Quicksilver', desc: 'A lightning-fast worker adapting instantly to any new task.' },
+  { name: 'Silver Champion Argent', desc: 'An elegant strategist whose refined methods guarantee success.' },
+  { name: 'Silver Champion Valor', desc: 'An inspiring leader carrying the banner of study room perseverance.' },
+  { name: 'Silver Champion Crest', desc: 'A high-ranking champion honored for continuous daily habit streaks.' },
+  { name: 'Silver Champion Shield', desc: 'A dedicated protector of team productivity and shared goals.' },
+  { name: 'Silver Champion Crown', desc: 'A distinguished achiever crowning their study journey with legendary status.' },
+  { name: 'Silver Champion Mirror', desc: 'A reflective scholar who learns from every mistake and continuously improves.' },
+  { name: 'Silver Champion Zenith', desc: 'An ultimate master hovering at the absolute peak of the leaderboard.' },
+  { name: 'Silver Champion Genesis', desc: 'The foundational pioneer where every great study adventure begins.' },
 ];
 
-export const SPRITE_CHARACTER_ITEMS: ShopItem[] = Array.from({ length: 192 }, (_, i) => {
+export const SPRITE_CHARACTER_ITEMS: ShopItem[] = CHARACTER_DATA.map((item, i) => {
   const row = Math.floor(i / 12);
-  const col = (i % 12) + 1;
-  const group = ROW_TITLES[row] || 'Hero Guild';
-  const price = i === 0 ? 0 : 50 + (row * 10) + ((i % 5) * 5);
+  const col = i % 12;
+  // Prices are guaranteed multiples of 10: 0g for index 0, and 50g + row*10 + (col%5)*10 for others
+  const price = i === 0 ? 0 : 50 + (row * 10) + ((col % 5) * 10);
 
   return {
     id: `char_sprite_${i}`,
-    name: `${group} #${col}`,
-    description: `Sliced pixel character #${i + 1} from ${group}. Equippable live avatar for study room presence & leaderboards!`,
+    name: item.name,
+    description: item.desc,
     price,
     icon: '👤',
     category: 'character',

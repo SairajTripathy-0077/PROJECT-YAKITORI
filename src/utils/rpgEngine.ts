@@ -11,9 +11,9 @@ import type {
  * Base rewards for each quest difficulty tier.
  */
 export const DIFFICULTY_REWARDS: Record<QuestDifficulty, { xp: number; gold: number; label: string }> = {
-  easy: { xp: 25, gold: 15, label: 'Easy' },
-  medium: { xp: 50, gold: 35, label: 'Medium' },
-  hard: { xp: 100, gold: 75, label: 'Hard' },
+  easy: { xp: 25, gold: 10, label: 'Easy' },
+  medium: { xp: 50, gold: 30, label: 'Medium' },
+  hard: { xp: 100, gold: 70, label: 'Hard' },
   boss: { xp: 220, gold: 150, label: 'Boss' },
 };
 

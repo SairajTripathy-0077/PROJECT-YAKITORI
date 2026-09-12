@@ -119,9 +119,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setPlayerStats(loadedStats);
         setAttributes({ ...DEFAULT_ATTRIBUTES, ...(parsed.attributes || {}) });
         if (Array.isArray(parsed.shopItems) && parsed.shopItems.length > 0) {
-          const existingIds = new Set(parsed.shopItems.map((item: ShopItem) => item.id));
-          const newItems = INITIAL_SHOP_ITEMS.filter(item => !existingIds.has(item.id));
-          setShopItems([...parsed.shopItems, ...newItems]);
+          const savedMap = new Map<string, ShopItem>(parsed.shopItems.map((s: ShopItem) => [s.id, s]));
+          const mergedItems = INITIAL_SHOP_ITEMS.map(initial => {
+            const saved = savedMap.get(initial.id);
+            if (saved) {
+              return {
+                ...initial,
+                purchased: saved.purchased ?? initial.purchased,
+                equipped: saved.equipped ?? initial.equipped,
+              };
+            }
+            return initial;
+          });
+          setShopItems(mergedItems);
         } else {
           setShopItems(INITIAL_SHOP_ITEMS);
         }
@@ -136,15 +146,21 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [storageKey]);
 
-  // Ensure all newly added initial shop items (like the 192 characters) are guaranteed to be present in state
+  // Ensure all initial shop items (including updated character metadata) are synced to state
   useEffect(() => {
     setShopItems(prev => {
-      const existingIds = new Set(prev.map(i => i.id));
-      const missing = INITIAL_SHOP_ITEMS.filter(i => !existingIds.has(i.id));
-      if (missing.length > 0) {
-        return [...prev, ...missing];
-      }
-      return prev;
+      const savedMap = new Map<string, ShopItem>(prev.map((i: ShopItem) => [i.id, i]));
+      return INITIAL_SHOP_ITEMS.map(initial => {
+        const saved = savedMap.get(initial.id);
+        if (saved) {
+          return {
+            ...initial,
+            purchased: saved.purchased ?? initial.purchased,
+            equipped: saved.equipped ?? initial.equipped,
+          };
+        }
+        return initial;
+      });
     });
   }, []);
 
