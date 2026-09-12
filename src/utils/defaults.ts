@@ -33,6 +33,7 @@ export const DEFAULT_PLAYER_STATS: PlayerStats = {
   equippedTheme: 'noir',
   equippedBadge: 'badge_novice',
   equippedDroneSkin: 'default',
+  equippedCharacter: 0,
   inventory: ['theme_noir', 'badge_novice'],
 };
 
