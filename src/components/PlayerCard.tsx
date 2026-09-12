@@ -37,10 +37,10 @@ const ATTRIBUTE_DESCRIPTIONS: Record<AttributeType, { name: string; desc: string
 };
 
 export const PlayerCard: FC = () => {
-  const { playerStats, attributes, shopItems } = useGame();
+  const { playerStats, attributes } = useGame();
 
   const xpPercent = Math.min(100, Math.round((playerStats.xp / playerStats.xpToNextLevel) * 100));
-  const equippedItems = shopItems.filter(i => i.purchased && i.equipped);
+
 
   return (
     <div className="double-bezel h-full">
@@ -154,21 +154,8 @@ export const PlayerCard: FC = () => {
           </div>
         </div>
 
-        {/* Equipped Loadout & Buffs */}
-        {equippedItems.length > 0 && (
-          <div className="pt-3 border-t border-[#18181c]/40 flex flex-wrap items-center gap-2 text-xs font-mono">
-            <span className="text-[#4a4943] text-[11px] uppercase tracking-wider font-pixel font-bold">Active Buffs:</span>
-            {equippedItems.map(item => (
-              <span key={item.id} className="px-2 py-1 bg-[#18181c] text-[#f5f4ef] border border-black flex items-center gap-1.5 shadow-pixel-sm">
-                <span>{item.icon}</span>
-                <span className="font-bold">{item.name}</span>
-                <span className="text-amber-400 text-[10px]">({item.effect})</span>
-              </span>
-            ))}
-          </div>
-        )}
-
       </div>
     </div>
   );
 };
+
