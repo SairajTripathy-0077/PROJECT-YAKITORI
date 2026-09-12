@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { useGame } from '../context/GameContext';
 import { Brain, Dumbbell, Palette, Zap, Shield, Sparkles, Award, Coins, User } from 'lucide-react';
 import type { AttributeType } from '../types/game';
+import { SpriteCharacter } from './SpriteCharacter';
 
 const ATTRIBUTE_DESCRIPTIONS: Record<AttributeType, { name: string; desc: string; color: string; icon: any }> = {
   intellect: {
@@ -52,8 +53,12 @@ export const PlayerCard: FC<PlayerCardProps> = () => {
           {/* Character Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-[#18181c]/20">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-[#18181c] text-[#f5f4ef] border-2 border-black flex items-center justify-center shadow-pixel shrink-0">
-                <User className="w-6 h-6 text-amber-400" />
+              <div className="w-12 h-12 bg-[#18181c] text-[#f5f4ef] border-2 border-black flex items-center justify-center shadow-pixel shrink-0 overflow-hidden relative">
+                {playerStats.equippedCharacter !== undefined ? (
+                  <SpriteCharacter index={playerStats.equippedCharacter} size={48} alt="Player Avatar" />
+                ) : (
+                  <User className="w-6 h-6 text-amber-400" />
+                )}
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">

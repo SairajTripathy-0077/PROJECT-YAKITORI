@@ -94,6 +94,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [levelUpModalData, setLevelUpModalData] = useState<LevelUpModalData | null>(null);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
+  // Sync profile data from backend to local context if present
+  useEffect(() => {
+    if (dbProfile) {
+      setPlayerStats(prev => {
+        if (
+          (dbProfile as any).equippedCharacter !== undefined &&
+          prev.equippedCharacter !== (dbProfile as any).equippedCharacter
+        ) {
+          return {
+            ...prev,
+            equippedCharacter: (dbProfile as any).equippedCharacter ?? prev.equippedCharacter,
+            inventory: (dbProfile as any).inventory ?? prev.inventory,
+          };
+        }
+        return prev;
+      });
+    }
+  }, [dbProfile]);
+
   // Load user data & migrate guest progress whenever user or storageKey changes
   useEffect(() => {
     let saved = localStorage.getItem(storageKey);
@@ -150,7 +169,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setQuests(DEFAULT_QUESTS);
         }
-
         const loadedStats: PlayerStats = { ...DEFAULT_PLAYER_STATS, ...(parsedToUse.playerStats || {}) };
         
         // Ensure character title & XP thresholds are calculated correctly for restored level
@@ -159,25 +177,67 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loadedStats.xpToNextLevel = calculateCharacterXpThreshold(loadedStats.level);
         loadedStats.xp = Math.max(0, Number(loadedStats.xp) || 0);
 
+        // Purge dummy streak / mock stats: if total completed quests is 0 or legacy 3-day dummy streak
+        if (!loadedStats.totalCompletedQuests || loadedStats.totalCompletedQuests <= 0) {
+          loadedStats.streakDays = 0;
+          loadedStats.activeMultiplier = 1.0;
+          loadedStats.activityHistory = [];
+        } else if (
+          loadedStats.streakDays === 3 &&
+          loadedStats.activeMultiplier === 1.3 &&
+          (loadedStats.name === 'Pixel Questmaster' || loadedStats.totalCompletedQuests <= 2)
+        ) {
+          loadedStats.streakDays = 0;
+          loadedStats.activeMultiplier = 1.0;
+          loadedStats.activityHistory = [];
+        }
+        // Retroactively ensure equipped character is in inventory
+        if (loadedStats.equippedCharacter !== undefined) {
+          const equippedId = `char_sprite_${loadedStats.equippedCharacter}`;
+          if (!loadedStats.inventory) loadedStats.inventory = [];
+          if (!loadedStats.inventory.includes(equippedId)) {
+            loadedStats.inventory.push(equippedId);
+          }
+        }
+        
         setPlayerStats(loadedStats);
         setAttributes({ ...DEFAULT_ATTRIBUTES, ...(parsedToUse.attributes || {}) });
 
         if (Array.isArray(parsedToUse.shopItems) && parsedToUse.shopItems.length > 0) {
           const savedMap = new Map<string, ShopItem>(parsedToUse.shopItems.map((s: ShopItem) => [s.id, s]));
           const mergedItems = INITIAL_SHOP_ITEMS.map(initial => {
-            const savedItem = savedMap.get(initial.id);
-            if (savedItem) {
+            const saved = savedMap.get(initial.id);
+            const isEquipped = loadedStats.equippedCharacter !== undefined && initial.id === `char_sprite_${loadedStats.equippedCharacter}`;
+            
+            if (saved) {
               return {
                 ...initial,
-                purchased: savedItem.purchased ?? initial.purchased,
-                equipped: savedItem.equipped ?? initial.equipped,
+                purchased: isEquipped ? true : (saved.purchased ?? initial.purchased),
+                equipped: saved.equipped ?? initial.equipped,
               };
             }
-            return initial;
+            return {
+              ...initial,
+              purchased: isEquipped ? true : initial.purchased
+            };
+          });
+              };
+            }
+            return {
+              ...initial,
+              purchased: isEquipped ? true : initial.purchased
+            };
           });
           setShopItems(mergedItems);
         } else {
-          setShopItems(INITIAL_SHOP_ITEMS);
+          // If no shop items saved, ensure equipped character is purchased in defaults
+          const items = INITIAL_SHOP_ITEMS.map(i => {
+            if (loadedStats.equippedCharacter !== undefined && i.id === `char_sprite_${loadedStats.equippedCharacter}`) {
+              return { ...i, purchased: true };
+            }
+            return i;
+          });
+          setShopItems(items);
         }
       } catch (e) {
         console.error('Failed to parse RPG progress', e);
@@ -259,9 +319,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         streakDays: playerStats.streakDays,
         characterClass: playerStats.characterClass,
         avatarIcon,
+        equippedCharacter: playerStats.equippedCharacter,
+        inventory: playerStats.inventory,
       }).catch(() => {});
     }
-  }, [user, isLoaded, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass]);
+  }, [user, isLoaded, playerStats.level, playerStats.xp, playerStats.streakDays, playerStats.characterClass, playerStats.equippedCharacter, playerStats.inventory]);
 
   // Check Daily Streak break & Auto-refresh Daily Habits on session mount
   useEffect(() => {
@@ -578,10 +640,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updatePlayerCharacter = (data: { name?: string; characterClass?: string; equippedCharacter?: number; avatar?: string }) => {
-    setPlayerStats(prev => ({
-      ...prev,
-      ...data,
-    }));
+    setPlayerStats(prev => {
+      const next = { ...prev, ...data };
+      
+      // Auto-add newly equipped character to inventory if missing
+      if (data.equippedCharacter !== undefined) {
+        const spriteId = `char_sprite_${data.equippedCharacter}`;
+        if (!next.inventory) next.inventory = [];
+        if (!next.inventory.includes(spriteId)) {
+          next.inventory = [...next.inventory, spriteId];
+        }
+      }
+      return next;
+    });
+
+    // Auto-mark as purchased in shop
+    if (data.equippedCharacter !== undefined) {
+      const spriteId = `char_sprite_${data.equippedCharacter}`;
+      setShopItems(prev => prev.map(i => i.id === spriteId ? { ...i, purchased: true } : i));
+    }
   };
 
   const updateAttributes = (newAttrs: AttributeMap) => {

@@ -32,7 +32,6 @@ interface NavbarProps {
   onOpenStudyRoom: () => void;
   onOpenAnalytics: () => void;
   onOpenCharacterCreation?: () => void;
-  onOpenAuth: () => void;
   viewMode: 'landing' | 'app' | 'study' | 'analytics';
   onToggleViewMode: (mode?: 'landing' | 'app' | 'study' | 'analytics') => void;
 }
@@ -44,7 +43,6 @@ export const Navbar: FC<NavbarProps> = ({
   onOpenStudyRoom,
   onOpenAnalytics,
   onOpenCharacterCreation,
-  onOpenAuth,
   viewMode,
   onToggleViewMode
 }) => {
@@ -112,8 +110,16 @@ export const Navbar: FC<NavbarProps> = ({
           <div className="flex items-center gap-2">
             {user ? (
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-[#111113] bg-[#ebeae4] px-2.5 py-1 border border-[#18181c] hidden sm:inline-block">
-                  {user.isAnonymous ? 'GUEST HERO' : user.email || 'HERO'}
+                <button
+                  onClick={logout}
+                  className="px-3 py-2 pixel-btn font-pixel text-[10px] font-bold uppercase tracking-wider text-red-700 flex items-center gap-1.5"
+                  title="Switch Account"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">SWITCH</span>
+                </button>
+                <span className="font-mono text-xs font-bold text-[#111113] bg-[#ebeae4] px-2.5 py-1.5 border border-[#18181c] hidden sm:inline-block">
+                  {user.isAnonymous ? 'GUEST HERO' : playerStats.name || 'HERO'}
                 </span>
                 <button
                   onClick={() => onToggleViewMode('app')}
@@ -261,7 +267,7 @@ export const Navbar: FC<NavbarProps> = ({
                       >
                         <span className="flex items-center gap-2">
                           <BarChart3 className="w-4 h-4 text-indigo-700" />
-                          <span>Progress Charts</span>
+                          <span>Dashboard</span>
                         </span>
                         {viewMode === 'analytics' && <span className="text-[10px] font-pixel text-amber-400">ACTIVE</span>}
                       </button>
@@ -281,24 +287,6 @@ export const Navbar: FC<NavbarProps> = ({
                           192 CHARS
                         </span>
                       </button>
-
-                      {onOpenCharacterCreation && (
-                        <button
-                          onClick={() => {
-                            onOpenCharacterCreation();
-                            setIsMenuOpen(false);
-                          }}
-                          className="w-full text-left px-2.5 py-2 font-mono flex items-center justify-between hover:bg-[#ebeae4] transition-colors text-amber-900 font-bold"
-                        >
-                          <span className="flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-amber-600 animate-pulse" />
-                            <span>Hero Customization</span>
-                          </span>
-                          <span className="text-[9px] font-pixel bg-amber-100 text-amber-950 px-1.5 py-0.5 border border-amber-700">
-                            ORIGIN
-                          </span>
-                        </button>
-                      )}
                     </div>
 
 

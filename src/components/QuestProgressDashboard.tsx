@@ -42,7 +42,13 @@ import {
   Award,
   User,
   Wand2,
-  Dice5
+  Dice5,
+  Crosshair,
+  ListTodo,
+  X,
+  Image as ImageIcon,
+  Edit2,
+  Check
 } from 'lucide-react';
 import type { AttributeType, QuestDifficulty, QuestType } from '../types/game';
 
@@ -97,11 +103,14 @@ const CustomPixelTooltip: FC<CustomTooltipProps> = ({ active, payload, label, un
 };
 
 export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBackToQuests, onOpenCharacterCreation }) => {
-  const { quests, playerStats, attributes, theme } = useGame();
+  const { quests, playerStats, attributes, theme, inventory, updatePlayerCharacter } = useGame();
   const isEink = theme === 'eink';
 
   const [timeRange, setTimeRange] = useState<'7days' | '14days' | 'all'>('7days');
   const [activeTab, setActiveTab] = useState<'overview' | 'attributes' | 'breakdown'>('overview');
+  const [isAvatarSelectorOpen, setIsAvatarSelectorOpen] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editNameValue, setEditNameValue] = useState(playerStats.name || 'Hero Adventurer');
 
   // Chart theme tokens
   const gridColor = isEink ? '#dcdbd5' : '#33322d';
@@ -332,9 +341,64 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
 
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-pixel text-lg sm:text-xl font-bold uppercase tracking-wider text-amber-500">
-                  {playerStats.name || 'Hero Adventurer'}
-                </h3>
+                {isEditingName ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editNameValue}
+                      onChange={(e) => setEditNameValue(e.target.value)}
+                      className={`font-pixel text-lg sm:text-xl font-bold uppercase tracking-wider px-2 py-1 outline-none w-48 sm:w-64 ${
+                        isEink ? 'bg-white text-black border-2 border-black' : 'bg-black text-white border-2 border-[#33322d]'
+                      }`}
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          updatePlayerCharacter({ name: editNameValue });
+                          setIsEditingName(false);
+                        } else if (e.key === 'Escape') {
+                          setEditNameValue(playerStats.name || 'Hero Adventurer');
+                          setIsEditingName(false);
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        updatePlayerCharacter({ name: editNameValue });
+                        setIsEditingName(false);
+                      }}
+                      className="p-1.5 bg-emerald-500 text-white hover:bg-emerald-600 border border-black transition-colors"
+                      title="Save Name"
+                    >
+                      <Check className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditNameValue(playerStats.name || 'Hero Adventurer');
+                        setIsEditingName(false);
+                      }}
+                      className="p-1.5 bg-red-500 text-white hover:bg-red-600 border border-black transition-colors"
+                      title="Cancel"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 group">
+                    <h3 className="font-pixel text-lg sm:text-xl font-bold uppercase tracking-wider text-amber-500">
+                      {playerStats.name || 'Hero Adventurer'}
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setEditNameValue(playerStats.name || 'Hero Adventurer');
+                        setIsEditingName(true);
+                      }}
+                      className={`p-1 opacity-0 group-hover:opacity-100 transition-opacity rounded ${isEink ? 'hover:bg-black/10' : 'hover:bg-white/10'}`}
+                      title="Edit Hero Name"
+                    >
+                      <Edit2 className="w-3.5 h-3.5 text-amber-600" />
+                    </button>
+                  </div>
+                )}
                 <span className="font-mono text-xs px-2 py-0.5 border font-bold bg-amber-500/10 text-amber-500 border-amber-500/30 tabular-nums">
                   Lv.{playerStats.level}
                 </span>
@@ -358,17 +422,103 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
             </div>
           </div>
 
-          {onOpenCharacterCreation && (
+          <div className="flex flex-col gap-2">
+            {onOpenCharacterCreation && (
+              <button
+                onClick={onOpenCharacterCreation}
+                className="px-4 py-2 pixel-btn font-pixel text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 shadow-pixel-sm active:scale-[0.96] transition-transform w-full justify-center"
+              >
+                <Dice5 className="w-3.5 h-3.5 text-amber-500" />
+                <span>REROLL SPRITE</span>
+              </button>
+            )}
             <button
-              onClick={onOpenCharacterCreation}
-              className="px-4 py-2.5 pixel-btn font-pixel text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-pixel-sm active:scale-[0.96] transition-transform"
+              onClick={() => setIsAvatarSelectorOpen(true)}
+              className="px-4 py-2 pixel-btn font-pixel text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 shadow-pixel-sm active:scale-[0.96] transition-transform w-full justify-center"
             >
-              <Dice5 className="w-4 h-4 text-amber-500" />
-              <span>CUSTOMIZE / REROLL SPRITE</span>
+              <ImageIcon className="w-3.5 h-3.5 text-blue-500" />
+              <span>INVENTORY</span>
             </button>
-          )}
+          </div>
         </div>
       </div>
+
+      {/* Avatar Selector Modal */}
+      {isAvatarSelectorOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsAvatarSelectorOpen(false)} />
+          <div className={`relative double-bezel w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col ${isEink ? 'bg-[#ebeae4]' : 'bg-[#18181c]'}`}>
+            <div className={`double-bezel-inner p-6 flex flex-col h-full border-2 ${isEink ? 'border-[#18181c]' : 'border-[#33322d]'}`}>
+              <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-dashed border-[#18181c]/30">
+                <div className="flex items-center gap-3">
+                  <ImageIcon className="w-6 h-6 text-blue-500" />
+                  <h2 className={`font-pixel text-xl uppercase font-extrabold text-[#111113]`}>
+                    Avatar Inventory
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setIsAvatarSelectorOpen(false)}
+                  className={`p-2 hover:bg-black/10 transition-colors ${isEink ? 'text-[#111113]' : 'text-[#f5f4ef]'}`}
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto pr-2 custom-scrollbar flex-1">
+                {(!playerStats.inventory || playerStats.inventory.filter(i => i.startsWith('char_sprite_')).length === 0) ? (
+                  <div className="text-center p-12 space-y-4">
+                    <div className="text-5xl opacity-50">📦</div>
+                    <h3 className={`font-pixel text-lg ${isEink ? 'text-[#111113]' : 'text-[#f5f4ef]'}`}>No Avatars Unlocked</h3>
+                    <p className={`font-mono text-sm ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+                      Complete quests and visit the shop to unlock new sprites!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                    {/* Always include the currently equipped avatar even if not in inventory explicitly, or just list inventory */}
+                    {Array.from(new Set([
+                      ...(playerStats.equippedCharacter !== undefined ? [`char_sprite_${playerStats.equippedCharacter}`] : []),
+                      ...(playerStats.inventory || []).filter(i => i.startsWith('char_sprite_'))
+                    ])).map(itemId => {
+                      const spriteIndex = parseInt(itemId.replace('char_sprite_', ''), 10);
+                      const isEquipped = playerStats.equippedCharacter === spriteIndex;
+                      
+                      return (
+                        <button
+                          key={itemId}
+                          onClick={() => {
+                            updatePlayerCharacter({ equippedCharacter: spriteIndex });
+                            setIsAvatarSelectorOpen(false);
+                          }}
+                          className={`relative aspect-square flex flex-col items-center justify-center gap-2 p-2 border-2 transition-all duration-150 group overflow-hidden ${
+                            isEquipped 
+                              ? 'bg-amber-100 border-amber-500' 
+                              : 'bg-[#f5f4ef] border-[#18181c] hover:border-blue-500 hover:bg-blue-50'
+                          }`}
+                        >
+                          <div className="scale-150 origin-bottom transform group-hover:scale-[1.65] transition-transform">
+                            <SpriteCharacter index={spriteIndex} size={32} alt={`Avatar #${spriteIndex + 1}`} />
+                          </div>
+                          {isEquipped && (
+                            <div className="absolute top-1 right-1">
+                              <CheckCircle2 className="w-4 h-4 text-amber-600 bg-amber-100 rounded-full" />
+                            </div>
+                          )}
+                          <span className={`absolute bottom-1 right-1 font-mono text-[9px] font-bold ${
+                            isEquipped ? 'text-amber-700' : isEink ? 'text-[#4a4943]' : 'text-zinc-500'
+                          }`}>
+                            #{spriteIndex + 1}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Top 4 Metric KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -377,11 +527,11 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
           <div className={`double-bezel-inner p-4 border space-y-1 ${
             isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
           }`}>
-            <div className={`flex items-center justify-between ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+            <div className="flex items-center justify-between text-black font-extrabold">
               <span className="font-mono text-xs uppercase font-bold tracking-wider">Completion Rate</span>
               <Target className="w-4 h-4 text-emerald-600" />
             </div>
-            <div className="font-pixel text-2xl font-bold">
+            <div className={`font-pixel text-2xl font-bold text-black`}>
               {completionRate}%
             </div>
             <div className={`font-mono text-[11px] flex items-center justify-between ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
@@ -396,11 +546,11 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
           <div className={`double-bezel-inner p-4 border space-y-1 ${
             isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
           }`}>
-            <div className={`flex items-center justify-between ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+            <div className="flex items-center justify-between text-black font-extrabold">
               <span className="font-mono text-xs uppercase font-bold tracking-wider">Completed Quests</span>
               <CheckCircle2 className="w-4 h-4 text-amber-500" />
             </div>
-            <div className="font-pixel text-2xl font-bold">
+            <div className={`font-pixel text-2xl font-bold text-black`}>
               {playerStats.totalCompletedQuests || completedQuests}
             </div>
             <div className={`font-mono text-[11px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
@@ -414,11 +564,11 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
           <div className={`double-bezel-inner p-4 border space-y-1 ${
             isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
           }`}>
-            <div className={`flex items-center justify-between ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+            <div className="flex items-center justify-between text-black font-extrabold">
               <span className="font-mono text-xs uppercase font-bold tracking-wider">Daily Streak</span>
               <Flame className="w-4 h-4 text-orange-500 animate-pulse" />
             </div>
-            <div className="font-pixel text-2xl font-bold flex items-baseline gap-1.5">
+            <div className={`font-pixel text-2xl font-bold flex items-baseline gap-1.5 text-black`}>
               <span>{playerStats.streakDays}</span>
               <span className="text-xs font-mono text-orange-500 font-semibold">{playerStats.streakDays === 1 ? 'DAY' : 'DAYS'}</span>
             </div>
@@ -433,11 +583,11 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
           <div className={`double-bezel-inner p-4 border space-y-1 ${
             isEink ? 'bg-[#f5f4ef] text-[#111113] border-[#18181c]' : 'bg-[#18181c] text-[#f5f4ef] border-[#33322d]'
           }`}>
-            <div className={`flex items-center justify-between ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
+            <div className="flex items-center justify-between text-black font-extrabold">
               <span className="font-mono text-xs uppercase font-bold tracking-wider">Hero Total XP</span>
               <Sparkles className="w-4 h-4 text-purple-500" />
             </div>
-            <div className="font-pixel text-2xl font-bold">
+            <div className={`font-pixel text-2xl font-bold text-black`}>
               {(playerStats.totalXpEarned || playerStats.xp).toLocaleString()}
             </div>
             <div className={`font-mono text-[11px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
@@ -463,7 +613,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
                     <TrendingUp className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-pixel text-sm font-bold uppercase tracking-wider">
+                    <h3 className="font-pixel text-sm font-bold uppercase tracking-wider text-black">
                       QUEST COMPLETION & XP VELOCITY
                     </h3>
                     <p className={`font-mono text-[11px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
@@ -583,7 +733,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
                   <div className="flex items-center gap-2">
                     <Brain className={`w-5 h-5 ${isEink ? 'text-indigo-700' : 'text-indigo-400'}`} />
                     <div>
-                      <h4 className="font-pixel text-xs font-bold uppercase tracking-wider">
+                      <h4 className="font-pixel text-xs font-bold uppercase tracking-wider text-black">
                         5-ATTRIBUTE RPG RADAR
                       </h4>
                       <p className={`font-mono text-[10px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
@@ -639,7 +789,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
                   <div className="flex items-center gap-2">
                     <Layers className={`w-5 h-5 ${isEink ? 'text-amber-800' : 'text-amber-400'}`} />
                     <div>
-                      <h4 className="font-pixel text-xs font-bold uppercase tracking-wider">
+                      <h4 className="font-pixel text-xs font-bold uppercase tracking-wider text-black">
                         DIFFICULTY TIER BREAKDOWN
                       </h4>
                       <p className={`font-mono text-[10px] ${isEink ? 'text-[#4a4943]' : 'text-zinc-400'}`}>
@@ -656,7 +806,7 @@ export const QuestProgressDashboard: FC<QuestProgressDashboardProps> = ({ onBack
 
                 <div className="w-full h-64 sm:h-72">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={difficultyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <BarChart data={questDifficultyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                       <XAxis 
                         dataKey="difficulty" 
