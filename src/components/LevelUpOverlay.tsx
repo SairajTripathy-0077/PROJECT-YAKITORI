@@ -258,9 +258,10 @@ export const LevelUpOverlay: FC = () => {
 
               {/* Right Side Stats Badges (STRICTLY BLACK TEXT) */}
               <div className="flex items-center gap-2">
-                <span className="font-pixel text-xs font-bold text-[#111113] bg-[#dcdbd4] px-2.5 py-0.5 border border-[#18181c]">
+                <span className="font-mono text-xs font-bold text-[#111113] bg-[#dcdbd4] px-2.5 py-0.5 border border-[#18181c] tabular-nums">
                   Lv.{newLevel}
                 </span>
+
 
                 <span className="flex items-center gap-1 font-mono text-xs text-[#111113] bg-[#e4e2d8] px-2 py-0.5 border border-[#18181c] font-bold">
                   <Coins className="w-3.5 h-3.5 text-amber-700" />
