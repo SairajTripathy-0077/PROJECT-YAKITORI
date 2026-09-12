@@ -31,6 +31,7 @@ interface NavbarProps {
   onOpenNewQuest: () => void;
   onOpenStudyRoom: () => void;
   onOpenAnalytics: () => void;
+  onOpenCharacterCreation?: () => void;
   viewMode: 'landing' | 'app' | 'study' | 'analytics';
   onToggleViewMode: (mode?: 'landing' | 'app' | 'study' | 'analytics') => void;
 }
@@ -41,9 +42,11 @@ export const Navbar: FC<NavbarProps> = ({
   onOpenNewQuest,
   onOpenStudyRoom,
   onOpenAnalytics,
+  onOpenCharacterCreation,
   viewMode,
   onToggleViewMode
 }) => {
+
   const { 
     playerStats, 
     soundEnabled, 
@@ -141,10 +144,11 @@ export const Navbar: FC<NavbarProps> = ({
                 ) : (
                   <Award className="w-4 h-4 text-amber-600" />
                 )}
-                <span className="font-pixel font-bold text-[#111113]">
-                  Lv.{playerStats.level}
+                <span className="font-mono font-bold tabular-nums text-[#111113]">
+                  Lv.{Math.max(1, Number(playerStats.level) || 1)}
                 </span>
               </div>
+
 
               <div className="h-4 w-px bg-[#18181c]/30"></div>
 
@@ -276,7 +280,26 @@ export const Navbar: FC<NavbarProps> = ({
                           192 CHARS
                         </span>
                       </button>
+
+                      {onOpenCharacterCreation && (
+                        <button
+                          onClick={() => {
+                            onOpenCharacterCreation();
+                            setIsMenuOpen(false);
+                          }}
+                          className="w-full text-left px-2.5 py-2 font-mono flex items-center justify-between hover:bg-[#ebeae4] transition-colors text-amber-900 font-bold"
+                        >
+                          <span className="flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-amber-600 animate-pulse" />
+                            <span>Hero Customization</span>
+                          </span>
+                          <span className="text-[9px] font-pixel bg-amber-100 text-amber-950 px-1.5 py-0.5 border border-amber-700">
+                            ORIGIN
+                          </span>
+                        </button>
+                      )}
                     </div>
+
 
                     {/* Quick Settings & Controls Group */}
                     <div className="p-1.5 border-b border-[#18181c]/20 space-y-0.5">

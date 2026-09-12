@@ -13,6 +13,7 @@ import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { StudyRoomModal } from './components/StudyRoomModal';
 import { StudyRoomPage } from './components/StudyRoomPage';
 import { QuestProgressDashboard } from './components/QuestProgressDashboard';
+import { CharacterCreationModal } from './components/CharacterCreationModal';
 import { TrendingUp, BarChart3 } from 'lucide-react';
 
 const MainAppContent: FC = () => {
@@ -26,6 +27,7 @@ const MainAppContent: FC = () => {
   const [isShopModalOpen, setIsShopModalOpen] = useState(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [isStudyRoomOpen, setIsStudyRoomOpen] = useState(false);
+  const [isCharacterCreationOpen, setIsCharacterCreationOpen] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -70,6 +72,7 @@ const MainAppContent: FC = () => {
         }}
         onOpenStudyRoom={() => setViewMode('study')}
         onOpenAnalytics={() => setViewMode('analytics')}
+        onOpenCharacterCreation={() => setIsCharacterCreationOpen(true)}
         viewMode={viewMode}
         onToggleViewMode={(mode) => {
           if (mode) {
@@ -85,13 +88,19 @@ const MainAppContent: FC = () => {
         
         {viewMode === 'landing' ? (
           /* Landing Hero View - Full Edge-to-Edge Image */
-          <LandingHero onEnterApp={() => setViewMode('app')} />
+          <LandingHero onEnterApp={() => {
+            setViewMode('app');
+            setIsCharacterCreationOpen(true);
+          }} />
         ) : viewMode === 'study' ? (
           /* Hero Guild Study Room Page - All Heroes, Levels, XP, Avatars */
           <StudyRoomPage onBackToDashboard={() => setViewMode('app')} />
         ) : viewMode === 'analytics' ? (
           /* Quest Progress & Recharts Analytics Dashboard */
-          <QuestProgressDashboard onBackToQuests={() => setViewMode('app')} />
+          <QuestProgressDashboard 
+            onBackToQuests={() => setViewMode('app')}
+            onOpenCharacterCreation={() => setIsCharacterCreationOpen(true)}
+          />
         ) : (
           /* App Dashboard View - Full RPG Controls & Stats */
           <div className="space-y-6 animate-fade-in">
@@ -159,9 +168,15 @@ const MainAppContent: FC = () => {
         onClose={() => setIsStudyRoomOpen(false)}
       />
 
+      <CharacterCreationModal
+        isOpen={isCharacterCreationOpen}
+        onClose={() => setIsCharacterCreationOpen(false)}
+      />
+
     </div>
   );
 };
+
 
 export function App() {
   return (
