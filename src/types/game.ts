@@ -20,7 +20,8 @@ export interface Quest {
   completed: boolean;
   createdAt: number;
   completedAt?: number;
-  dueDate?: string;
+  lastCompletedDate?: string; // YYYY-MM-DD date when quest was completed
+  dueDate?: string; // YYYY-MM-DD or ISO date string
   subtasks: Subtask[];
   xpReward: number;
   goldReward: number;
@@ -47,11 +48,13 @@ export interface PlayerStats {
   level: number;
   xp: number;
   xpToNextLevel: number;
+  totalXpEarned?: number;
   gold: number;
   totalCompletedQuests: number;
   streakDays: number;
   lastActiveDate: string; // YYYY-MM-DD
   activeMultiplier: number;
+  activityHistory?: string[]; // Array of YYYY-MM-DD completion dates
   equippedTheme: string;
   equippedBadge: string;
   equippedDroneSkin: string;
@@ -66,7 +69,7 @@ export interface ShopItem {
   icon: string;
   category: 'equipment' | 'theme' | 'badge' | 'drone';
   effect: string;
-  statBonus?: { attribute: AttributeType; boost: number };
+  statBonus?: { attribute: AttributeType | 'all' | 'gold'; boost: number; type?: 'percent' | 'flat' };
   purchased: boolean;
   equipped?: boolean;
 }
@@ -79,3 +82,12 @@ export interface DroneState {
   currentMessage: string;
   isSpeaking: boolean;
 }
+
+export interface LevelUpModalData {
+  show: boolean;
+  newLevel: number;
+  rewardGold: number;
+  unlockedTitle?: string;
+  attributeLevelUps?: { attribute: AttributeType; newLevel: number }[];
+}
+

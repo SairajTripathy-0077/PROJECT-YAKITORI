@@ -79,7 +79,7 @@ const userSchema = new Schema<IUser>(
     timestamps: true,           // auto createdAt + updatedAt
     toJSON: {
       // Strip sensitive/internal fields when sending to client
-      transform(_doc, ret) {
+      transform(_doc, ret: Record<string, unknown>) {
         delete ret.__v;
         delete ret._id;
         return ret;
