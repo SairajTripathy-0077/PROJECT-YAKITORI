@@ -33,6 +33,7 @@ interface NavbarProps {
   onOpenAnalytics: () => void;
   onOpenCharacterCreation?: () => void;
   onOpenAuth?: () => void;
+  onAuthSuccess?: () => void;
   viewMode: 'landing' | 'app' | 'study' | 'analytics';
   onToggleViewMode: (mode?: 'landing' | 'app' | 'study' | 'analytics') => void;
 }
@@ -45,6 +46,7 @@ export const Navbar: FC<NavbarProps> = ({
   onOpenAnalytics,
   onOpenCharacterCreation,
   onOpenAuth,
+  onAuthSuccess,
   viewMode,
   onToggleViewMode
 }) => {
@@ -375,6 +377,7 @@ export const Navbar: FC<NavbarProps> = ({
         )}
 
       </div>
+
     </header>
   );
 };

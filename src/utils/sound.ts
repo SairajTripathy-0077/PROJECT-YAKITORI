@@ -95,12 +95,26 @@ export const playDeleteSound = () => {
   playTone(220, 'sawtooth', 0.12, 0.08, 0.001);
 };
 
-export type SoundType = 'click' | 'purchase' | 'buy' | 'levelUp' | 'questComplete' | 'complete' | 'error' | 'delete' | 'subtask' | 'drone';
+export const playCuteCompanionChime = () => {
+  if (!soundEnabled) return;
+  // Sweet anime companion sparkle arpeggio: C6, E6, G6, B6
+  const notes = [1046.50, 1318.51, 1567.98, 1975.53];
+  notes.forEach((freq, idx) => {
+    setTimeout(() => {
+      playTone(freq, 'sine', 0.14, 0.045, 0.001);
+    }, idx * 45);
+  });
+};
+
+export type SoundType = 'click' | 'purchase' | 'buy' | 'levelUp' | 'questComplete' | 'complete' | 'error' | 'delete' | 'subtask' | 'drone' | 'companionGreeting';
 
 export const playSound = (type: SoundType) => {
   switch (type) {
     case 'click':
       playClick();
+      break;
+    case 'companionGreeting':
+      playCuteCompanionChime();
       break;
     case 'purchase':
     case 'buy':
@@ -128,3 +142,4 @@ export const playSound = (type: SoundType) => {
       break;
   }
 };
+

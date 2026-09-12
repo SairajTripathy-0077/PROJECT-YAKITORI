@@ -150,3 +150,202 @@ body {
 .animate-pulse-subtle {
   animation: pulseSubtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* --- Interactive Companion Keyframe Animations --- */
+
+@keyframes companion-idle {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.008);
+  }
+}
+
+@keyframes companion-welcome {
+  0% {
+    transform: translateY(20px) scale(0.92) rotate(0deg);
+    opacity: 0;
+  }
+  40% {
+    transform: translateY(-8px) scale(1.03) rotate(-2.5deg);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(2px) scale(0.99) rotate(1.5deg);
+  }
+  100% {
+    transform: translateY(0px) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes companion-new-user {
+  0% {
+    transform: translateY(24px) scale(0.9);
+    opacity: 0;
+  }
+  30% {
+    transform: translateY(-22px) scale(1.06, 0.95);
+    opacity: 1;
+  }
+  55% {
+    transform: translateY(2px) scale(0.96, 1.04);
+  }
+  75% {
+    transform: translateY(-10px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+}
+
+@keyframes companion-task-complete {
+  0% {
+    transform: translateY(0px) scale(1);
+  }
+  25% {
+    transform: translateY(-16px) scale(1.04) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(0px) scale(0.97) rotate(2deg);
+  }
+  75% {
+    transform: translateY(-6px) scale(1.01) rotate(-1deg);
+  }
+  100% {
+    transform: translateY(0px) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes companion-level-up {
+  0% {
+    transform: translateY(30px) scale(0.85);
+    filter: brightness(0.8);
+    opacity: 0;
+  }
+  35% {
+    transform: translateY(-30px) scale(1.1);
+    filter: brightness(1.2);
+    opacity: 1;
+  }
+  65% {
+    transform: translateY(-4px) scale(1.02);
+    filter: brightness(1.05);
+  }
+  85% {
+    transform: translateY(-12px) scale(1.05);
+  }
+  100% {
+    transform: translateY(0px) scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes companion-aura-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float-xp {
+  0% {
+    transform: translateY(0px) scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    transform: translateY(-6px) scale(1.1);
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(-28px) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-42px) scale(0.95);
+    opacity: 0;
+  }
+}
+
+@keyframes card-complete-flash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+@keyframes sound-wave-bar {
+  0%, 100% {
+    height: 4px;
+  }
+  50% {
+    height: 14px;
+  }
+}
+
+.companion-anim-idle {
+  animation: companion-idle 3.2s ease-in-out infinite;
+}
+
+.companion-anim-welcome {
+  animation: companion-welcome 0.85s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.companion-anim-new-user {
+  animation: companion-new-user 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.companion-anim-task-complete {
+  animation: companion-task-complete 0.85s ease-out forwards;
+}
+
+.companion-anim-level-up {
+  animation: companion-level-up 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.companion-aura-rays {
+  animation: companion-aura-spin 18s linear infinite;
+}
+
+.animate-float-xp {
+  animation: float-xp 1.4s ease-out forwards;
+}
+
+.animate-card-flash {
+  animation: card-complete-flash 0.9s ease-out;
+}
+
+.sound-bar-1 {
+  animation: sound-wave-bar 0.6s ease-in-out infinite;
+}
+.sound-bar-2 {
+  animation: sound-wave-bar 0.6s ease-in-out 0.2s infinite;
+}
+.sound-bar-3 {
+  animation: sound-wave-bar 0.6s ease-in-out 0.4s infinite;
+}
+
+/* Accessibility: respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .companion-anim-idle,
+  .companion-anim-welcome,
+  .companion-anim-new-user,
+  .companion-anim-task-complete,
+  .companion-anim-level-up,
+  .companion-aura-rays,
+  .animate-float-xp,
+  .animate-card-flash,
+  .sound-bar-1,
+  .sound-bar-2,
+  .sound-bar-3 {
+    animation: none !important;
+    transform: none !important;
+  }
+}
